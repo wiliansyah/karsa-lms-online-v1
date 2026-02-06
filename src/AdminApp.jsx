@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutDashboard, Users, BookOpen, FileText, BarChart2, Settings,
-  Search, Bell, Filter, Plus, ChevronRight, MoreVertical,
-  CheckCircle, XCircle, Clock, AlertTriangle, ChevronDown,
-  Download, Upload, Shield, Award, Calendar, DollarSign,
-  Briefcase, GraduationCap, TrendingUp, PieChart as PieIcon,
-  ArrowUpRight, ArrowDownRight, Mail, Phone, MapPin, X, LogOut,
-  Edit, Eye, Trash2, Layers, Activity, FileVideo, FileQuestion, 
-  ListChecks, GripVertical, File, PlayCircle, Menu, ArrowLeft
+  LayoutDashboard, Users, BookOpen, FileText, BarChart2,
+  Search, Bell, Plus, ChevronRight, MoreVertical,
+  CheckCircle, XCircle, Clock, AlertTriangle,
+  Download, Award, DollarSign, Briefcase, GraduationCap,
+  PieChart as PieIcon, MapPin, X, LogOut,
+  Eye, Layers, Menu, ArrowLeft, Target,
+  FileCheck, PlayCircle, File, Video, ToggleLeft, ToggleRight,
+  Filter, Calendar, TrendingUp
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, Legend
+  LineChart, Line, AreaChart, Area, Legend,
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
 
 // --- 1. THEME & STYLES ---
@@ -25,7 +26,6 @@ const GlobalStyles = () => (
     
     body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #334155; }
     
-    /* Animation Utilities */
     .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
     .animate-slideIn { animation: slideIn 0.3s ease-out forwards; }
     .animate-slideInRight { animation: slideInRight 0.3s ease-out forwards; }
@@ -36,7 +36,7 @@ const GlobalStyles = () => (
     @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
     @keyframes pop { 0% { transform: scale(0.95); } 100% { transform: scale(1); } }
 
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -55,66 +55,51 @@ const GlobalStyles = () => (
       border-left: 4px solid ${KARSA_RED};
       color: ${KARSA_RED};
     }
-
-    /* Hide scrollbar for mobile drawers but allow scroll */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    tr { transition: background-color 0.15s; }
   `}</style>
 );
 
-// --- 2. MOCK DATA ---
-// (Data remains the same as previous version)
-const EMPLOYEES = [
-  { id: 'E001', name: 'Budi Santoso', role: 'Sales Staff', dept: 'Frontliner', branch: 'Kb. Kawung', progress: 85, compliance: 'Compliant', lastActive: '2h ago', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Budi', risk: 'low', courses_assigned: 12, courses_completed: 10, email: 'budi.s@kartikasari.com', phone: '+62 812-3456-7890', joinDate: '12 Jan 2022' },
-  { id: 'E002', name: 'Siska Wijaya', role: 'Store Manager', dept: 'Operational', branch: 'Dago', progress: 92, compliance: 'Compliant', lastActive: '5m ago', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Siska', risk: 'low', courses_assigned: 20, courses_completed: 18, email: 'siska.w@kartikasari.com', phone: '+62 812-9876-5432', joinDate: '05 Mar 2019' },
-  { id: 'E003', name: 'Andi Pratama', role: 'Head Baker', dept: 'Kitchen', branch: 'Central Kitchen', progress: 45, compliance: 'At Risk', lastActive: '3d ago', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Andi', risk: 'high', courses_assigned: 15, courses_completed: 6, email: 'andi.p@kartikasari.com', phone: '+62 813-4567-8901', joinDate: '20 Aug 2021' },
-  { id: 'E004', name: 'Rina Melati', role: 'Supervisor', dept: 'Frontliner', branch: 'Buah Batu', progress: 78, compliance: 'Compliant', lastActive: '1d ago', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rina', risk: 'medium', courses_assigned: 18, courses_completed: 14, email: 'rina.m@kartikasari.com', phone: '+62 811-2345-6789', joinDate: '10 Nov 2020' },
-  { id: 'E005', name: 'Dedi Kusuma', role: 'Logistics', dept: 'Warehouse', branch: 'Central', progress: 60, compliance: 'Non-Compliant', lastActive: '5d ago', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dedi', risk: 'high', courses_assigned: 10, courses_completed: 6, email: 'dedi.k@kartikasari.com', phone: '+62 856-7890-1234', joinDate: '15 Feb 2023' },
+// --- 2. MOCK DATA INITIALIZERS ---
+const INITIAL_EMPLOYEES = [
+  { id: 'E001', name: 'Budi Santoso', role: 'Sales Staff', dept: 'Frontliner', branch: 'Kb. Kawung', progress: 85, compliance: 'Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Budi', courses_assigned: 12, courses_completed: 10, email: 'budi.s@kartikasari.com', phone: '0812-3456-7890', joinDate: '12 Jan 2022' },
+  { id: 'E002', name: 'Siska Wijaya', role: 'Store Manager', dept: 'Operational', branch: 'Dago', progress: 92, compliance: 'Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Siska', courses_assigned: 20, courses_completed: 18, email: 'siska.w@kartikasari.com', phone: '0812-9876-5432', joinDate: '05 Mar 2019' },
+  { id: 'E003', name: 'Andi Pratama', role: 'Head Baker', dept: 'Kitchen', branch: 'Central Kitchen', progress: 45, compliance: 'At Risk', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Andi', courses_assigned: 15, courses_completed: 6, email: 'andi.p@kartikasari.com', phone: '0813-4567-8901', joinDate: '20 Aug 2021' },
+  { id: 'E004', name: 'Rina Melati', role: 'Supervisor', dept: 'Frontliner', branch: 'Buah Batu', progress: 78, compliance: 'Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rina', courses_assigned: 18, courses_completed: 14, email: 'rina.m@kartikasari.com', phone: '0811-2345-6789', joinDate: '10 Nov 2020' },
+  { id: 'E005', name: 'Dedi Kusuma', role: 'Logistics', dept: 'Warehouse', branch: 'Central', progress: 60, compliance: 'Non-Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dedi', courses_assigned: 10, courses_completed: 6, email: 'dedi.k@kartikasari.com', phone: '0856-7890-1234', joinDate: '15 Feb 2023' },
 ];
 
 const INITIAL_COURSES = [
   { 
-      id: 'C01', title: 'Food Safety Standard (HACCP)', category: 'Mandatory', level: 'All Staff', 
-      assigned: 150, completed: 120, avgScore: 88, status: 'Active', 
-      modules: [{ title: 'Intro to Hygiene', type: 'video', duration: '5:00' }, { title: 'HACCP Quiz', type: 'quiz', duration: '15:00' }] 
+    id: 'C01', title: 'Food Safety Standard (HACCP)', category: 'Mandatory', level: 'All Staff', 
+    assigned: 150, completed: 120, status: 'Active',
+    description: 'Comprehensive guide to Hazard Analysis Critical Control Point for food safety.',
+    duration: '2h 30m', modules_count: 5, type: 'Video & Quiz'
   },
   { 
-      id: 'C02', title: 'Service Excellence 2.0', category: 'Soft Skill', level: 'Frontliner',
-      assigned: 80, completed: 45, avgScore: 92, status: 'Active',
-      modules: [{ title: 'Customer First Mindset', type: 'video', duration: '10:00' }]
+    id: 'C02', title: 'Service Excellence 2.0', category: 'Soft Skill', level: 'Frontliner', 
+    assigned: 80, completed: 45, status: 'Active',
+    description: 'Advanced customer service techniques for handling complaints and premium service.',
+    duration: '1h 45m', modules_count: 3, type: 'Video'
   },
   { 
-      id: 'C03', title: 'POS System Advanced', category: 'Technical', level: 'Cashier',
-      assigned: 40, completed: 38, avgScore: 95, status: 'Active',
-      modules: [{ title: 'System Operation', type: 'doc', duration: '10:00' }]
+    id: 'C03', title: 'POS System Advanced', category: 'Technical', level: 'Cashier', 
+    assigned: 40, completed: 38, status: 'Active',
+    description: 'Technical mastery of the Point of Sales system including troubleshooting.',
+    duration: '45m', modules_count: 2, type: 'Interactive'
   },
   { 
-      id: 'C04', title: 'Leadership 101', category: 'Managerial', level: 'Manager',
-      assigned: 20, completed: 5, avgScore: 0, status: 'Draft',
-      modules: []
+    id: 'C04', title: 'Leadership 101', category: 'Managerial', level: 'Manager', 
+    assigned: 20, completed: 5, status: 'Draft',
+    description: 'Basic leadership principles for new supervisors and managers.',
+    duration: '3h 00m', modules_count: 8, type: 'Mixed'
   },
 ];
 
-const REQUESTS = [
-  { id: 'R01', employee: 'Siska Wijaya', title: 'Advanced Latte Art', provider: 'Barista Academy', cost: 2500000, date: '2023-11-20', status: 'Pending', justification: 'To improve premium coffee sales variant at Dago branch.', vendor_details: 'Barista Academy BDG, Jl. Riau No. 55', timeline: '2 Days Workshop', leader_approval: 'Approval_AM_Siska.pdf' },
-  { id: 'R02', employee: 'Andi Pratama', title: 'Industrial Baking Tech', provider: 'Baking Center JKT', cost: 5000000, date: '2023-11-22', status: 'Approved', justification: 'Efficiency for new oven machine operational.', vendor_details: 'Baking Center JKT, South Jakarta', timeline: '1 Week Certification', leader_approval: 'Approval_HeadChef_Andi.pdf' },
-  { id: 'R03', employee: 'Team Warehouse', title: 'Safety Driving', provider: 'Internal', cost: 0, date: '2023-12-01', status: 'Rejected', justification: 'Budget constraint for this quarter.', vendor_details: 'Internal GA Team', timeline: '1 Day', leader_approval: 'Approval_LogMgr.pdf' },
-];
-
-const ANALYTICS_DATA = [
-  { name: 'Frontliner', completion: 85, engagement: 90 },
-  { name: 'Kitchen', completion: 72, engagement: 65 },
-  { name: 'Operational', completion: 95, engagement: 98 },
-  { name: 'Warehouse', completion: 60, engagement: 50 },
-  { name: 'Office', completion: 88, engagement: 82 },
-];
-
-const LEADERBOARD_DATA = [
-  { rank: 1, name: 'Siska Wijaya', xp: 3200, dept: 'Operational' },
-  { rank: 2, name: 'Andi Pratama', xp: 2950, dept: 'Kitchen' },
-  { rank: 3, name: 'Budi Santoso', xp: 2800, dept: 'Frontliner' },
-  { rank: 4, name: 'Rina Melati', xp: 2600, dept: 'Frontliner' },
-  { rank: 5, name: 'Dedi Kusuma', xp: 2400, dept: 'Warehouse' },
+const INITIAL_REQUESTS = [
+  { id: 'R01', employee: 'Siska Wijaya', title: 'Advanced Latte Art', provider: 'Barista Academy', cost: 2500000, date: '2023-11-20', status: 'Pending', justification: 'To improve premium coffee sales variant at Dago branch.', vendor_details: 'Barista Academy BDG', timeline: '2 Days Workshop', leader_approval: true },
+  { id: 'R02', employee: 'Andi Pratama', title: 'Industrial Baking Tech', provider: 'Baking Center JKT', cost: 5000000, date: '2023-11-22', status: 'Approved', justification: 'Efficiency for new oven machine.', vendor_details: 'Baking Center JKT', timeline: '1 Week Certification', leader_approval: true },
+  { id: 'R03', employee: 'Team Warehouse', title: 'Safety Driving', provider: 'Internal', cost: 0, date: '2023-12-01', status: 'Rejected', justification: 'Budget constraint.', vendor_details: 'Internal GA Team', timeline: '1 Day', leader_approval: true },
 ];
 
 const HISTORY_MOCK = [
@@ -124,7 +109,16 @@ const HISTORY_MOCK = [
   { id: 4, action: 'Started Course', detail: 'Product Knowledge: Bolen', date: 'Oct 15, 2023', score: '-' },
 ];
 
-// --- 3. COMMON COMPONENTS ---
+const SKILL_RADAR_DATA = [
+  { subject: 'HACCP', A: 120, B: 110, fullMark: 150 },
+  { subject: 'Service', A: 98, B: 130, fullMark: 150 },
+  { subject: 'Tech', A: 86, B: 130, fullMark: 150 },
+  { subject: 'Managerial', A: 99, B: 100, fullMark: 150 },
+  { subject: 'Safety', A: 85, B: 90, fullMark: 150 },
+  { subject: 'Product', A: 65, B: 85, fullMark: 150 },
+];
+
+// --- 3. COMMON UTILS ---
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -136,7 +130,6 @@ const StatusBadge = ({ status }) => {
     'Draft': 'bg-slate-100 text-slate-600 border-slate-200',
     'Non-Compliant': 'bg-red-100 text-red-700 border-red-200',
     'Rejected': 'bg-red-100 text-red-700 border-red-200',
-    'High': 'bg-red-100 text-red-700 border-red-200',
   };
   return (
     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border whitespace-nowrap ${styles[status] || styles['Draft']}`}>
@@ -147,245 +140,183 @@ const StatusBadge = ({ status }) => {
 
 const ProgressBar = ({ value, colorClass = "bg-blue-600" }) => (
   <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-    <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${value}%` }}></div>
+    <div className={`h-full rounded-full transition-all duration-500 ${colorClass}`} style={{ width: `${value}%` }}></div>
   </div>
 );
 
-// --- 4. MODALS & SUB-VIEWS (Mobile Optimized) ---
+// --- 4. MODALS & FORMS ---
+
+const AddEmployeeModal = ({ isOpen, onClose, onSave }) => {
+    const [formData, setFormData] = useState({ name: '', role: '', dept: 'Frontliner', email: '' });
+    const handleSubmit = () => {
+        if(!formData.name || !formData.email) return alert('Name and Email are required');
+        onSave({
+            ...formData, id: `E${Math.floor(Math.random() * 1000)}`,
+            progress: 0, compliance: 'Compliant', courses_assigned: 0, courses_completed: 0,
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.name}`,
+            joinDate: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+        });
+        onClose(); setFormData({ name: '', role: '', dept: 'Frontliner', email: '' });
+    };
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-pop">
+                <div className="p-5 border-b border-slate-100 flex justify-between items-center"><h3 className="font-bold text-lg">Add New Employee</h3><button onClick={onClose}><X size={20} className="text-slate-400 hover:text-red-500"/></button></div>
+                <div className="p-6 space-y-4">
+                    <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label><input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-100 outline-none"/></div>
+                    <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label><input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-100 outline-none"/></div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Department</label><select value={formData.dept} onChange={e => setFormData({...formData, dept: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg outline-none"><option>Frontliner</option><option>Kitchen</option><option>Operational</option><option>Warehouse</option></select></div>
+                        <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Role</label><input value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg outline-none"/></div>
+                    </div>
+                </div>
+                <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-2xl"><button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800">Cancel</button><button onClick={handleSubmit} className="btn-primary px-6 py-2 text-sm font-bold rounded-lg shadow-lg">Save</button></div>
+            </div>
+        </div>
+    );
+};
+
+// Modal: Create Course (Detailed)
+const CreateCourseModal = ({ isOpen, onClose, onSave }) => {
+    const [step, setStep] = useState(1);
+    const [formData, setFormData] = useState({ title: '', category: 'Mandatory', level: 'All Staff', description: '', duration: '', type: 'Video' });
+    const handleSubmit = () => {
+        if(!formData.title) return alert('Title is required');
+        onSave({ ...formData, id: `C${Math.floor(Math.random() * 1000)}`, assigned: 0, completed: 0, status: 'Draft', modules_count: 0 });
+        onClose(); setFormData({ title: '', category: 'Mandatory', level: 'All Staff', description: '', duration: '', type: 'Video' }); setStep(1);
+    };
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl animate-pop overflow-hidden">
+                <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50"><div><h3 className="font-bold text-lg text-slate-800">Create New Course</h3><p className="text-xs text-slate-500">Step {step} of 2</p></div><button onClick={onClose}><X size={20} className="text-slate-400 hover:text-red-500"/></button></div>
+                <div className="p-6 md:p-8">
+                    {step === 1 ? (
+                        <div className="space-y-4 animate-slideInRight">
+                            <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Course Title</label><input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none" placeholder="e.g. Advanced Baking Techniques"/></div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label><select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl outline-none bg-white"><option>Mandatory</option><option>Soft Skill</option><option>Technical</option><option>Managerial</option></select></div>
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Target Audience</label><select value={formData.level} onChange={e => setFormData({...formData, level: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl outline-none bg-white"><option>All Staff</option><option>Frontliner</option><option>Manager</option><option>Kitchen Staff</option></select></div>
+                            </div>
+                            <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Description</label><textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none h-24 resize-none" placeholder="Short description..."/></div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 animate-slideInRight">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Est. Duration</label><input value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none" placeholder="e.g. 2h 30m"/></div>
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Content Type</label><select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl outline-none bg-white"><option>Video</option><option>Interactive SCORM</option><option>Document / PDF</option><option>Mixed</option></select></div>
+                            </div>
+                            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center"><div className="bg-white p-3 rounded-full shadow-sm mb-3"><Download size={24} className="text-slate-400"/></div><p className="font-bold text-slate-600">Upload Course Material</p><p className="text-xs text-slate-400">Drag & drop files or <span className="text-[#D12027] cursor-pointer hover:underline">Browse</span></p></div>
+                        </div>
+                    )}
+                </div>
+                <div className="p-5 border-t border-slate-100 flex justify-between bg-slate-50">
+                    {step === 2 ? <button onClick={() => setStep(1)} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800">Back</button> : <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800">Cancel</button>}
+                    {step === 1 ? <button onClick={() => setStep(2)} className="btn-primary px-6 py-2 text-sm font-bold rounded-lg shadow-lg flex items-center gap-2">Next <ChevronRight size={16}/></button> : <button onClick={handleSubmit} className="btn-primary px-6 py-2 text-sm font-bold rounded-lg shadow-lg">Create Draft</button>}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Modal: Course Detail & Activation
+const CourseDetailModal = ({ course, isOpen, onClose, onToggleStatus }) => {
+    if(!isOpen || !course) return null;
+    const isActive = course.status === 'Active';
+    return (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl animate-pop overflow-hidden max-h-[90vh] flex flex-col">
+                <div className="bg-slate-900 text-white p-6 relative shrink-0">
+                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#D12027] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-40"></div>
+                     <div className="relative z-10 flex justify-between items-start">
+                        <div><span className="bg-white/10 px-2 py-1 rounded text-xs font-bold border border-white/20 mb-2 inline-block">{course.category}</span><h2 className="text-2xl font-bold">{course.title}</h2><p className="text-slate-300 text-sm mt-1 flex items-center gap-4"><span className="flex items-center gap-1"><Clock size={14}/> {course.duration}</span><span className="flex items-center gap-1"><Layers size={14}/> {course.modules_count} Modules</span></p></div>
+                        <button onClick={onClose} className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors"><X size={20}/></button>
+                     </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-6">
+                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><h3 className="font-bold text-slate-800 mb-3">About this Course</h3><p className="text-sm text-slate-600 leading-relaxed">{course.description || 'No description provided.'}</p></div>
+                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><h3 className="font-bold text-slate-800 mb-4">Syllabus / Modules</h3><div className="space-y-3">{[1,2,3].map(i => (<div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer"><div className="w-8 h-8 bg-[#D12027]/10 text-[#D12027] rounded-full flex items-center justify-center font-bold text-sm">{i}</div><div className="flex-1"><p className="text-sm font-bold text-slate-700">Module {i}: Introduction to Topic</p><p className="text-xs text-slate-400">Video • 15 mins</p></div><PlayCircle size={18} className="text-slate-300"/></div>))}</div></div>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><h3 className="font-bold text-slate-800 mb-4">Course Status</h3><div className="flex items-center justify-between mb-4"><span className={`text-sm font-bold ${isActive ? 'text-green-600' : 'text-slate-500'}`}>{isActive ? 'Published / Active' : 'Draft / Inactive'}</span><button onClick={() => onToggleStatus(course.id)} className={`text-2xl transition-colors ${isActive ? 'text-green-500' : 'text-slate-300'}`}>{isActive ? <ToggleRight size={32}/> : <ToggleLeft size={32}/>}</button></div><p className="text-xs text-slate-500 mb-4">{isActive ? 'This course is visible to all assigned employees.' : 'This course is hidden. Activate to allow enrollment.'}</p><button onClick={() => onToggleStatus(course.id)} className={`w-full py-2 rounded-lg text-sm font-bold border transition-colors ${isActive ? 'border-red-200 text-red-600 hover:bg-red-50' : 'bg-green-600 text-white hover:bg-green-700'}`}>{isActive ? 'Deactivate Course' : 'Activate Course'}</button></div>
+                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><h3 className="font-bold text-slate-800 mb-2">Stats</h3><div className="space-y-3"><div className="flex justify-between text-sm"><span className="text-slate-500">Enrolled</span><span className="font-bold">{course.assigned}</span></div><div className="flex justify-between text-sm"><span className="text-slate-500">Completed</span><span className="font-bold text-green-600">{course.completed}</span></div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 // Modal: Assign Course
-const AssignCourseModal = ({ isOpen, onClose, courses, preSelectedEmployee = null }) => {
+const AssignCourseModal = ({ isOpen, onClose, courses, employees, preSelectedEmployee = null, onAssign }) => {
   const [assignMode, setAssignMode] = useState('dept');
   const [selectedIds, setSelectedIds] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   if (!isOpen) return null;
-
-  const toggleSelection = (id) => {
-    if (selectedIds.includes(id)) {
-        setSelectedIds(selectedIds.filter(item => item !== id));
-    } else {
-        setSelectedIds([...selectedIds, id]);
-    }
+  const toggleSelection = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+  const filteredEmployees = employees?.filter(e => e.name.toLowerCase().includes(searchTerm.toLowerCase()) || e.role.toLowerCase().includes(searchTerm.toLowerCase())) || [];
+  const handleConfirm = () => {
+    if(!selectedCourse) return alert("Please select a course");
+    if(!preSelectedEmployee && selectedIds.length === 0) return alert("Please select recipients");
+    if(onAssign) onAssign(selectedCourse, preSelectedEmployee ? [preSelectedEmployee.id] : selectedIds);
+    alert('Course Assigned Successfully!'); onClose(); setSelectedIds([]); setSearchTerm(""); setAssignMode('dept');
   };
-
-  const filteredEmployees = EMPLOYEES.filter(e => 
-    e.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    e.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4 animate-fadeIn">
-      {/* Mobile: Full width/height adaptation */}
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-pop flex flex-col max-h-[90vh] md:max-h-[85vh]">
-        <div className="p-5 md:p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
-           <h3 className="font-bold text-lg">Assign Learning</h3>
-           <button onClick={onClose}><X size={20} className="text-slate-400 hover:text-red-500"/></button>
-        </div>
-        
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-pop flex flex-col max-h-[90vh]">
+        <div className="p-5 md:p-6 border-b border-slate-100 flex justify-between items-center shrink-0"><h3 className="font-bold text-lg">Assign Learning</h3><button onClick={onClose}><X size={20} className="text-slate-400 hover:text-red-500"/></button></div>
         <div className="p-5 md:p-6 space-y-4 overflow-y-auto">
-           <div>
-             <label className="block text-sm font-bold text-slate-700 mb-2">Select Course</label>
-             <select 
-                className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none bg-white font-medium text-slate-700 text-sm"
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-             >
-               <option value="" disabled>-- Select a course --</option>
-               {courses.map(c => <option key={c.id} value={c.title}>{c.title}</option>)}
-             </select>
-           </div>
-           
-           <div>
-             <label className="block text-sm font-bold text-slate-700 mb-2">Assign To</label>
+           <div><label className="block text-sm font-bold text-slate-700 mb-2">Select Course</label><select className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none bg-white font-medium text-slate-700 text-sm" value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}><option value="" disabled>-- Select a course --</option>{courses.map(c => <option key={c.id} value={c.title}>{c.title}</option>)}</select></div>
+           <div><label className="block text-sm font-bold text-slate-700 mb-2">Assign To</label>
              {preSelectedEmployee ? (
-                <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-3">
-                    <img src={preSelectedEmployee.avatar} className="w-8 h-8 rounded-full" alt=""/>
-                    <div>
-                        <p className="text-sm font-bold text-slate-800">{preSelectedEmployee.name}</p>
-                        <p className="text-xs text-slate-500">{preSelectedEmployee.role}</p>
-                    </div>
-                </div>
+                <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-3"><img src={preSelectedEmployee.avatar} className="w-8 h-8 rounded-full" alt=""/><div><p className="text-sm font-bold text-slate-800">{preSelectedEmployee.name}</p><p className="text-xs text-slate-500">{preSelectedEmployee.role}</p></div></div>
              ) : (
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                    <button 
-                        onClick={() => setAssignMode('dept')}
-                        className={`p-3 border-2 rounded-xl text-sm font-bold text-left flex items-center justify-between transition-all ${assignMode === 'dept' ? 'border-[#D12027] bg-red-50 text-[#D12027]' : 'border-slate-200 hover:bg-slate-50 text-slate-500'}`}
-                    >
-                       Department <Layers size={16}/>
-                    </button>
-                    <button 
-                        onClick={() => setAssignMode('user')}
-                        className={`p-3 border-2 rounded-xl text-sm font-bold text-left flex items-center justify-between transition-all ${assignMode === 'user' ? 'border-[#D12027] bg-red-50 text-[#D12027]' : 'border-slate-200 hover:bg-slate-50 text-slate-500'}`}
-                    >
-                       Individual <Users size={16}/>
-                    </button>
-                </div>
+                <>
+                    <div className="flex bg-slate-100 p-1 rounded-xl mb-3"><button onClick={() => setAssignMode('dept')} className={`flex-1 py-1.5 text-sm font-bold rounded-lg transition-all ${assignMode === 'dept' ? 'bg-white shadow text-[#D12027]' : 'text-slate-500'}`}>Department</button><button onClick={() => setAssignMode('user')} className={`flex-1 py-1.5 text-sm font-bold rounded-lg transition-all ${assignMode === 'user' ? 'bg-white shadow text-[#D12027]' : 'text-slate-500'}`}>Individual</button></div>
+                    {assignMode === 'dept' ? (
+                        <div className="space-y-2 max-h-40 overflow-y-auto border border-slate-100 p-2 rounded-xl">{['Operational (All)', 'Kitchen Staff', 'Warehouse & Logistics', 'Frontliners', 'Office / HQ'].map(d => (<label key={d} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${selectedIds.includes(d) ? 'bg-red-50' : 'hover:bg-slate-50'}`}><input type="checkbox" checked={selectedIds.includes(d)} onChange={() => toggleSelection(d)} className="accent-[#D12027] w-4 h-4"/><span className="text-sm text-slate-700 font-medium">{d}</span></label>))}</div>
+                    ) : (
+                        <div className="space-y-2"><div className="relative"><Search className="absolute left-3 top-2.5 text-slate-400" size={16}/><input type="text" placeholder="Search employee..." className="w-full pl-9 p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-100" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/></div><div className="max-h-40 overflow-y-auto border border-slate-100 p-2 rounded-xl space-y-1">{filteredEmployees.length > 0 ? filteredEmployees.map(emp => (<label key={emp.id} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${selectedIds.includes(emp.id) ? 'bg-red-50' : 'hover:bg-slate-50'}`}><input type="checkbox" checked={selectedIds.includes(emp.id)} onChange={() => toggleSelection(emp.id)} className="accent-[#D12027] w-4 h-4"/><img src={emp.avatar} className="w-6 h-6 rounded-full bg-slate-200" alt=""/><div><p className="text-xs font-bold text-slate-800">{emp.name}</p><p className="text-[10px] text-slate-500">{emp.role}</p></div></label>)) : <p className="text-center text-xs text-slate-400 py-2">No employees found.</p>}</div></div>
+                    )}
+                </>
              )}
            </div>
-
-           {!preSelectedEmployee && assignMode === 'dept' && (
-            <div className="animate-fadeIn">
-             <label className="block text-sm font-bold text-slate-700 mb-2">Select Departments</label>
-             <div className="space-y-2 max-h-40 overflow-y-auto border border-slate-100 p-2 rounded-xl">
-                {['Operational (All)', 'Kitchen Staff', 'Warehouse & Logistics', 'Frontliners', 'Office / HQ'].map(d => (
-                  <label key={d} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${selectedIds.includes(d) ? 'bg-red-50' : 'hover:bg-slate-50'}`}>
-                    <input 
-                        type="checkbox" 
-                        checked={selectedIds.includes(d)}
-                        onChange={() => toggleSelection(d)}
-                        className="accent-[#D12027] w-4 h-4"
-                    />
-                    <span className="text-sm text-slate-700 font-medium">{d}</span>
-                  </label>
-                ))}
-             </div>
-            </div>
-           )}
-
-           {!preSelectedEmployee && assignMode === 'user' && (
-            <div className="animate-fadeIn">
-                <label className="block text-sm font-bold text-slate-700 mb-2">Search Employees</label>
-                <div className="relative mb-3">
-                    <Search className="absolute left-3 top-3 text-slate-400" size={16}/>
-                    <input 
-                        type="text" 
-                        placeholder="Search by name or role..." 
-                        className="w-full pl-10 p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100 text-sm"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2 max-h-40 overflow-y-auto border border-slate-100 p-2 rounded-xl">
-                    {filteredEmployees.map(emp => (
-                        <label key={emp.id} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${selectedIds.includes(emp.id) ? 'bg-red-50' : 'hover:bg-slate-50'}`}>
-                            <input 
-                                type="checkbox" 
-                                checked={selectedIds.includes(emp.id)}
-                                onChange={() => toggleSelection(emp.id)}
-                                className="accent-[#D12027] w-4 h-4"
-                            />
-                            <img src={emp.avatar} className="w-8 h-8 rounded-full bg-slate-200" alt=""/>
-                            <div>
-                                <p className="text-sm font-bold text-slate-800">{emp.name}</p>
-                                <p className="text-xs text-slate-500">{emp.role}</p>
-                            </div>
-                        </label>
-                    ))}
-                    {filteredEmployees.length === 0 && <p className="text-center text-xs text-slate-400 py-4">No employees found.</p>}
-                </div>
-            </div>
-           )}
-
-           <div className="flex items-center gap-2 bg-yellow-50 p-3 rounded-lg text-xs text-yellow-800 border border-yellow-100">
-              <AlertTriangle size={14} className="shrink-0"/> 
-              <span className="leading-tight">
-              {preSelectedEmployee 
-                ? `Notify ${preSelectedEmployee.name} via email.` 
-                : `Notify ${selectedIds.length > 0 ? selectedIds.length : '0'} ${assignMode === 'dept' ? 'departments' : 'users'} via email.`
-              }
-              </span>
-           </div>
+           <div className="flex items-center gap-2 bg-yellow-50 p-3 rounded-lg text-xs text-yellow-800 border border-yellow-100"><AlertTriangle size={14} className="shrink-0"/> <span className="leading-tight">{preSelectedEmployee ? `Notify ${preSelectedEmployee.name} via email.` : `Notify ${selectedIds.length > 0 ? selectedIds.length : '0'} ${assignMode === 'dept' ? 'departments' : 'people'} via email.`}</span></div>
         </div>
-        <div className="p-5 md:p-6 border-t border-slate-100 flex flex-col md:flex-row justify-end gap-3 bg-slate-50 rounded-b-2xl shrink-0">
-          <button onClick={onClose} className="w-full md:w-auto px-5 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800 order-2 md:order-1">Cancel</button>
-          <button onClick={() => { alert('Course Assigned Successfully!'); onClose(); }} className="w-full md:w-auto btn-primary px-6 py-2.5 text-sm font-bold rounded-xl shadow-lg order-1 md:order-2">Confirm</button>
-        </div>
+        <div className="p-5 md:p-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-2xl shrink-0"><button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800">Cancel</button><button onClick={handleConfirm} className="btn-primary px-6 py-2.5 text-sm font-bold rounded-xl shadow-lg">Confirm</button></div>
       </div>
     </div>
   );
 };
 
-// Modal: Full Profile
+// Modal: Full Profile (Read Only)
 const FullProfileModal = ({ employee, isOpen, onClose }) => {
     if (!isOpen || !employee) return null;
     return (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-0 md:p-4 animate-fadeIn">
             <div className="bg-white md:rounded-3xl w-full max-w-4xl h-full md:h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-pop">
-                {/* Header */}
                 <div className="bg-slate-900 text-white p-6 md:p-8 relative overflow-hidden shrink-0">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#D12027] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-50"></div>
                     <div className="relative z-10 flex justify-between items-start">
-                        <div className="flex items-center gap-4 md:gap-6">
-                            <img src={employee.avatar} className="w-16 h-16 md:w-24 md:h-24 rounded-full border-4 border-white/20" alt={employee.name}/>
-                            <div>
-                                <h2 className="text-xl md:text-3xl font-bold">{employee.name}</h2>
-                                <p className="text-slate-300 text-sm md:text-base flex items-center gap-2 mt-1"><Briefcase size={16}/> {employee.role} | {employee.branch}</p>
-                                <div className="flex flex-wrap gap-2 md:gap-3 mt-3 md:mt-4">
-                                    <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold border border-white/20">ID: {employee.id}</span>
-                                    <span className="px-3 py-1 bg-green-500/20 text-green-300 rounded-full text-xs font-bold border border-green-500/30">{employee.compliance}</span>
-                                </div>
-                            </div>
-                        </div>
+                        <div className="flex items-center gap-4 md:gap-6"><img src={employee.avatar} className="w-16 h-16 md:w-24 md:h-24 rounded-full border-4 border-white/20" alt={employee.name}/><div><h2 className="text-xl md:text-3xl font-bold">{employee.name}</h2><p className="text-slate-300 text-sm md:text-base flex items-center gap-2 mt-1"><Briefcase size={16}/> {employee.role} | {employee.dept}</p></div></div>
                         <button onClick={onClose} className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors"><X size={20}/></button>
                     </div>
                 </div>
-
-                {/* Body */}
                 <div className="flex-1 overflow-y-auto p-5 md:p-8 bg-slate-50">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                        {/* Left Column: Personal Info */}
                         <div className="space-y-6">
-                            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Users size={18} className="text-[#D12027]"/> Personal Data</h3>
-                                <div className="space-y-4 text-sm">
-                                    <div>
-                                        <p className="text-slate-400 text-xs uppercase font-bold">Email</p>
-                                        <p className="text-slate-700 font-medium break-all">{employee.email}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-slate-400 text-xs uppercase font-bold">Phone</p>
-                                        <p className="text-slate-700 font-medium">{employee.phone}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-slate-400 text-xs uppercase font-bold">Join Date</p>
-                                        <p className="text-slate-700 font-medium">{employee.joinDate}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Award size={18} className="text-[#FDB913]"/> KPI Stats</h3>
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm text-slate-600">Attendance</span>
-                                    <span className="font-bold text-green-600">98%</span>
-                                </div>
-                                <div className="w-full h-1.5 bg-slate-100 rounded-full mb-4"><div className="w-[98%] h-full bg-green-500 rounded-full"></div></div>
-                                
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm text-slate-600">Training Score</span>
-                                    <span className="font-bold text-[#D12027]">85/100</span>
-                                </div>
-                                <div className="w-full h-1.5 bg-slate-100 rounded-full"><div className="w-[85%] h-full bg-[#D12027] rounded-full"></div></div>
-                            </div>
+                            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"><h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Users size={18} className="text-[#D12027]"/> Personal Data</h3><div className="space-y-4 text-sm"><div><p className="text-slate-400 text-xs uppercase font-bold">Email</p><p className="text-slate-700 font-medium break-all">{employee.email}</p></div><div><p className="text-slate-400 text-xs uppercase font-bold">Phone</p><p className="text-slate-700 font-medium">{employee.phone}</p></div><div><p className="text-slate-400 text-xs uppercase font-bold">Join Date</p><p className="text-slate-700 font-medium">{employee.joinDate}</p></div></div></div>
                         </div>
-
-                        {/* Right Column: Training History */}
                         <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="font-bold text-slate-800 flex items-center gap-2"><BookOpen size={18} className="text-blue-600"/> Training & Certification</h3>
-                                <button className="text-xs text-blue-600 font-bold hover:underline">Download Transcript</button>
-                            </div>
-                            <div className="space-y-0 divide-y divide-slate-100">
-                                {HISTORY_MOCK.map((hist, idx) => (
-                                    <div key={idx} className="py-4 flex flex-col md:flex-row justify-between md:items-center gap-2">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-2 bg-slate-50 rounded-lg text-slate-400 shrink-0">
-                                                {hist.action.includes('Badge') ? <Award size={20} className="text-yellow-500"/> : 
-                                                 hist.action.includes('Failed') ? <XCircle size={20} className="text-red-500"/> :
-                                                 <CheckCircle size={20} className="text-green-500"/>}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-slate-700 text-sm">{hist.detail}</p>
-                                                <p className="text-xs text-slate-400">{hist.action} • {hist.date}</p>
-                                            </div>
-                                        </div>
-                                        {hist.score !== '-' && (
-                                            <span className="px-3 py-1 bg-slate-100 rounded-lg text-sm font-bold text-slate-700 w-fit">{hist.score}</span>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                            <div className="flex justify-between items-center mb-6"><h3 className="font-bold text-slate-800 flex items-center gap-2"><BookOpen size={18} className="text-blue-600"/> Training History</h3></div>
+                            <div className="space-y-0 divide-y divide-slate-100">{HISTORY_MOCK.map((hist, idx) => (<div key={idx} className="py-4 flex flex-col md:flex-row justify-between md:items-center gap-2"><div className="flex items-center gap-4"><div className="p-2 bg-slate-50 rounded-lg text-slate-400 shrink-0">{hist.action.includes('Badge') ? <Award size={20} className="text-yellow-500"/> : hist.action.includes('Failed') ? <XCircle size={20} className="text-red-500"/> : <CheckCircle size={20} className="text-green-500"/>}</div><div><p className="font-bold text-slate-700 text-sm">{hist.detail}</p><p className="text-xs text-slate-400">{hist.action} • {hist.date}</p></div></div>{hist.score !== '-' && (<span className="px-3 py-1 bg-slate-100 rounded-lg text-sm font-bold text-slate-700 w-fit">{hist.score}</span>)}</div>))}</div>
                         </div>
                     </div>
                 </div>
@@ -394,682 +325,282 @@ const FullProfileModal = ({ employee, isOpen, onClose }) => {
     );
 };
 
-// Modal: Request Detail
-const RequestDetailModal = ({ request, isOpen, onClose }) => {
+// Modal: Request Detail with PROOF
+const RequestDetailModal = ({ request, isOpen, onClose, onUpdateStatus }) => {
     if(!isOpen || !request) return null;
     return (
         <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-pop overflow-hidden max-h-[90vh] overflow-y-auto">
-                <div className="bg-[#D12027] p-6 text-white flex justify-between items-start sticky top-0 z-10">
-                    <div>
-                        <p className="text-red-100 text-xs font-bold uppercase tracking-wider mb-1">Training Request #{request.id}</p>
-                        <h3 className="font-bold text-xl">{request.title}</h3>
-                    </div>
-                    <button onClick={onClose} className="text-white/80 hover:text-white"><X size={24}/></button>
+            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-pop overflow-hidden max-h-[90vh] overflow-y-auto flex flex-col">
+                <div className="bg-[#D12027] p-6 text-white flex justify-between items-start sticky top-0 z-10 shrink-0"><div><p className="text-red-100 text-xs font-bold uppercase tracking-wider mb-1">Request #{request.id}</p><h3 className="font-bold text-xl">{request.title}</h3></div><button onClick={onClose} className="text-white/80 hover:text-white"><X size={24}/></button></div>
+                <div className="p-6 space-y-6 overflow-y-auto flex-1">
+                    <div className="flex flex-col md:flex-row md:items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-500">{request.employee.substring(0,2)}</div><div><p className="font-bold text-slate-800 text-sm">{request.employee}</p><p className="text-xs text-slate-500">Requestor</p></div></div><div className="md:ml-auto text-left md:text-right flex flex-row md:flex-col justify-between items-center md:items-end"><StatusBadge status={request.status} /><p className="text-xs text-slate-400 mt-0 md:mt-1">{request.date}</p></div></div>
+                    <div><p className="text-xs text-slate-400 uppercase font-bold mb-2">Required Documents</p>{request.leader_approval ? (<div className="bg-blue-50 p-3 rounded-xl border border-blue-100 flex items-center justify-between"><div className="flex items-center gap-3"><div className="p-2 bg-white rounded-lg text-blue-600 shadow-sm border border-blue-50"><FileCheck size={20}/></div><div><p className="text-sm font-bold text-slate-700">Leader Approval Letter</p><p className="text-xs text-slate-500">Signed by Area Manager</p></div></div><div className="flex items-center gap-2"><span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded border border-green-200">VERIFIED</span><button className="text-blue-600 text-xs font-bold hover:underline">View</button></div></div>) : (<div className="bg-red-50 p-3 rounded-xl border border-red-100 flex items-center gap-3"><AlertTriangle size={20} className="text-red-500"/><p className="text-sm font-bold text-red-700">Leader approval not yet attached.</p></div>)}</div>
+                    <div className="grid grid-cols-2 gap-4"><div><p className="text-xs text-slate-400 uppercase font-bold mb-1">Cost Estimation</p><p className="font-mono text-lg font-bold text-slate-800">Rp {request.cost.toLocaleString('id-ID')}</p></div><div><p className="text-xs text-slate-400 uppercase font-bold mb-1">Timeline</p><p className="text-sm font-bold text-slate-800 flex items-center gap-1"><Clock size={14}/> {request.timeline || 'TBD'}</p></div></div>
+                    <div><p className="text-xs text-slate-400 uppercase font-bold mb-1">Justification</p><p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg italic">"{request.justification}"</p></div>
                 </div>
-                <div className="p-6 space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-500">
-                                {request.employee.substring(0,2)}
-                            </div>
-                            <div>
-                                <p className="font-bold text-slate-800 text-sm">{request.employee}</p>
-                                <p className="text-xs text-slate-500">Requestor</p>
-                            </div>
-                        </div>
-                        <div className="md:ml-auto text-left md:text-right flex flex-row md:flex-col justify-between items-center md:items-end">
-                             <StatusBadge status={request.status} />
-                             <p className="text-xs text-slate-400 mt-0 md:mt-1">{request.date}</p>
-                        </div>
-                    </div>
-
-                    {/* Leader Approval Attachment Section */}
-                    <div>
-                        <p className="text-xs text-slate-400 uppercase font-bold mb-2">Required Attachment</p>
-                        <div className="flex items-center justify-between p-3 border border-blue-100 bg-blue-50 rounded-xl">
-                            <div className="flex items-center gap-3 overflow-hidden">
-                                <div className="bg-white p-2 rounded-lg text-blue-600 shadow-sm border border-blue-50 shrink-0"><FileText size={20}/></div>
-                                <div className="truncate">
-                                    <p className="text-sm font-bold text-blue-900 truncate">Leader Approval</p>
-                                    <p className="text-xs text-blue-600 truncate">{request.leader_approval || 'scan_approval.pdf'}</p>
-                                </div>
-                            </div>
-                            <button className="text-xs font-bold text-blue-700 hover:underline bg-white px-3 py-1.5 rounded-lg border border-blue-100 shadow-sm shrink-0">View</button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <p className="text-xs text-slate-400 uppercase font-bold mb-1">Cost Estimation</p>
-                            <p className="font-mono text-lg font-bold text-slate-800">Rp {request.cost.toLocaleString('id-ID')}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 uppercase font-bold mb-1">Timeline</p>
-                            <p className="text-sm font-bold text-slate-800 flex items-center gap-1"><Clock size={14}/> {request.timeline || 'TBD'}</p>
-                        </div>
-                    </div>
-
-                    <div>
-                        <p className="text-xs text-slate-400 uppercase font-bold mb-1">Vendor Details</p>
-                        <div className="p-3 border border-slate-200 rounded-lg text-sm text-slate-700 flex items-start gap-2">
-                             <MapPin size={16} className="shrink-0 mt-0.5 text-slate-400"/>
-                             <div>
-                                 <p className="font-bold">{request.provider}</p>
-                                 <p className="text-slate-500">{request.vendor_details || 'Internal Provider'}</p>
-                             </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <p className="text-xs text-slate-400 uppercase font-bold mb-1">Justification</p>
-                        <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg italic">"{request.justification}"</p>
-                    </div>
-                </div>
-                
-                {request.status === 'Pending' && (
-                    <div className="p-6 border-t border-slate-100 bg-slate-50 flex gap-3 sticky bottom-0 z-10">
-                         <button className="flex-1 py-3 border border-slate-200 bg-white hover:bg-red-50 text-red-600 font-bold rounded-xl transition-colors">Reject</button>
-                         <button className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-green-200">Approve</button>
-                    </div>
-                )}
+                {request.status === 'Pending' && (<div className="p-6 border-t border-slate-100 bg-slate-50 flex gap-3 sticky bottom-0 z-10 shrink-0"><button onClick={() => onUpdateStatus(request.id, 'Rejected')} className="flex-1 py-3 border border-slate-200 bg-white hover:bg-red-50 text-red-600 font-bold rounded-xl transition-colors">Reject</button><button onClick={() => onUpdateStatus(request.id, 'Approved')} className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-green-200">Approve</button></div>)}
             </div>
         </div>
     );
 };
 
-// --- 5. MAIN VIEWS ---
-
-const DashboardOverview = () => (
-  <div className="space-y-6 animate-fadeIn pb-20">
-    {/* KPI Cards */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-      {[
-        { title: 'Total Learners', value: '342', sub: '+12 this month', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { title: 'Avg Completion', value: '78%', sub: '+2.4% vs last mo', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
-        { title: 'Pending Requests', value: '8', sub: 'Needs Approval', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-        { title: 'At Risk Users', value: '14', sub: 'Non-compliant', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' },
-      ].map((kpi, idx) => (
-        <div key={idx} className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 card-hover">
-          <div className="flex justify-between items-start mb-4">
-            <div className={`p-3 rounded-xl ${kpi.bg} ${kpi.color}`}>
-              <kpi.icon size={24} />
+// Modal: Detailed Dept Analytics (Restored & Enhanced)
+const DeptAnalyticsModal = ({ isOpen, onClose }) => {
+    if(!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white rounded-3xl w-full max-w-5xl h-[90vh] shadow-2xl flex flex-col animate-pop overflow-hidden">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50"><div><h2 className="text-2xl font-bold text-slate-800">Department Deep Dive</h2><p className="text-slate-500">Comparative analysis and skill gap identification</p></div><button onClick={onClose}><X size={24} className="text-slate-400 hover:text-red-500"/></button></div>
+                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                            <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2"><Target size={18} className="text-[#D12027]"/> Skill Gap Analysis</h3>
+                            <div className="h-72"><ResponsiveContainer width="100%" height="100%"><RadarChart outerRadius={90} data={SKILL_RADAR_DATA}><PolarGrid /><PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} /><PolarRadiusAxis angle={30} domain={[0, 150]} /><Radar name="Frontliner" dataKey="A" stroke="#D12027" fill="#D12027" fillOpacity={0.4} /><Radar name="Kitchen" dataKey="B" stroke="#FDB913" fill="#FDB913" fillOpacity={0.4} /><Legend /><Tooltip /></RadarChart></ResponsiveContainer></div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                            <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2"><Layers size={18} className="text-blue-600"/> Module Completion Breakdown</h3>
+                             <div className="h-72"><ResponsiveContainer width="100%" height="100%"><BarChart layout="vertical" data={[{ name: 'HACCP', Frontliner: 90, Kitchen: 80, Warehouse: 60 }, { name: 'Service', Frontliner: 95, Kitchen: 40, Warehouse: 30 }, { name: 'Safety', Frontliner: 85, Kitchen: 90, Warehouse: 95 }]}><CartesianGrid strokeDasharray="3 3" horizontal={false} /><XAxis type="number" /><YAxis dataKey="name" type="category" width={60}/><Tooltip cursor={{fill: 'transparent'}}/><Legend /><Bar dataKey="Frontliner" stackId="a" fill="#D12027" /><Bar dataKey="Kitchen" stackId="a" fill="#FDB913" /><Bar dataKey="Warehouse" stackId="a" fill="#475569" /></BarChart></ResponsiveContainer></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-lg text-slate-800 mb-4">Department Performance Metrics</h3>
+                        <div className="overflow-x-auto rounded-xl border border-slate-200">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-50 text-slate-500 uppercase font-bold text-xs"><tr><th className="p-4">Department</th><th className="p-4">Total Staff</th><th className="p-4">Avg Score</th><th className="p-4">Completion Rate</th><th className="p-4">Top Skill</th><th className="p-4">Risk Level</th></tr></thead>
+                                <tbody className="divide-y divide-slate-100 bg-white">
+                                    {[{ d: 'Frontliner', s: 45, sc: 88, c: 92, t: 'Service', r: 'Low' }, { d: 'Kitchen', s: 30, sc: 82, c: 75, t: 'HACCP', r: 'Medium' }, { d: 'Operational', s: 15, sc: 91, c: 95, t: 'Managerial', r: 'Low' }, { d: 'Warehouse', s: 20, sc: 70, c: 60, t: 'Safety', r: 'High' }].map((row, i) => (<tr key={i} className="hover:bg-slate-50"><td className="p-4 font-bold text-slate-700">{row.d}</td><td className="p-4">{row.s}</td><td className="p-4 font-bold text-[#D12027]">{row.sc}</td><td className="p-4"><div className="flex items-center gap-2"><span className="w-12 text-xs">{row.c}%</span><div className="w-24 h-1.5 bg-slate-100 rounded-full"><div style={{width: `${row.c}%`}} className={`h-full rounded-full ${row.c > 80 ? 'bg-green-500' : row.c > 60 ? 'bg-yellow-500' : 'bg-red-500'}`}></div></div></div></td><td className="p-4"><span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-bold">{row.t}</span></td><td className="p-4"><StatusBadge status={row.r === 'Low' ? 'Approved' : row.r === 'High' ? 'Rejected' : 'Pending'} /></td></tr>))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-            {idx === 3 && <span className="flex h-3 w-3 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-            </span>}
-          </div>
-          <h3 className="text-3xl font-bold text-slate-800 mb-1">{kpi.value}</h3>
-          <p className="text-slate-500 text-sm font-medium">{kpi.title}</p>
-          <p className={`text-xs mt-2 ${kpi.sub.includes('Needs') || kpi.sub.includes('Non') ? 'text-red-500 font-bold' : 'text-green-600'}`}>
-            {kpi.sub}
-          </p>
         </div>
-      ))}
-    </div>
+    );
+};
 
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Main Chart */}
-      <div className="lg:col-span-2 bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-2">
-          <h3 className="font-bold text-lg text-slate-800">Learning Activity Trends</h3>
-          <select className="text-sm border-slate-200 rounded-lg p-2 bg-slate-50 w-full md:w-auto">
-            <option>Last 30 Days</option>
-            <option>This Quarter</option>
-          </select>
-        </div>
-        <div className="h-64 md:h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={[
-              { name: 'W1', hours: 400, active: 240 },
-              { name: 'W2', hours: 300, active: 139 },
-              { name: 'W3', hours: 500, active: 380 },
-              { name: 'W4', hours: 450, active: 300 },
-            ]}>
-              <defs>
-                <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#D12027" stopOpacity={0.1}/>
-                  <stop offset="95%" stopColor="#D12027" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} width={30}/>
-              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}/>
-              <Area type="monotone" dataKey="hours" stroke="#D12027" fillOpacity={1} fill="url(#colorHours)" strokeWidth={3} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+// --- 5. SUB-VIEWS & MANAGERS ---
 
-      {/* Dept Completion */}
-      <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200">
-        <h3 className="font-bold text-lg text-slate-800 mb-6">Completion by Dept</h3>
-        <div className="space-y-6">
-          {ANALYTICS_DATA.slice(0, 4).map((dept) => (
-            <div key={dept.name}>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="font-medium text-slate-700">{dept.name}</span>
-                <span className="font-bold text-slate-800">{dept.completion}%</span>
-              </div>
-              <ProgressBar value={dept.completion} colorClass={dept.completion > 80 ? "bg-green-500" : dept.completion > 60 ? "bg-yellow-500" : "bg-red-500"} />
-            </div>
-          ))}
-        </div>
-        <button className="w-full mt-8 py-3 text-sm text-[#D12027] font-bold border border-[#D12027] rounded-lg hover:bg-red-50 transition-colors">
-          View Detailed Analytics
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-const EmployeeManager = ({ courses }) => {
+const EmployeeManager = ({ employees, courses, onAddEmployee }) => {
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredEmployees = employees.filter(e => 
+    e.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    e.dept.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col lg:flex-row h-full lg:h-[calc(100vh-140px)] gap-6 animate-fadeIn pb-20 lg:pb-0">
-      {/* List View */}
+      {/* Left List */}
       <div className={`w-full ${selectedEmp ? 'hidden lg:block lg:w-2/3' : ''} bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300`}>
         <div className="p-5 md:p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h3 className="font-bold text-lg text-slate-800">Employee Directory</h3>
-            <p className="text-sm text-slate-500">Manage access and track progress</p>
-          </div>
-          <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-            <div className="relative w-full md:w-auto">
-              <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
-              <input placeholder="Search..." className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-100 w-full md:w-64" />
-            </div>
-            <button className="btn-primary px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-bold w-full md:w-auto">
-              <Download size={16} /> <span className="md:hidden">Export Data</span><span className="hidden md:inline">Export</span>
-            </button>
+          <div><h3 className="font-bold text-lg text-slate-800">Employee Directory</h3><p className="text-sm text-slate-500">Manage access and track progress</p></div>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+             <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-3 top-2.5 text-slate-400" size={16}/>
+                <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Search..." className="w-full pl-9 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-100" />
+             </div>
+             <button onClick={() => setAddModalOpen(true)} className="btn-primary px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-bold shrink-0"><Plus size={16}/><span className="hidden md:inline">Add</span></button>
           </div>
         </div>
-        
         <div className="flex-1 overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[800px] lg:min-w-0">
-            <thead className="bg-slate-50 sticky top-0 z-10">
-              <tr>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Employee</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Role / Dept</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Learning Progress</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Compliance</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Action</th>
-              </tr>
-            </thead>
+            <thead className="bg-slate-50 sticky top-0 z-10"><tr>{['Employee', 'Role / Dept', 'Learning Progress', 'Compliance', 'Action'].map(h => <th key={h} className="p-4 text-xs font-bold text-slate-500 uppercase">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-slate-100">
-              {EMPLOYEES.map((emp) => (
+              {filteredEmployees.map((emp) => (
                 <tr key={emp.id} className={`hover:bg-slate-50 transition-colors cursor-pointer ${selectedEmp?.id === emp.id ? 'bg-red-50' : ''}`} onClick={() => setSelectedEmp(emp)}>
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <img src={emp.avatar} className="w-10 h-10 rounded-full bg-slate-200" alt="" />
-                      <div>
-                        <p className="font-bold text-slate-800">{emp.name}</p>
-                        <p className="text-xs text-slate-500">ID: {emp.id}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <p className="text-sm text-slate-700 font-medium">{emp.role}</p>
-                    <p className="text-xs text-slate-500">{emp.dept}</p>
-                  </td>
-                  <td className="p-4 w-48">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold text-slate-700">{emp.progress}%</span>
-                    </div>
-                    <ProgressBar value={emp.progress} colorClass={emp.progress < 50 ? 'bg-red-500' : 'bg-[#D12027]'} />
-                  </td>
-                  <td className="p-4">
-                    <StatusBadge status={emp.compliance} />
-                  </td>
-                  <td className="p-4">
-                    <button className="text-slate-400 hover:text-[#D12027]"><MoreVertical size={18} /></button>
-                  </td>
+                  <td className="p-4"><div className="flex items-center gap-3"><img src={emp.avatar} className="w-10 h-10 rounded-full bg-slate-200" alt="" /><div><p className="font-bold text-slate-800">{emp.name}</p><p className="text-xs text-slate-500">ID: {emp.id}</p></div></div></td>
+                  <td className="p-4"><p className="text-sm text-slate-700 font-medium">{emp.role}</p><p className="text-xs text-slate-500">{emp.dept}</p></td>
+                  <td className="p-4 w-48"><div className="flex items-center gap-2 mb-1"><span className="text-xs font-bold text-slate-700">{emp.progress}%</span></div><ProgressBar value={emp.progress} colorClass={emp.progress < 50 ? 'bg-red-500' : 'bg-[#D12027]'} /></td>
+                  <td className="p-4"><StatusBadge status={emp.compliance} /></td>
+                  <td className="p-4"><button className="text-slate-400 hover:text-[#D12027]"><MoreVertical size={18} /></button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
-
-      {/* Detail View (Slide over on Desktop, Full Overlay on Mobile) */}
+      {/* Right Detail Panel */}
       {selectedEmp && (
         <div className={`fixed inset-0 lg:static lg:w-1/3 bg-white lg:rounded-2xl shadow-lg border-l lg:border border-slate-200 flex flex-col z-50 animate-slideInRight lg:animate-slideIn`}>
-          {/* Mobile Back Button Header */}
-          <div className="h-16 flex items-center px-4 border-b border-slate-100 lg:hidden bg-white">
-             <button onClick={() => setSelectedEmp(null)} className="flex items-center gap-2 text-slate-500 font-bold">
-                <ArrowLeft size={20}/> Back to List
-             </button>
-          </div>
-
-          <div className="h-24 bg-gradient-to-r from-[#D12027] to-orange-600 relative shrink-0">
-            <button onClick={() => setSelectedEmp(null)} className="hidden lg:block absolute top-4 right-4 text-white/80 hover:text-white bg-black/10 rounded-full p-1"><X size={18}/></button>
-            <div className="absolute -bottom-10 left-6">
-              <img src={selectedEmp.avatar} className="w-20 h-20 rounded-full border-4 border-white bg-white" alt=""/>
-            </div>
-          </div>
-          
+          <div className="h-16 flex items-center px-4 border-b border-slate-100 lg:hidden bg-white"><button onClick={() => setSelectedEmp(null)} className="flex items-center gap-2 text-slate-500 font-bold"><ArrowLeft size={20}/> Back to List</button></div>
+          <div className="h-24 bg-gradient-to-r from-[#D12027] to-orange-600 relative shrink-0"><button onClick={() => setSelectedEmp(null)} className="hidden lg:block absolute top-4 right-4 text-white/80 hover:text-white bg-black/10 rounded-full p-1"><X size={18}/></button><div className="absolute -bottom-10 left-6"><img src={selectedEmp.avatar} className="w-20 h-20 rounded-full border-4 border-white bg-white" alt=""/></div></div>
           <div className="pt-12 px-6 pb-6 flex-1 overflow-y-auto">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-slate-800">{selectedEmp.name}</h2>
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Briefcase size={14} /> {selectedEmp.role} • {selectedEmp.branch}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
-                <Mail size={14} /> {selectedEmp.email}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                <p className="text-xs text-slate-500 uppercase font-bold">Assigned</p>
-                <p className="text-xl font-bold text-slate-800">{selectedEmp.courses_assigned}</p>
-              </div>
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                <p className="text-xs text-slate-500 uppercase font-bold">Completed</p>
-                <p className="text-xl font-bold text-[#D12027]">{selectedEmp.courses_completed}</p>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Clock size={16} className="text-[#FDB913]"/> Learning History</h4>
-              <div className="space-y-4">
-                {HISTORY_MOCK.map((item) => (
-                  <div key={item.id} className="relative pl-4 border-l-2 border-slate-200 pb-1 last:pb-0">
-                    <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-slate-300 border-2 border-white"></div>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-sm font-bold text-slate-700">{item.action}</p>
-                        <p className="text-xs text-slate-500">{item.detail}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-[10px] text-slate-400 block">{item.date}</span>
-                        {item.score !== '-' && <span className={`text-xs font-bold ${parseInt(item.score) > 70 ? 'text-green-600' : 'text-red-500'}`}>{item.score}</span>}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
+            <div className="mb-6"><h2 className="text-xl font-bold text-slate-800">{selectedEmp.name}</h2><div className="flex items-center gap-2 text-sm text-slate-500"><Briefcase size={14} /> {selectedEmp.role} • {selectedEmp.branch || 'Main Branch'}</div></div>
+            <div className="grid grid-cols-2 gap-4 mb-6"><div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center"><p className="text-xs text-slate-500 uppercase font-bold">Assigned</p><p className="text-xl font-bold text-slate-800">{selectedEmp.courses_assigned}</p></div><div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center"><p className="text-xs text-slate-500 uppercase font-bold">Completed</p><p className="text-xl font-bold text-[#D12027]">{selectedEmp.courses_completed}</p></div></div>
             <div className="mt-auto space-y-3 pb-8 lg:pb-0">
-               <button onClick={() => setAssignModalOpen(true)} className="w-full btn-primary py-3 rounded-xl font-bold text-sm shadow-lg flex items-center justify-center gap-2">
-                 <Plus size={16}/> Assign New Course
-               </button>
-               <button onClick={() => setProfileModalOpen(true)} className="w-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
-                 <Users size={16}/> View Full Profile
-               </button>
+               <button onClick={() => setAssignModalOpen(true)} className="w-full btn-primary py-3 rounded-xl font-bold text-sm shadow-lg flex items-center justify-center gap-2"><Plus size={16}/> Assign New Course</button>
+               <button onClick={() => setProfileModalOpen(true)} className="w-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2"><Users size={16}/> View Full Profile</button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Modals triggered by Employee Manager */}
-      <AssignCourseModal 
-        isOpen={assignModalOpen} 
-        onClose={() => setAssignModalOpen(false)} 
-        courses={courses}
-        preSelectedEmployee={selectedEmp}
-      />
-      <FullProfileModal 
-        isOpen={profileModalOpen} 
-        onClose={() => setProfileModalOpen(false)} 
-        employee={selectedEmp}
-      />
+      <AssignCourseModal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} courses={courses} preSelectedEmployee={selectedEmp} />
+      <FullProfileModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} employee={selectedEmp} />
+      <AddEmployeeModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} onSave={onAddEmployee} />
     </div>
   );
 };
 
-const CurriculumManager = ({ courses, onAddCourse }) => {
+const AnalyticsDashboard = ({ onOpenDeptDetail }) => (
+    <div className="animate-fadeIn space-y-6 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 order-2 lg:order-1">
+                <div className="flex justify-between items-center mb-6"><h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Award size={20} className="text-[#FDB913]"/> Top 5 Learners</h3></div>
+                <div className="space-y-4">
+                    {[1,2,3,4,5].map((rk, idx) => (<div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100"><div className="flex items-center gap-3"><div className={`w-8 h-8 flex items-center justify-center font-bold rounded-full ${idx === 0 ? 'bg-[#FDB913] text-white' : 'bg-slate-200 text-slate-500'}`}>{rk}</div><div><p className="font-bold text-slate-800 text-sm">{INITIAL_EMPLOYEES[idx % INITIAL_EMPLOYEES.length].name}</p><p className="text-xs text-slate-400">{INITIAL_EMPLOYEES[idx % INITIAL_EMPLOYEES.length].dept}</p></div></div><div className="font-bold text-[#D12027]">{3000 - (idx * 200)} XP</div></div>))}
+                </div>
+            </div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 order-1 lg:order-2">
+                 <h3 className="font-bold text-lg text-slate-800 mb-6">Budget Utilization</h3>
+                 <div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={[{m:'Jan',b:50,u:30},{m:'Feb',b:50,u:45},{m:'Mar',b:50,u:20},{m:'Apr',b:50,u:35}]}><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" /><XAxis dataKey="m" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} /><Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '12px' }}/><Bar dataKey="b" fill="#f1f5f9" radius={[4,4,0,0]} name="Allocated"/><Bar dataKey="u" fill="#D12027" radius={[4,4,0,0]} name="Used"/><Legend /></BarChart></ResponsiveContainer></div>
+            </div>
+        </div>
+        <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200">
+             <div className="flex justify-between items-center mb-6"><h3 className="font-bold text-lg text-slate-800">Department Engagement</h3><button onClick={onOpenDeptDetail} className="text-sm font-bold text-[#D12027] border border-[#D12027] px-4 py-2 rounded-lg hover:bg-red-50">View Deep Dive Analysis</button></div>
+             <div className="h-64 md:h-80"><ResponsiveContainer width="100%" height="100%"><LineChart data={[{w:'W1',F:65,K:40,O:80},{w:'W2',F:70,K:55,O:82},{w:'W3',F:68,K:45,O:85},{w:'W4',F:85,K:60,O:90}]}><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" /><XAxis dataKey="w" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} /><Tooltip contentStyle={{ borderRadius: '12px' }}/><Legend /><Line type="monotone" dataKey="F" stroke="#D12027" strokeWidth={3} name="Frontliner"/><Line type="monotone" dataKey="K" stroke="#FDB913" strokeWidth={3} name="Kitchen"/><Line type="monotone" dataKey="O" stroke="#1e293b" strokeWidth={3} name="Operational"/></LineChart></ResponsiveContainer></div>
+        </div>
+    </div>
+);
+
+const CurriculumManager = ({ courses, employees, onAddCourse, onUpdateCourseStatus }) => {
   const [showAssignModal, setShowAssignModal] = useState(false);
-  
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedCourseDetail, setSelectedCourseDetail] = useState(null);
   return (
     <div className="space-y-6 animate-fadeIn relative pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-           <h3 className="font-bold text-xl text-slate-800">Learning Modules</h3>
-           <p className="text-slate-500 text-sm">Create, manage and distribute materials.</p>
-        </div>
-        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-          <button onClick={() => setShowAssignModal(true)} className="bg-white border-2 border-[#D12027] text-[#D12027] hover:bg-red-50 px-5 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 w-full md:w-auto">
-            <GraduationCap size={18}/> Assign Learning
-          </button>
-          <button onClick={() => alert("Open Builder")} className="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg w-full md:w-auto">
-            <Plus size={18}/> Create Course
-          </button>
-        </div>
-      </div>
-
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"><div><h3 className="font-bold text-xl text-slate-800">Learning Modules</h3><p className="text-slate-500 text-sm">Create, manage and distribute materials.</p></div><div className="flex flex-col md:flex-row gap-3 w-full md:w-auto"><button onClick={() => setShowAssignModal(true)} className="bg-white border-2 border-[#D12027] text-[#D12027] hover:bg-red-50 px-5 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 w-full md:w-auto"><GraduationCap size={18}/> Assign Learning</button><button onClick={() => setShowCreateModal(true)} className="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg w-full md:w-auto"><Plus size={18}/> Create Course</button></div></div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course) => (
-          <div key={course.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden card-hover cursor-pointer group">
-            <div className="h-32 bg-slate-100 relative">
-              <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
-                <BookOpen className="text-slate-300 group-hover:text-white transition-colors" size={48} />
-              </div>
-              <div className="absolute top-3 right-3">
-                 <StatusBadge status={course.status} />
-              </div>
-              <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-bold text-slate-700 shadow-sm">
-                {course.category}
-              </div>
-            </div>
-            <div className="p-5">
-              <h4 className="font-bold text-slate-800 text-lg mb-1">{course.title}</h4>
-              <p className="text-xs text-slate-400 mb-4">Level: {course.level || 'All Staff'}</p>
-              
-              <div className="flex justify-between items-end mb-4">
-                <div className="text-center">
-                  <p className="text-xs text-slate-500 uppercase font-bold">Enrolled</p>
-                  <p className="font-bold text-lg">{course.assigned}</p>
-                </div>
-                <div className="text-center border-l pl-4 border-slate-100">
-                  <p className="text-xs text-slate-500 uppercase font-bold">Completed</p>
-                  <p className="font-bold text-lg text-green-600">{course.completed}</p>
-                </div>
-                <div className="text-center border-l pl-4 border-slate-100">
-                   <div className="w-10 h-10 rounded-full border-4 border-green-500 flex items-center justify-center text-xs font-bold text-slate-700">
-                     {course.assigned > 0 ? Math.round((course.completed / course.assigned) * 100) : 0}%
-                   </div>
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                 <div className="w-full bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-lg text-center group-hover:bg-[#D12027] group-hover:text-white transition-colors">
-                    Click to View Details
-                 </div>
-              </div>
-            </div>
+          <div key={course.id} onClick={() => setSelectedCourseDetail(course)} className="bg-white rounded-2xl border border-slate-200 overflow-hidden card-hover cursor-pointer group flex flex-col h-full relative">
+            <div className="h-32 bg-slate-100 relative shrink-0"><div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center"><BookOpen className="text-slate-300 group-hover:text-white transition-colors" size={48} /></div><div className="absolute top-3 right-3"><StatusBadge status={course.status} /></div><div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-bold text-slate-700 shadow-sm">{course.category}</div></div>
+            <div className="p-5 flex-1 flex flex-col"><h4 className="font-bold text-slate-800 text-lg mb-1">{course.title}</h4><p className="text-xs text-slate-400 mb-4 line-clamp-2">{course.description}</p><div className="mt-auto flex justify-between items-center text-xs text-slate-500 border-t border-slate-50 pt-3"><div className="flex items-center gap-1"><Clock size={12}/> {course.duration}</div><div className="flex items-center gap-1"><Users size={12}/> {course.assigned}</div></div></div>
           </div>
         ))}
       </div>
-
-      <AssignCourseModal isOpen={showAssignModal} onClose={() => setShowAssignModal(false)} courses={courses} />
+      <AssignCourseModal isOpen={showAssignModal} onClose={() => setShowAssignModal(false)} courses={courses} employees={employees} />
+      <CreateCourseModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} onSave={onAddCourse} />
+      <CourseDetailModal course={selectedCourseDetail} isOpen={!!selectedCourseDetail} onClose={() => setSelectedCourseDetail(null)} onToggleStatus={(id) => { onUpdateCourseStatus(id); setSelectedCourseDetail(prev => ({ ...prev, status: prev.status === 'Active' ? 'Draft' : 'Active' })) }}/>
     </div>
   );
 };
 
-const RequestManager = () => {
+const RequestManager = ({ requests, onUpdateStatus }) => {
     const [selectedReq, setSelectedReq] = useState(null);
-
     return (
         <div className="animate-fadeIn pb-20">
-            <div className="flex items-center gap-4 mb-6 md:mb-8">
-                <div className="bg-[#D12027] text-white p-3 rounded-xl shadow-lg shadow-red-200">
-                    <DollarSign size={24}/>
-                </div>
-                <div>
-                    <h3 className="font-bold text-xl text-slate-800">Training Requests</h3>
-                    <p className="text-slate-500 text-sm">Review external training budgets.</p>
-                </div>
-            </div>
-
+            <div className="flex items-center gap-4 mb-6 md:mb-8"><div className="bg-[#D12027] text-white p-3 rounded-xl shadow-lg shadow-red-200"><DollarSign size={24}/></div><div><h3 className="font-bold text-xl text-slate-800">Training Requests</h3><p className="text-slate-500 text-sm">Review external training budgets.</p></div></div>
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
              <div className="overflow-x-auto">
                 <table className="w-full text-left min-w-[900px]">
-                    <thead className="bg-slate-50">
-                    <tr>
-                        <th className="p-5 text-xs font-bold text-slate-500 uppercase">Employee</th>
-                        <th className="p-5 text-xs font-bold text-slate-500 uppercase">Training Details</th>
-                        <th className="p-5 text-xs font-bold text-slate-500 uppercase">Budget / Cost</th>
-                        <th className="p-5 text-xs font-bold text-slate-500 uppercase">Justification</th>
-                        <th className="p-5 text-xs font-bold text-slate-500 uppercase text-center">Action</th>
-                    </tr>
-                    </thead>
+                    <thead className="bg-slate-50"><tr>{['Employee', 'Training Details', 'Budget', 'Leader Approval', 'Action'].map(h => <th key={h} className="p-5 text-xs font-bold text-slate-500 uppercase">{h}</th>)}</tr></thead>
                     <tbody className="divide-y divide-slate-100">
-                    {REQUESTS.map((req) => (
+                    {requests.map((req) => (
                         <tr key={req.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-5">
-                            <p className="font-bold text-slate-800">{req.employee}</p>
-                            <p className="text-xs text-slate-500">Submitted: {req.date}</p>
-                        </td>
-                        <td className="p-5">
-                            <p className="font-bold text-[#D12027]">{req.title}</p>
-                            <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
-                            <MapPin size={12}/> {req.provider}
-                            </div>
-                        </td>
-                        <td className="p-5 font-mono text-sm text-slate-700">
-                            Rp {req.cost.toLocaleString('id-ID')}
-                        </td>
-                        <td className="p-5 text-sm text-slate-600 max-w-xs truncate">
-                            {req.justification}
-                        </td>
-                        <td className="p-5 text-center">
-                            <button onClick={() => setSelectedReq(req)} className="text-[#D12027] hover:bg-red-50 p-2 rounded-lg font-bold text-sm whitespace-nowrap">View Detail</button>
-                        </td>
+                        <td className="p-5"><p className="font-bold text-slate-800">{req.employee}</p><p className="text-xs text-slate-500">Submitted: {req.date}</p></td>
+                        <td className="p-5"><p className="font-bold text-[#D12027]">{req.title}</p><div className="flex items-center gap-1 text-xs text-slate-500 mt-1"><MapPin size={12}/> {req.provider}</div></td>
+                        <td className="p-5 font-mono text-sm text-slate-700">Rp {req.cost.toLocaleString('id-ID')}</td>
+                        <td className="p-5">{req.leader_approval ? (<span className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded w-fit"><CheckCircle size={12}/> Verified</span>) : (<span className="flex items-center gap-1 text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded w-fit"><XCircle size={12}/> Missing</span>)}</td>
+                        <td className="p-5"><button onClick={() => setSelectedReq(req)} className="text-[#D12027] hover:bg-red-50 p-2 rounded-lg font-bold text-sm flex items-center gap-2"><Eye size={16}/> Detail</button></td>
                         </tr>
                     ))}
                     </tbody>
                 </table>
              </div>
             </div>
-            <RequestDetailModal request={selectedReq} isOpen={!!selectedReq} onClose={() => setSelectedReq(null)} />
+            <RequestDetailModal request={selectedReq} isOpen={!!selectedReq} onClose={() => setSelectedReq(null)} onUpdateStatus={(id, status) => { onUpdateStatus(id, status); setSelectedReq(null); }} />
         </div>
     );
 };
 
-const AnalyticsDashboard = () => (
-    <div className="animate-fadeIn space-y-6 pb-20">
-        {/* Leaderboard Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 order-2 lg:order-1">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                        <Award size={20} className="text-[#FDB913]"/> Top 5 Learners
-                    </h3>
-                    <button className="text-xs text-blue-600 font-bold hover:underline">View All</button>
-                </div>
-                <div className="space-y-4">
-                    {LEADERBOARD_DATA.map((user, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 flex items-center justify-center font-bold rounded-full ${idx === 0 ? 'bg-[#FDB913] text-white' : 'bg-slate-200 text-slate-500'}`}>
-                                    {user.rank}
-                                </div>
-                                <div>
-                                    <p className="font-bold text-slate-800 text-sm">{user.name}</p>
-                                    <p className="text-xs text-slate-400">{user.dept}</p>
-                                </div>
-                            </div>
-                            <div className="font-bold text-[#D12027]">{user.xp} XP</div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 order-1 lg:order-2">
-                 <h3 className="font-bold text-lg text-slate-800 mb-6">Budget Utilization</h3>
-                 <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={[
-                            { month: 'Jan', budget: 50, used: 30 },
-                            { month: 'Feb', budget: 50, used: 45 },
-                            { month: 'Mar', budget: 50, used: 20 },
-                            { month: 'Apr', budget: 50, used: 35 },
-                        ]}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                            <YAxis axisLine={false} tickLine={false} unit="jt"/>
-                            <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '12px' }}/>
-                            <Bar dataKey="budget" fill="#f1f5f9" radius={[4,4,0,0]} name="Allocated"/>
-                            <Bar dataKey="used" fill="#D12027" radius={[4,4,0,0]} name="Used"/>
-                            <Legend />
-                        </BarChart>
-                    </ResponsiveContainer>
-                 </div>
-            </div>
-        </div>
-
-        {/* Detailed Charts */}
-        <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200">
-             <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-lg text-slate-800">Department Engagement</h3>
-             </div>
-             <div className="h-64 md:h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={[
-                        { week: 'W1', Frontliner: 65, Kitchen: 40, Operational: 80 },
-                        { week: 'W2', Frontliner: 70, Kitchen: 55, Operational: 82 },
-                        { week: 'W3', Frontliner: 68, Kitchen: 45, Operational: 85 },
-                        { week: 'W4', Frontliner: 85, Kitchen: 60, Operational: 90 },
-                    ]}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis dataKey="week" axisLine={false} tickLine={false} />
-                        <YAxis axisLine={false} tickLine={false} width={30}/>
-                        <Tooltip contentStyle={{ borderRadius: '12px' }}/>
-                        <Legend />
-                        <Line type="monotone" dataKey="Frontliner" stroke="#D12027" strokeWidth={3} />
-                        <Line type="monotone" dataKey="Kitchen" stroke="#FDB913" strokeWidth={3} />
-                        <Line type="monotone" dataKey="Operational" stroke="#1e293b" strokeWidth={3} />
-                    </LineChart>
-                </ResponsiveContainer>
-             </div>
-        </div>
+const DashboardOverview = ({ analyticsTrigger }) => (
+  <div className="space-y-6 animate-fadeIn pb-20">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {[{ title: 'Total Learners', value: '342', sub: '+12 this month', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' }, { title: 'Avg Completion', value: '78%', sub: '+2.4% vs last mo', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' }, { title: 'Pending Requests', value: '8', sub: 'Needs Approval', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50' }, { title: 'At Risk Users', value: '14', sub: 'Non-compliant', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' }].map((kpi, idx) => (<div key={idx} className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 card-hover"><div className="flex justify-between items-start mb-4"><div className={`p-3 rounded-xl ${kpi.bg} ${kpi.color}`}><kpi.icon size={24} /></div></div><h3 className="text-3xl font-bold text-slate-800 mb-1">{kpi.value}</h3><p className="text-slate-500 text-sm font-medium">{kpi.title}</p><p className={`text-xs mt-2 ${kpi.sub.includes('Needs') || kpi.sub.includes('Non') ? 'text-red-500 font-bold' : 'text-green-600'}`}>{kpi.sub}</p></div>))}
     </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200"><h3 className="font-bold text-lg text-slate-800 mb-6">Learning Activity Trends</h3><div className="h-64 md:h-72"><ResponsiveContainer width="100%" height="100%"><AreaChart data={[{ name: 'W1', hours: 400 }, { name: 'W2', hours: 300 }, { name: 'W3', hours: 500 }, { name: 'W4', hours: 450 }]}><defs><linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D12027" stopOpacity={0.1}/><stop offset="95%" stopColor="#D12027" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" /><XAxis dataKey="name" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} width={30}/><Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}/><Area type="monotone" dataKey="hours" stroke="#D12027" fillOpacity={1} fill="url(#colorHours)" strokeWidth={3} /></AreaChart></ResponsiveContainer></div></div>
+      <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between"><div><h3 className="font-bold text-lg text-slate-800 mb-6">Completion by Dept</h3><div className="space-y-6">{[{ name: 'Frontliner', val: 85 }, { name: 'Kitchen', val: 72 }, { name: 'Operational', val: 95 }, { name: 'Warehouse', val: 60 }].map((dept) => (<div key={dept.name}><div className="flex justify-between text-sm mb-2"><span className="font-medium text-slate-700">{dept.name}</span><span className="font-bold text-slate-800">{dept.val}%</span></div><ProgressBar value={dept.val} colorClass={dept.val > 80 ? "bg-green-500" : dept.val > 60 ? "bg-yellow-500" : "bg-red-500"} /></div>))}</div></div><button onClick={analyticsTrigger} className="w-full mt-8 py-3 text-sm text-[#D12027] font-bold border border-[#D12027] rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2"><PieIcon size={16}/> View Detailed Analytics</button></div>
+    </div>
+  </div>
 );
 
-// --- 6. MAIN APP SHELL ---
+// --- 7. MAIN APP SHELL ---
 
 const AdminApp = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [coursesList, setCoursesList] = useState(INITIAL_COURSES);
-
-  const handleAddCourse = (newCourse) => {
-      setCoursesList([...coursesList, newCourse]);
-  };
   
+  // State for Data
+  const [employees, setEmployees] = useState(INITIAL_EMPLOYEES);
+  const [courses, setCourses] = useState(INITIAL_COURSES);
+  const [requests, setRequests] = useState(INITIAL_REQUESTS);
+  
+  // Modal States
+  const [deptAnalyticsOpen, setDeptAnalyticsOpen] = useState(false);
+
+  // Handlers
+  const handleAddEmployee = (newEmp) => setEmployees([...employees, newEmp]);
+  const handleAddCourse = (newCourse) => setCourses([...courses, newCourse]);
+  const handleUpdateCourseStatus = (id) => setCourses(courses.map(c => c.id === id ? { ...c, status: c.status === 'Active' ? 'Draft' : 'Active' } : c));
+  const handleRequestStatus = (id, status) => setRequests(requests.map(r => r.id === id ? { ...r, status } : r));
+
   const MENUS = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
     { id: 'employees', label: 'Employee Progress', icon: Users },
     { id: 'curriculum', label: 'Curriculum & Assign', icon: BookOpen },
-    { id: 'requests', label: 'Training Requests', icon: FileText, badge: 3 },
+    { id: 'requests', label: 'Training Requests', icon: FileText, badge: requests.filter(r => r.status === 'Pending').length },
     { id: 'analytics', label: 'Analytics & Leaderboard', icon: BarChart2 },
   ];
-
-  // Close sidebar when view changes on mobile
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [activeView]);
 
   return (
     <div className="flex h-screen bg-[#f8fafc] overflow-hidden text-slate-800 font-sans">
       <GlobalStyles />
-      
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm animate-fadeIn"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`
-        fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col shadow-xl lg:shadow-none transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
+      {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm animate-fadeIn" onClick={() => setIsSidebarOpen(false)}/>}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col shadow-xl lg:shadow-none transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="h-16 lg:h-20 flex items-center px-6 lg:px-8 border-b border-slate-100 justify-between lg:justify-start">
-           <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#D12027] rounded-lg flex items-center justify-center">
-                 <span className="text-white font-black text-lg">K</span>
-              </div>
-              <div>
-                <h1 className="font-bold text-lg tracking-tight text-slate-900 leading-tight">KARSA<br/><span className="text-[#D12027] text-sm font-medium">Admin Portal</span></h1>
-              </div>
-           </div>
-           <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400">
-             <X size={24} />
-           </button>
+           <div className="flex items-center gap-2"><div className="w-8 h-8 bg-[#D12027] rounded-lg flex items-center justify-center"><span className="text-white font-black text-lg">K</span></div><div><h1 className="font-bold text-lg tracking-tight text-slate-900 leading-tight">KARSA<br/><span className="text-[#D12027] text-sm font-medium">Admin Portal</span></h1></div></div>
+           <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400"><X size={24} /></button>
         </div>
-        
         <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
           {MENUS.map((menu) => (
-            <button 
-              key={menu.id}
-              onClick={() => setActiveView(menu.id)}
-              className={`w-full flex items-center justify-between px-6 lg:px-8 py-3.5 text-sm font-medium transition-all ${activeView === menu.id ? 'sidebar-active' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-            >
-              <div className="flex items-center gap-3">
-                <menu.icon size={18} className={activeView === menu.id ? 'text-[#D12027]' : 'text-slate-400'}/>
-                {menu.label}
-              </div>
-              {menu.badge && (
-                <span className="bg-[#D12027] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{menu.badge}</span>
-              )}
+            <button key={menu.id} onClick={() => { setActiveView(menu.id); setIsSidebarOpen(false); }} className={`w-full flex items-center justify-between px-6 lg:px-8 py-3.5 text-sm font-medium transition-all ${activeView === menu.id ? 'sidebar-active' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}>
+              <div className="flex items-center gap-3"><menu.icon size={18} className={activeView === menu.id ? 'text-[#D12027]' : 'text-slate-400'}/>{menu.label}</div>
+              {menu.badge > 0 && <span className="bg-[#D12027] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{menu.badge}</span>}
             </button>
           ))}
         </nav>
-
-        <div className="p-6 border-t border-slate-100">
-           <button className="flex items-center gap-3 text-slate-500 hover:text-red-600 transition-colors text-sm font-bold">
-             <LogOut size={18}/> Sign Out
-           </button>
-           <p className="text-[10px] text-slate-300 mt-4">v2.5.1 • Mobile Optimized</p>
-        </div>
+        <div className="p-6 border-t border-slate-100"><button className="flex items-center gap-3 text-slate-500 hover:text-red-600 transition-colors text-sm font-bold"><LogOut size={18}/> Sign Out</button><p className="text-[10px] text-slate-300 mt-4">v3.5.0 • Mobile Optimized</p></div>
       </aside>
-
-      {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen relative w-full">
-        {/* Top Header */}
         <header className="h-16 lg:h-20 bg-white/80 backdrop-blur border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-20 sticky top-0">
-          <div className="flex items-center gap-3 lg:hidden">
-             <button onClick={() => setIsSidebarOpen(true)} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg">
-                <Menu size={24}/>
-             </button>
-             <span className="font-bold text-slate-800 capitalize">{activeView.replace('-', ' ')}</span>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-2 text-sm text-slate-500">
-             <span className="cursor-pointer hover:text-[#D12027]">Home</span>
-             <ChevronRight size={14}/>
-             <span className="font-bold text-slate-800 capitalize">{activeView.replace('-', ' ')}</span>
-          </div>
-          
+          <div className="flex items-center gap-3 lg:hidden"><button onClick={() => setIsSidebarOpen(true)} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg"><Menu size={24}/></button><span className="font-bold text-slate-800 capitalize">{activeView.replace('-', ' ')}</span></div>
+          <div className="hidden lg:flex items-center gap-2 text-sm text-slate-500"><span className="cursor-pointer hover:text-[#D12027]">Home</span><ChevronRight size={14}/><span className="font-bold text-slate-800 capitalize">{activeView.replace('-', ' ')}</span></div>
           <div className="flex items-center gap-4 lg:gap-6">
-            <button className="relative p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors">
-               <Bell size={20}/>
-               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            </button>
+            <button className="relative p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors"><Bell size={20}/><span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span></button>
             <div className="flex items-center gap-3 pl-4 lg:pl-6 border-l border-slate-200">
-               <div className="text-right hidden md:block">
-                  <p className="text-sm font-bold text-slate-800">Admin HR</p>
-                  <p className="text-xs text-slate-500">Superadmin Access</p>
-               </div>
-               <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#D12027] rounded-full text-white flex items-center justify-center font-bold border-2 border-red-100 shadow-sm text-sm">
-                 HR
-               </div>
+               <div className="text-right hidden md:block"><p className="text-sm font-bold text-slate-800">Admin HR</p><p className="text-xs text-slate-500">Superadmin Access</p></div>
+               <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#D12027] rounded-full text-white flex items-center justify-center font-bold border-2 border-red-100 shadow-sm text-sm">HR</div>
             </div>
           </div>
         </header>
-
-        {/* Dynamic Content Area */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth w-full">
            <div className="max-w-7xl mx-auto">
               <div className="hidden lg:flex mb-8 justify-between items-end">
-                <div>
-                  <h2 className="text-3xl font-bold text-slate-800 mb-2 capitalize">{activeView.replace('-', ' ')}</h2>
-                  <p className="text-slate-500">Manage your organization's learning ecosystem.</p>
-                </div>
-                {activeView === 'employees' && (
-                  <button className="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg flex items-center gap-2">
-                    <Plus size={18}/> Add Employee
-                  </button>
-                )}
+                <div><h2 className="text-3xl font-bold text-slate-800 mb-2 capitalize">{activeView.replace('-', ' ')}</h2><p className="text-slate-500">Manage your organization's learning ecosystem.</p></div>
               </div>
-              
-              {activeView === 'dashboard' && <DashboardOverview />}
-              {activeView === 'employees' && <EmployeeManager courses={coursesList} />}
-              {activeView === 'curriculum' && <CurriculumManager courses={coursesList} onAddCourse={handleAddCourse} />}
-              {activeView === 'requests' && <RequestManager />}
-              {activeView === 'analytics' && <AnalyticsDashboard />}
+              {activeView === 'dashboard' && <DashboardOverview analyticsTrigger={() => { setActiveView('analytics'); setDeptAnalyticsOpen(true); }} />}
+              {activeView === 'employees' && <EmployeeManager employees={employees} courses={courses} onAddEmployee={handleAddEmployee} />}
+              {activeView === 'curriculum' && <CurriculumManager courses={courses} employees={employees} onAddCourse={handleAddCourse} onUpdateCourseStatus={handleUpdateCourseStatus} />}
+              {activeView === 'requests' && <RequestManager requests={requests} onUpdateStatus={handleRequestStatus} />}
+              {activeView === 'analytics' && <AnalyticsDashboard onOpenDeptDetail={() => setDeptAnalyticsOpen(true)} />}
            </div>
         </main>
+        <DeptAnalyticsModal isOpen={deptAnalyticsOpen} onClose={() => setDeptAnalyticsOpen(false)} />
       </div>
     </div>
   );
