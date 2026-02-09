@@ -177,7 +177,7 @@ const TRAINING_CATEGORIES = [
     }
 ];
 
-// UPDATED MODULES LIST (NEW CONTENT)
+// UPDATED MODULES LIST
 const MODULES_LIST = [
   { id: "m0", title: "Pre-Test: Baseline Assessment", type: "pre_test", duration: "5:00", category: "Evaluation", xp: 50 },
   { id: "m1", title: "Video: The Art of Communication", type: "video", duration: "10:00", category: "Concept", xp: 100 },
@@ -251,7 +251,7 @@ const MOCK_TRAINING_REQUESTS = [
 const LevelBar = ({ xp, level }) => {
   const nextLevelXp = (level + 1) * 500;
   const progress = ((xp % 500) / 500) * 100;
-  
+   
   return (
     <div className="w-full">
       <div className="flex justify-between text-xs mb-1">
@@ -331,27 +331,57 @@ const PreTestLesson = ({ onComplete, updateUser, score: existingScore }) => {
   );
 };
 
-// MODULE 1: VIDEO LESSON
+// MODULE 1: VIDEO LESSON (UPDATED WITH PDF DOWNLOAD & CORRECT LINK)
 const VideoLesson = ({ onComplete }) => {
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const handleDownloadPdf = () => {
+        setIsDownloading(true);
+        // Simulate a network request/download delay
+        setTimeout(() => {
+            setIsDownloading(false);
+            alert("Materi Training 'Communication Mastery.pdf' berhasil diunduh ke perangkat Anda.");
+        }, 1500);
+    };
+
     return (
         <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn">
-            <div className="flex items-center gap-3 mb-2">
-                <div className="bg-red-600 text-white p-2 rounded-lg"><PlayCircle size={24}/></div>
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-800">Video: The Art of Communication</h2>
-                    <p className="text-slate-500 text-sm">Pelajari dasar komunikasi efektif di lingkungan kerja.</p>
-                </div>
-            </div>
-            
-            <div className="bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video relative group">
-                <div className="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center text-white">
-                    <PlayCircle size={64} className="mb-4 opacity-80 hover:scale-110 transition-transform cursor-pointer"/>
-                    <p className="font-bold text-lg">Communication Mastery Video</p>
-                    <p className="text-sm text-slate-400">Duration: 10:00</p>
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-700">
-                        <div className="w-1/3 h-full bg-red-600"></div>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="bg-red-600 text-white p-2 rounded-lg"><PlayCircle size={24}/></div>
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-800">Video: The Art of Communication</h2>
+                        <p className="text-slate-500 text-sm">Pelajari dasar komunikasi efektif di lingkungan kerja.</p>
                     </div>
                 </div>
+                <button 
+                    onClick={handleDownloadPdf}
+                    disabled={isDownloading}
+                    className="flex items-center gap-2 text-red-600 font-bold border border-red-200 bg-red-50 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                    {isDownloading ? (
+                        <>
+                            <Loader size={16} className="animate-spin"/> Mengunduh...
+                        </>
+                    ) : (
+                        <>
+                            <Download size={16}/> Download Materi (PDF)
+                        </>
+                    )}
+                </button>
+            </div>
+             
+            <div className="bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video relative group">
+                <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.youtube.com/embed/lg48Bi9DA54?start=1" 
+                    title="Communication Training Video" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                    className="w-full h-full"
+                ></iframe>
             </div>
 
             <div className="bg-white p-6 rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -825,7 +855,7 @@ const TrainingRequestView = () => {
                                         {req.status}
                                     </span>
                                 </div>
-                                
+                                 
                                 {/* Progress Bar */}
                                 <div className="mt-4">
                                     <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
@@ -851,27 +881,27 @@ const TrainingRequestView = () => {
 };
 
 const CoursePlayer = ({ user, updateUser, onBack }) => {
-    const [activeModule, setActiveModule] = useState(MODULES_LIST[0]);
-  
-    const handleComplete = () => {
-      const currentIndex = MODULES_LIST.findIndex(m => m.id === activeModule.id);
-      if(currentIndex < MODULES_LIST.length - 1) {
-          setActiveModule(MODULES_LIST[currentIndex + 1]);
-      } else {
-        alert("Selamat! Anda telah menyelesaikan rangkaian training ini.");
-        onBack();
-      }
+   const [activeModule, setActiveModule] = useState(MODULES_LIST[0]);
+   
+   const handleComplete = () => {
+     const currentIndex = MODULES_LIST.findIndex(m => m.id === activeModule.id);
+     if(currentIndex < MODULES_LIST.length - 1) {
+         setActiveModule(MODULES_LIST[currentIndex + 1]);
+     } else {
+       alert("Selamat! Anda telah menyelesaikan rangkaian training ini.");
+       onBack();
+     }
       
-      // Prevent adding duplicate completion
-      if (!user.completedModules.includes(activeModule.id)) {
-          updateUser({
-              xp: user.xp + activeModule.xp,
-              completedModules: [...user.completedModules, activeModule.id]
-          });
-      }
-    };
-  
-    return (
+     // Prevent adding duplicate completion
+     if (!user.completedModules.includes(activeModule.id)) {
+         updateUser({
+             xp: user.xp + activeModule.xp,
+             completedModules: [...user.completedModules, activeModule.id]
+         });
+     }
+   };
+   
+   return (
       <div className="flex flex-col h-[75vh] bg-white rounded-b-2xl overflow-hidden border border-t-0 border-slate-200 shadow-xl animate-slideIn">
           <div className="flex flex-1 overflow-hidden">
               {/* Sidebar */}
@@ -917,7 +947,7 @@ const CoursePlayer = ({ user, updateUser, onBack }) => {
               </div>
           </div>
       </div>
-    )
+   )
 }
 
 const TrainingCenter = ({ user, updateUser, onBack }) => {
@@ -947,11 +977,11 @@ const TrainingCenter = ({ user, updateUser, onBack }) => {
 
              <div className="bg-white min-h-[500px] rounded-b-2xl rounded-tr-2xl shadow-sm border border-slate-200 p-0 overflow-hidden">
                  {activeTab === 'lms' ? (
-                     <CoursePlayer user={user} updateUser={updateUser} onBack={onBack}/>
+                      <CoursePlayer user={user} updateUser={updateUser} onBack={onBack}/>
                  ) : (
-                     <div className="p-8">
-                         <TrainingRequestView />
-                     </div>
+                      <div className="p-8">
+                          <TrainingRequestView />
+                      </div>
                  )}
              </div>
         </div>
@@ -1246,9 +1276,9 @@ const LeaderboardView = ({ user }) => {
                                     <p className="text-base font-bold text-slate-800 truncate w-full text-center">{topThree[0].name}</p>
                                     <div className="bg-[#D12027] text-white text-[10px] px-2 py-0.5 rounded-full font-bold mb-1 shadow-sm">Department Champion</div>
                                     <div className={`w-full ${getRankStyle(0).bg} rounded-t-xl flex items-end justify-center pb-6 shadow-inner h-44 relative group`}>
-                                         <div className="text-yellow-800 font-black text-2xl opacity-30 group-hover:opacity-50 transition-opacity">
-                                            {viewMode === 'learning' ? topThree[0].xp : topThree[0].ideasApproved}
-                                        </div>
+                                     <div className="text-yellow-800 font-black text-2xl opacity-30 group-hover:opacity-50 transition-opacity">
+                                        {viewMode === 'learning' ? topThree[0].xp : topThree[0].ideasApproved}
+                                     </div>
                                     </div>
                                 </div>
                              )}
@@ -1273,41 +1303,41 @@ const LeaderboardView = ({ user }) => {
                                     </div>
                                  </div>
                              )}
-                         </div>
-                     </div>
+                          </div>
+                      </div>
 
-                     {/* Rest of the list */}
-                     <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                             <h3 className="font-bold text-slate-800">Global Rankings</h3>
-                             <button className="text-xs font-bold text-blue-600 hover:underline">View Full Report</button>
-                         </div>
-                         <div className="divide-y divide-slate-100">
-                             {rest.map((entry) => (
-                                 <div key={entry.rank} className={`flex items-center justify-between p-4 hover:bg-slate-50 transition-colors ${entry.isMe ? 'bg-blue-50/50' : ''}`}>
-                                     <div className="flex items-center gap-4">
-                                         <div className="w-8 text-center font-bold text-slate-400 text-lg">#{entry.rank}</div>
-                                         <div className="relative">
-                                            <img src={entry.avatar} alt={entry.name} className="w-10 h-10 rounded-full bg-slate-200"/>
-                                            {entry.isMe && <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></div>}
-                                         </div>
-                                         <div>
+                      {/* Rest of the list */}
+                      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                          <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                              <h3 className="font-bold text-slate-800">Global Rankings</h3>
+                              <button className="text-xs font-bold text-blue-600 hover:underline">View Full Report</button>
+                          </div>
+                          <div className="divide-y divide-slate-100">
+                              {rest.map((entry) => (
+                                  <div key={entry.rank} className={`flex items-center justify-between p-4 hover:bg-slate-50 transition-colors ${entry.isMe ? 'bg-blue-50/50' : ''}`}>
+                                      <div className="flex items-center gap-4">
+                                          <div className="w-8 text-center font-bold text-slate-400 text-lg">#{entry.rank}</div>
+                                          <div className="relative">
+                                             <img src={entry.avatar} alt={entry.name} className="w-10 h-10 rounded-full bg-slate-200"/>
+                                             {entry.isMe && <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></div>}
+                                          </div>
+                                          <div>
                                              <div className="flex items-center gap-2">
                                                 <p className={`text-sm font-bold ${entry.isMe ? 'text-[#D12027]' : 'text-slate-700'}`}>{entry.name} {entry.isMe && '(You)'}</p>
                                                 {entry.trend === 'up' && <TrendingUp size={12} className="text-green-500"/>}
                                                 {entry.trend === 'down' && <TrendingDown size={12} className="text-red-500"/>}
                                              </div>
                                              <p className="text-xs text-slate-400">{entry.role} • {entry.dept}</p>
-                                         </div>
-                                     </div>
-                                     <div className="text-right">
-                                         <p className="text-sm font-bold text-slate-700 font-mono">{viewMode === 'learning' ? `${entry.xp.toLocaleString()} XP` : `${entry.ideasApproved} Approved`}</p>
-                                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{viewMode === 'learning' ? `Level ${entry.level}` : entry.label}</p>
-                                     </div>
-                                 </div>
-                             ))}
-                         </div>
-                     </div>
+                                          </div>
+                                      </div>
+                                      <div className="text-right">
+                                          <p className="text-sm font-bold text-slate-700 font-mono">{viewMode === 'learning' ? `${entry.xp.toLocaleString()} XP` : `${entry.ideasApproved} Approved`}</p>
+                                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{viewMode === 'learning' ? `Level ${entry.level}` : entry.label}</p>
+                                      </div>
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
                 </div>
 
                 <div className="space-y-6">
@@ -1328,7 +1358,7 @@ const LeaderboardView = ({ user }) => {
                             </ResponsiveContainer>
                         </div>
                     </div>
-                    
+                     
                     <div className="bg-[#D12027] p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                         <h3 className="font-bold text-lg mb-2 relative z-10">Department Race</h3>
@@ -1359,9 +1389,9 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                 </div>
                 {user.hasAccelerationAccess && (
                      <div className="bg-yellow-50 px-4 py-2 rounded-xl border border-yellow-100 cursor-pointer hover:bg-yellow-100 transition-colors" onClick={onToggleAccess}>
-                     <p className="text-xs text-yellow-600">Status Akses</p>
-                     <p className="font-bold text-yellow-700 flex items-center gap-1"><Star size={12}/> Acceleration Granted</p>
-                 </div>
+                      <p className="text-xs text-yellow-600">Status Akses</p>
+                      <p className="font-bold text-yellow-700 flex items-center gap-1"><Star size={12}/> Acceleration Granted</p>
+                  </div>
                 )}
             </div>
           </div>
@@ -1513,18 +1543,17 @@ const App = () => {
               </div>
           </div>
         </header>
-        
+         
         <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-24 lg:pb-8">
           <div className="max-w-6xl mx-auto">
             {currentView === 'dashboard' && <Dashboard user={user} setView={setCurrentView} onToggleAccess={toggleAccess}/>}
-            {/* Replaced direct CoursePlayer with TrainingCenter */}
             {currentView === 'course' && <TrainingCenter user={user} updateUser={updateUser} onBack={() => setCurrentView('dashboard')} />}
             {currentView === 'community' && <SquadFeed />}
             {currentView === 'analytics' && <LeaderboardView user={user} />}
             {currentView === 'ideas' && <SuggestionSystem />}
           </div>
         </main>
-        
+         
         {/* Mobile Navigation */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 px-6 py-3 flex justify-between items-center pb-safe">
             {MENU_ITEMS.map(item => (
