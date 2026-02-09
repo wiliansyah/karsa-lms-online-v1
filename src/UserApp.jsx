@@ -11,7 +11,8 @@ import {
   MoreHorizontal, Edit2, Save, Gauge, LayoutTemplate,
   Loader, ChevronDown, ChevronUp, Coffee, Layers, Unlock,
   Shield, Rocket, Trophy, Medal, Crown, PlusCircle, Sparkles,
-  FileSignature, Building, CalendarClock, PenTool, TrendingDown
+  FileSignature, Building, CalendarClock, PenTool, TrendingDown,
+  Volume2, Eye, Brain, Ear, Quote, Gavel, Fingerprint, Search as MagnifyingGlass
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid
@@ -22,10 +23,11 @@ import {
 const KARSA_RED = "#D12027"; // Kartika Sari Red
 const KARSA_YELLOW = "#FDB913"; // Accent Yellow
 const KARSA_WHITE = "#FFFFFF";
+const KARSA_GREEN = "#2E7D32"; // Success Green
 
 const GlobalStyles = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700;900&display=swap');
     
     body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
     
@@ -83,6 +85,8 @@ const GlobalStyles = () => (
         color: #334155;
     }
 
+    .font-serif { font-family: 'Merriweather', serif; }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -115,8 +119,8 @@ const INITIAL_USER_DATA = {
   checkedIn: false,
   badges: ["Customer First", "Hygiene Hero"],
   completedModules: [],
-  preTestScore: 0,
-  postTestScore: 0,
+  preTestScore: null,
+  postTestScore: null,
 };
 
 const TRAINING_CATEGORIES = [
@@ -138,7 +142,7 @@ const TRAINING_CATEGORIES = [
         title: 'Managerial Training',
         icon: Briefcase,
         nurture: [
-            { id: 'c1', title: 'Strategic Communication (PREP)', status: 'active', subtitle: 'Role Responsibility: Staff', tag: 'Recommended' },
+            { id: 'c1', title: 'Communication Mastery 5.0', status: 'active', subtitle: 'Verbal & Written Skills', tag: 'New' },
             { id: 'man2', title: 'Time Management Matrix', status: 'locked', subtitle: 'Personal Productivity' }
         ],
         acceleration: [
@@ -173,14 +177,17 @@ const TRAINING_CATEGORIES = [
     }
 ];
 
+// UPDATED MODULES LIST (NEW CONTENT)
 const MODULES_LIST = [
-  { id: "m0", title: "Baseline: Pre-Test Assessment", type: "pre_test", duration: "5:00", category: "Evaluation", xp: 50 },
-  { id: "m1", title: "The Art of Communication", type: "video", duration: "13:00", category: "10% Formal", xp: 100 },
-  { id: "m2", title: "Framework: The Executive Pitch (PREP)", type: "theory", duration: "15:00", category: "10% Formal", xp: 150 },
-  { id: "m3", title: "Ritual: The 'Digital Handshake'", type: "checklist", duration: "8:00", category: "70% Practice", xp: 50 },
-  { id: "m4", title: "Lab: Handling Customer Issue", type: "simulation", duration: "15:00", category: "70% Practice", xp: 200 }, 
-  { id: "m5", title: "Squad: Peer Review Challenge", type: "peer_review", duration: "10:00", category: "20% Social", xp: 150 },
-  { id: "m6", title: "Certification: Final Quiz", type: "quiz", duration: "10:00", category: "Evaluation", xp: 300 },
+  { id: "m0", title: "Pre-Test: Baseline Assessment", type: "pre_test", duration: "5:00", category: "Evaluation", xp: 50 },
+  { id: "m1", title: "Video: The Art of Communication", type: "video", duration: "10:00", category: "Concept", xp: 100 },
+  { id: "m2", title: "Fundamentals: Why & What", type: "theory", duration: "10:00", category: "Concept", xp: 100 },
+  { id: "m3", title: "Framework: The 7Cs Rule", type: "framework", duration: "12:00", category: "Technique", xp: 150 },
+  { id: "m4", title: "Tool: Active Listening (L.A.S.E.R)", type: "tool", duration: "8:00", category: "Technique", xp: 100 },
+  { id: "m5", title: "Lab: Email Audit Challenge", type: "lab", duration: "15:00", category: "Practice", xp: 200 },
+  { id: "m6", title: "Case Study: The 'Sus Coklat' Incident", type: "case_study", duration: "15:00", category: "Analysis", xp: 250 },
+  { id: "m7", title: "Post-Test: Final Certification", type: "post_test", duration: "10:00", category: "Evaluation", xp: 300 },
+  { id: "m8", title: "Closing: Action Plan & Pledge", type: "action_plan", duration: "5:00", category: "Commitment", xp: 150 },
 ];
 
 const SQUAD_POSTS = [
@@ -258,18 +265,18 @@ const LevelBar = ({ xp, level }) => {
   );
 };
 
-// --- 4. MODULE COMPONENTS ---
+// --- 4. MODULE COMPONENTS (NEW CONTENT) ---
 
 // MODULE 0: PRE-TEST
-const PreTestLesson = ({ onComplete, updateUser }) => {
+const PreTestLesson = ({ onComplete, updateUser, score: existingScore }) => {
   const [score, setScore] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [answers, setAnswers] = useState({});
 
   const questions = [
-    { id: 1, q: "Apa kepanjangan dari PREP?", options: ["Point, Reason, Example, Point", "Plan, Review, Execute, Publish"], correct: 0 },
-    { id: 2, q: "Dalam komunikasi 'High Context', kita mengandalkan:", options: ["Kata-kata eksplisit", "Pemahaman tersirat & sopan santun"], correct: 1 },
-    { id: 3, q: "Aturan 7-38-55 membahas tentang:", options: ["Manajemen Waktu Baking", "Komunikasi Non-Verbal"], correct: 1 }
+    { id: 1, q: "Apa elemen terpenting dalam komunikasi tatap muka (Mehrabian)?", options: ["Kata-kata (Words)", "Bahasa Tubuh (Body Language)", "Nada Suara (Tone)"], correct: 1 },
+    { id: 2, q: "Apa arti 'Concise' dalam 7Cs?", options: ["Panjang lebar", "Ringkas & Padat", "Menggunakan istilah teknis"], correct: 1 },
+    { id: 3, q: "Metode L.A.S.E.R digunakan untuk?", options: ["Menulis Email", "Active Listening", "Public Speaking"], correct: 1 }
   ];
 
   const handleSubmit = () => {
@@ -281,18 +288,29 @@ const PreTestLesson = ({ onComplete, updateUser }) => {
     updateUser({ preTestScore: finalScore });
   };
 
+  if (existingScore !== null && !submitted) {
+      return (
+        <div className="text-center animate-fadeIn max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200">
+             <div className="inline-block p-3 bg-slate-100 rounded-full mb-3"><CheckCircle size={32} className="text-green-600"/></div>
+             <h2 className="text-2xl font-bold text-slate-800">Pre-Test Completed</h2>
+             <p className="text-slate-500 mb-6">Skor Awal Anda: <span className="font-bold text-slate-800">{existingScore}%</span></p>
+             <button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold">Lanjut ke Video Materi</button>
+        </div>
+      )
+  }
+
   return (
     <div className="max-w-2xl mx-auto animate-fadeIn">
       <div className="text-center mb-8">
         <div className="inline-block p-3 bg-red-50 text-[#D12027] rounded-full mb-3"><BarChart2 size={24}/></div>
-        <h2 className="text-2xl font-bold text-slate-800">Baseline Assessment</h2>
-        <p className="text-slate-500">Mari cek pengetahuan awal Anda tentang Komunikasi Efektif.</p>
+        <h2 className="text-2xl font-bold text-slate-800">Baseline Assessment (Pre-Test)</h2>
+        <p className="text-slate-500">Uji pengetahuan awal Anda sebelum memulai materi.</p>
       </div>
       {!submitted ? (
         <div className="space-y-6">
           {questions.map((q, i) => (
             <div key={q.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-              <p className="font-bold text-slate-800 mb-3">{q.q}</p>
+              <p className="font-bold text-slate-800 mb-3">{i+1}. {q.q}</p>
               <div className="space-y-2">
                 {q.options.map((opt, optIdx) => (
                   <button key={optIdx} onClick={() => setAnswers({...answers, [i]: optIdx})} className={`w-full text-left p-3 rounded-lg border text-sm transition-all ${answers[i] === optIdx ? 'bg-[#D12027] text-white border-[#D12027]' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}>{opt}</button>
@@ -300,124 +318,324 @@ const PreTestLesson = ({ onComplete, updateUser }) => {
               </div>
             </div>
           ))}
-          <button onClick={handleSubmit} disabled={Object.keys(answers).length < questions.length} className="btn-primary w-full py-3 rounded-xl font-bold">Submit Baseline</button>
+          <button onClick={handleSubmit} disabled={Object.keys(answers).length < questions.length} className="btn-primary w-full py-3 rounded-xl font-bold disabled:opacity-50">Submit Pre-Test</button>
         </div>
       ) : (
         <div className="text-center animate-pop bg-white p-8 rounded-2xl border border-slate-200">
           <h3 className="text-xl font-bold text-slate-800 mb-2">Skor Awal: {score}%</h3>
-          <p className="text-slate-500 mb-6">Jangan khawatir, course ini akan membantu Anda meningkatkannya!</p>
-          <button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold">Mulai Belajar</button>
+          <p className="text-slate-500 mb-6">Skor tersimpan. Mari mulai belajar untuk meningkatkan pemahaman!</p>
+          <button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold">Lanjut ke Video</button>
         </div>
       )}
     </div>
   );
 };
 
-// MODULE 1: VIDEO
+// MODULE 1: VIDEO LESSON
 const VideoLesson = ({ onComplete }) => {
-  return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn">
-      <div className="bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video relative group">
-        <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-white text-lg">Video Player Placeholder (YouTube Embed)</p>
+    return (
+        <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn">
+            <div className="flex items-center gap-3 mb-2">
+                <div className="bg-red-600 text-white p-2 rounded-lg"><PlayCircle size={24}/></div>
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-800">Video: The Art of Communication</h2>
+                    <p className="text-slate-500 text-sm">Pelajari dasar komunikasi efektif di lingkungan kerja.</p>
+                </div>
+            </div>
+            
+            <div className="bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video relative group">
+                <div className="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center text-white">
+                    <PlayCircle size={64} className="mb-4 opacity-80 hover:scale-110 transition-transform cursor-pointer"/>
+                    <p className="font-bold text-lg">Communication Mastery Video</p>
+                    <p className="text-sm text-slate-400">Duration: 10:00</p>
+                    <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-700">
+                        <div className="w-1/3 h-full bg-red-600"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="text-sm text-slate-600">
+                    <p><strong>Key Takeaways:</strong></p>
+                    <ul className="list-disc ml-5 mt-1 space-y-1">
+                        <li>Pentingnya kejelasan dalam operasional toko.</li>
+                        <li>Dampak miskomunikasi terhadap pelanggan.</li>
+                    </ul>
+                </div>
+                <button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap">
+                    Saya Sudah Menonton <CheckCircle size={18}/>
+                </button>
+            </div>
         </div>
-        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/lg48Bi9DA54" title="Video" className="relative z-10 opacity-90" allowFullScreen></iframe>
-      </div>
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 flex justify-between items-center">
-          <div>
-            <h3 className="font-bold text-lg">Pentingnya Kejelasan</h3>
-            <p className="text-sm text-slate-500">Mengapa komunikasi yang berbelit-belit merugikan operasional toko.</p>
-          </div>
-          <button onClick={onComplete} className="btn-primary px-6 py-2 rounded-xl font-bold flex items-center gap-2">Selesai Menonton <CheckCircle size={18}/></button>
-      </div>
-    </div>
-  );
+    );
 };
 
-// MODULE 2: PREP BUILDER (Theory)
-const TheoryLesson = ({ onComplete }) => {
-  const [step, setStep] = useState(0);
-  const steps = [
-    { title: "POINT", task: "Manager bertanya: 'Bagaimana stok Pisang Bolen?' Pilih jawaban terbaik:", options: [{txt: "Hmm, anu pak, tadi supplier agak telat...", correct: false}, {txt: "Stok aman untuk 2 jam ke depan, tapi butuh restock jam 2 siang.", correct: true}] },
-    { title: "REASON", task: "Jelaskan 'Kenapa' butuh restock jam 2?", options: [{txt: "Karena prediksi sales weekend meningkat 20%.", correct: true}, {txt: "Ya biar aman aja pak.", correct: false}] },
-    { title: "EVIDENCE", task: "Berikan data pendukung:", options: [{txt: "Feeling saya sih bakal ramai.", correct: false}, {txt: "Data POS menunjukkan lonjakan traffic jam 3 sore.", correct: true}] },
-    { title: "POINT", task: "Tutup dengan kesimpulan/aksi:", options: [{txt: "Jadi tolong approve PO tambahan sekarang.", correct: true}, {txt: "Gimana menurut bapak?", correct: false}] }
-  ];
+// MODULE 2: FUNDAMENTALS
+const FundamentalsLesson = ({ onComplete }) => {
+    return (
+        <div className="max-w-4xl mx-auto space-y-8 animate-fadeIn pb-8">
+             <div className="bg-gradient-to-r from-emerald-800 to-emerald-600 rounded-2xl p-8 text-white text-center shadow-lg">
+                 <h1 className="text-3xl font-serif font-black mb-2">FUNDAMENTALS</h1>
+                 <p className="text-emerald-100 font-serif tracking-widest uppercase text-sm">Why & What</p>
+             </div>
 
-  return (
-    <div className="max-w-2xl mx-auto h-full flex flex-col justify-center animate-fadeIn text-center">
-      <h2 className="text-3xl font-black text-[#D12027] mb-2">Latihan PREP</h2>
-      <p className="text-slate-500 mb-8">Susun kalimat yang efektif untuk laporan ke atasan.</p>
-      
-      <div className="flex justify-center gap-2 mb-8">
-        {['P','R','E','P'].map((l, i) => (
-          <div key={i} className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg border-2 ${i === step ? 'bg-[#D12027] text-white border-[#D12027] scale-110' : i < step ? 'bg-green-500 text-white border-green-500' : 'bg-slate-100 text-slate-300'}`}>{l}</div>
-        ))}
-      </div>
+             <div>
+                 <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><AlertTriangle className="text-red-500"/> The Cost of Misunderstanding</h3>
+                 <div className="grid md:grid-cols-3 gap-4">
+                     {[{icon: TrendingDown, t: "Financial Loss", d: "Waste bahan, produk gagal, salah pesanan.", c: "text-red-600 bg-red-50"},
+                       {icon: Clock, t: "Time Waste", d: "Meeting berulang, re-work tugas.", c: "text-orange-600 bg-orange-50"},
+                       {icon: Users, t: "Team Morale", d: "Konflik, saling menyalahkan, demotivasi.", c: "text-slate-600 bg-slate-100"}
+                     ].map((item, idx) => (
+                        <div key={idx} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                             <div className={`w-12 h-12 ${item.c} rounded-full flex items-center justify-center mb-4 mx-auto`}><item.icon size={24}/></div>
+                             <h4 className="text-center font-bold text-slate-800 mb-2">{item.t}</h4>
+                             <p className="text-center text-xs text-slate-500">{item.d}</p>
+                        </div>
+                     ))}
+                 </div>
+             </div>
 
-      <div className="bg-white p-8 rounded-2xl border shadow-lg relative">
-        <h3 className="text-xl font-bold text-slate-800 mb-4">{steps[step].title}</h3>
-        <p className="mb-6 text-slate-600">{steps[step].task}</p>
-        <div className="space-y-3">
-          {steps[step].options.map((opt, i) => (
-            <button key={i} onClick={() => opt.correct ? (step < 3 ? setStep(s=>s+1) : onComplete()) : alert("Kurang tepat, coba lagi.")} className="w-full p-4 rounded-xl border-2 border-slate-100 hover:border-[#D12027] hover:bg-red-50 font-medium text-left transition-all">
-              {opt.txt}
-            </button>
-          ))}
+             <div className="bg-white p-8 rounded-2xl border border-slate-200">
+                 <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><Brain className="text-emerald-600"/> The 7-38-55 Rule (Mehrabian)</h3>
+                 <div className="flex flex-col md:flex-row gap-4 h-48 text-white text-center">
+                     <div className="flex-1 bg-emerald-200 rounded-xl p-4 flex flex-col justify-center items-center text-emerald-900">
+                         <h2 className="text-4xl font-black mb-1">7%</h2>
+                         <p className="text-xs font-bold uppercase">Words</p>
+                     </div>
+                     <div className="flex-[2] bg-emerald-400 rounded-xl p-4 flex flex-col justify-center items-center text-white">
+                         <h2 className="text-5xl font-black mb-1">38%</h2>
+                         <p className="text-xs font-bold uppercase">Tone of Voice</p>
+                     </div>
+                     <div className="flex-[3] bg-emerald-700 rounded-xl p-4 flex flex-col justify-center items-center text-white">
+                         <h2 className="text-6xl font-black mb-1">55%</h2>
+                         <p className="text-xs font-bold uppercase">Body Language</p>
+                     </div>
+                 </div>
+             </div>
+
+             <div className="flex justify-end">
+                <button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold flex items-center gap-2">
+                    Lanjut ke Framework 7Cs <ArrowRight size={18}/>
+                </button>
+             </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
-// MODULE 4: SIMULATION
-const SimulationLesson = ({ onComplete }) => {
-  const [msgs, setMsgs] = useState([{ sender: 'boss', text: 'Budi, ada komplain customer soal brownies yang agak keras. Gimana situasinya?' }]);
-  const [step, setStep] = useState(0);
+// MODULE 3: 7Cs
+const SevenCsLesson = ({ onComplete }) => {
+    const [activeTab, setActiveTab] = useState('Clear');
+    const csContent = {
+        Clear: { icon: Eye, title: "CLEAR (Jelas)", desc: "Pesan harus mudah dimengerti. Hindari ambiguitas.", bad: "Mungkin nanti kita lihat...", good: "Kita akan review besok jam 9." },
+        Concise: { icon: Zap, title: "CONCISE (Ringkas)", desc: "To the point. Hemat waktu pembaca.", bad: "Sehubungan dengan hal tersebut maka...", good: "Maka dari itu..." },
+        Concrete: { icon: Building, title: "CONCRETE (Konkret)", desc: "Gunakan fakta/data spesifik.", bad: "Sales kita naik tinggi.", good: "Sales naik 15% dibanding bulan lalu." },
+        Correct: { icon: CheckCircle, title: "CORRECT (Benar)", desc: "Bebas kesalahan (Typo, Grammar).", bad: "Trimakasih pa.", good: "Terima kasih, Pak." },
+        Coherent: { icon: Layers, title: "COHERENT (Runtut)", desc: "Alur logis dan terhubung.", bad: "Sales naik. AC rusak. Hire orang.", good: "Isu Ops: 1. AC Rusak, 2. Hiring Plan." },
+        Complete: { icon: Check, title: "COMPLETE (Lengkap)", desc: "Semua info 5W+1H ada.", bad: "Kita meeting besok.", good: "Meeting Selasa jam 10 pagi di Ruang A." },
+        Courteous: { icon: Users, title: "COURTEOUS (Sopan)", desc: "Ramah dan menghargai.", bad: "Kirimin laporannya cepet!", good: "Mohon kirimkan segera. Terima kasih." }
+    };
 
-  const choices = [
-    [
-      { txt: "Waduh gatau bu, resep dari pusat kan gitu.", correct: false },
-      { txt: "P: Kami sudah cek batch pagi. R: Ada deviasi suhu oven. E: 3 loyang terdampak.", correct: true }
-    ],
-    [
-      { txt: "Solusi: Kami tarik produk batch tersebut dan ganti baru untuk customer.", correct: true },
-      { txt: "Solusi: Ya kita minta maaf aja bu.", correct: false }
-    ]
+    return (
+        <div className="max-w-5xl mx-auto h-full flex flex-col animate-fadeIn">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">The 7Cs Framework</h2>
+            <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-[400px]">
+                <div className="md:w-1/3 space-y-2 overflow-y-auto pr-2">
+                    {Object.keys(csContent).map((key, idx) => (
+                        <button key={key} onClick={() => setActiveTab(key)} className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${activeTab === key ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-600 hover:border-emerald-200'}`}>
+                            <span className="font-bold text-lg">{idx+1}.</span><span className="font-bold">{key}</span>
+                        </button>
+                    ))}
+                </div>
+                <div className="md:w-2/3 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-4 text-emerald-700">
+                             {React.createElement(csContent[activeTab].icon, { size: 32 })}
+                             <h3 className="text-3xl font-black uppercase">{activeTab}</h3>
+                        </div>
+                        <p className="text-lg text-slate-600 mb-8 font-medium">{csContent[activeTab].desc}</p>
+                        <div className="bg-slate-50 rounded-xl p-6 border border-slate-200 space-y-4">
+                            <div className="flex items-start gap-3"><X className="text-red-500 mt-1 shrink-0" size={20}/><div><p className="text-xs font-bold text-red-500 uppercase">Don't</p><p className="text-slate-500 italic">"{csContent[activeTab].bad}"</p></div></div>
+                            <div className="w-full h-px bg-slate-200"></div>
+                            <div className="flex items-start gap-3"><Check className="text-emerald-600 mt-1 shrink-0" size={20}/><div><p className="text-xs font-bold text-emerald-600 uppercase">Do</p><p className="text-slate-800 font-bold">"{csContent[activeTab].good}"</p></div></div>
+                        </div>
+                    </div>
+                    <div className="mt-auto pt-8 flex justify-end relative z-10">
+                        {activeTab === 'Courteous' && <button onClick={onComplete} className="btn-primary px-6 py-2 rounded-lg font-bold">Lanjut ke Active Listening</button>}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// MODULE 4: ACTIVE LISTENING (LASER)
+const LaserLesson = ({ onComplete }) => {
+    return (
+        <div className="max-w-4xl mx-auto animate-fadeIn py-8 text-center">
+             <h2 className="text-3xl font-bold text-slate-800 mb-2">Active Listening (L.A.S.E.R)</h2>
+             <p className="text-slate-500 mb-10">Jadilah pendengar yang baik dengan metode ini.</p>
+             <div className="flex flex-wrap md:flex-nowrap gap-2 md:gap-4 justify-center items-stretch h-64 mb-10">
+                 {[
+                     { l: 'L', t: 'Look', d: 'Fokus mata ke pembicara.', c: 'bg-emerald-100 text-emerald-800' },
+                     { l: 'A', t: 'Ask', d: 'Tanya untuk klarifikasi.', c: 'bg-emerald-200 text-emerald-900' },
+                     { l: 'S', t: 'Summarize', d: 'Rangkum poin utama.', c: 'bg-emerald-300 text-emerald-900' },
+                     { l: 'E', t: 'Empathize', d: 'Rasakan emosinya.', c: 'bg-emerald-500 text-white' },
+                     { l: 'R', t: 'Respond', d: 'Beri respon yang sesuai.', c: 'bg-emerald-700 text-white' },
+                 ].map((item) => (
+                     <div key={item.l} className={`flex-1 min-w-[100px] rounded-xl p-4 flex flex-col items-center justify-center shadow-sm ${item.c}`}>
+                         <h1 className="text-4xl font-black mb-2">{item.l}</h1>
+                         <h3 className="font-bold text-sm mb-2">{item.t}</h3>
+                         <p className="text-[10px] leading-tight">{item.d}</p>
+                     </div>
+                 ))}
+             </div>
+             <button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold">Lanjut ke Email Audit</button>
+        </div>
+    );
+};
+
+// MODULE 5: EMAIL AUDIT
+const EmailAuditLesson = ({ onComplete }) => {
+    const [fixes, setFixes] = useState({ subject: false, greeting: false, body1: false, body2: false, closing: false });
+    const handleFix = (key) => {
+        setFixes(prev => {
+            const newState = { ...prev, [key]: true };
+            if (Object.values(newState).every(Boolean)) setTimeout(onComplete, 2000);
+            return newState;
+        });
+    };
+    return (
+        <div className="max-w-2xl mx-auto animate-fadeIn">
+            <h2 className="text-2xl font-bold text-slate-800 text-center mb-6">Lab: Email Auditor</h2>
+            <div className="bg-white p-8 rounded-xl border border-slate-300 shadow-sm font-mono text-sm leading-relaxed relative">
+                <div className="border-b pb-4 mb-4 space-y-2">
+                    <div><span className="font-bold text-slate-400">Subject:</span>{' '}
+                    {fixes.subject ? <span className="text-emerald-600 font-bold bg-emerald-50 px-2">Laporan Penjualan Q1</span> : <button onClick={() => handleFix('subject')} className="text-red-500 border-b-2 border-dashed border-red-400">Laporan</button>}</div>
+                </div>
+                <div className="space-y-4">
+                    <p>{fixes.greeting ? <span className="text-emerald-600 font-bold bg-emerald-50 px-2">Halo Tim,</span> : <button onClick={() => handleFix('greeting')} className="text-red-500 border-b-2 border-dashed border-red-400">woi semua,</button>}</p>
+                    <p>Tolong kirim {fixes.body1 ? <span className="text-emerald-600 font-bold bg-emerald-50 px-2">laporan penjualan</span> : <button onClick={() => handleFix('body1')} className="text-red-500 border-b-2 border-dashed border-red-400">file yg kmrn</button>} dong. Saya butuh {fixes.body2 ? <span className="text-emerald-600 font-bold bg-emerald-50 px-2">jam 15.00 hari ini</span> : <button onClick={() => handleFix('body2')} className="text-red-500 border-b-2 border-dashed border-red-400">cepet</button>} ya.</p>
+                    <p>{fixes.closing ? <span className="text-emerald-600 font-bold bg-emerald-50 px-2">Terima kasih,</span> : <button onClick={() => handleFix('closing')} className="text-red-500 border-b-2 border-dashed border-red-400">thx.</button>}</p>
+                    <p>- Budi</p>
+                </div>
+                {Object.values(fixes).every(Boolean) && <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center animate-fadeIn rounded-xl z-10"><CheckCircle size={64} className="text-emerald-600 mb-4"/><h3 className="text-2xl font-bold text-slate-800">Perfect Audit!</h3></div>}
+            </div>
+        </div>
+    );
+};
+
+// MODULE 6: CASE STUDY
+const CaseStudyLesson = ({ onComplete }) => {
+    const [activeTab, setActiveTab] = useState('Evidence');
+    return (
+        <div className="max-w-4xl mx-auto animate-fadeIn">
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Case Study #101: Kue Sus Incident</h2>
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 min-h-[350px] flex flex-col">
+                <div className="flex border-b border-slate-200 bg-slate-50">
+                    {['Evidence', 'Suspect', 'Verdict'].map(tab => (
+                        <button key={tab} onClick={() => setActiveTab(tab)} className={`px-8 py-4 font-bold text-sm uppercase ${activeTab === tab ? 'bg-white border-t-4 border-emerald-600 text-emerald-700' : 'text-slate-400'}`}>{tab}</button>
+                    ))}
+                </div>
+                <div className="p-8 flex-1">
+                    {activeTab === 'Evidence' && <div className="space-y-4 animate-fadeIn"><div className="bg-red-50 p-6 rounded-xl border border-red-100"><p><strong>Kejadian:</strong> Produksi 500 pcs Sus Coklat (Resep Lama).</p><p><strong>Perintah:</strong> "Buat adonan sus seperti biasa ya."</p></div></div>}
+                    {activeTab === 'Suspect' && <div className="space-y-4 animate-fadeIn"><ul className="space-y-3"><li className="bg-orange-50 p-4 rounded-xl"><strong>Ambiguitas:</strong> "Seperti biasa" tidak spesifik.</li></ul></div>}
+                    {activeTab === 'Verdict' && <div className="space-y-6 animate-fadeIn"><div className="bg-emerald-50 p-6 rounded-xl"><p><strong>Solusi:</strong> Verbal + Written instruction & Be Specific.</p></div><div className="flex justify-end"><button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold">Lanjut ke Post-Test</button></div></div>}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// MODULE 7: POST-TEST
+const PostTestLesson = ({ onComplete, updateUser, score: existingScore }) => {
+  const [score, setScore] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const [answers, setAnswers] = useState({});
+
+  const questions = [
+    { id: 1, q: "Huruf 'S' dalam LASER berarti:", options: ["Speak", "Summarize", "Silence"], correct: 1 },
+    { id: 2, q: "Dalam kasus Sus Coklat, apa akar masalah utamanya?", options: ["Alat rusak", "Bahan habis", "Ambiguitas perintah verbal"], correct: 2 },
+    { id: 3, q: "Pesan tertulis (Written) lebih unggul dalam hal:", options: ["Kecepatan", "Akurasi & Dokumentasi", "Membangun emosi"], correct: 1 },
+    { id: 4, q: "Mana yang BUKAN bagian dari 7Cs?", options: ["Correct", "Complex", "Concise"], correct: 1 },
+    { id: 5, q: "Jika email bersifat mendesak (urgent), sebaiknya:", options: ["Tunggu balasan", "Follow up dengan telepon/WA", "Kirim ulang email 5 kali"], correct: 1 }
   ];
 
-  const handleChoice = (c) => {
-    setMsgs([...msgs, { sender: 'me', text: c.txt }, { sender: 'boss', text: c.correct ? "Oke, good response. Lanjutkan." : "Kurang tepat. Coba lebih solutif." }]);
-    if(c.correct) {
-      if(step < 1) setStep(s => s+1);
-      else setTimeout(onComplete, 1500);
-    }
+  const handleSubmit = () => {
+    let s = 0;
+    questions.forEach((q, i) => { if (answers[i] === q.correct) s++; });
+    const finalScore = Math.round((s / questions.length) * 100);
+    setScore(finalScore);
+    setSubmitted(true);
+    updateUser({ postTestScore: finalScore });
   };
 
+  if (existingScore !== null && !submitted) {
+      return (
+        <div className="text-center animate-fadeIn max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200">
+             <div className="inline-block p-3 bg-yellow-100 rounded-full mb-3"><Trophy size={32} className="text-yellow-600"/></div>
+             <h2 className="text-2xl font-bold text-slate-800">Post-Test Completed</h2>
+             <p className="text-slate-500 mb-6">Skor Akhir Anda: <span className="font-bold text-slate-800 text-2xl">{existingScore}%</span></p>
+             <button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold">Lihat Action Plan</button>
+        </div>
+      )
+  }
+
   return (
-    <div className="max-w-md mx-auto h-full flex flex-col bg-slate-50 rounded-2xl border shadow-lg overflow-hidden animate-fadeIn">
-      <div className="bg-[#D12027] p-4 text-white flex items-center gap-2">
-        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"><Users size={16}/></div>
-        <span className="font-bold">Store Manager</span>
+    <div className="max-w-2xl mx-auto animate-fadeIn">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-slate-800">Final Certification (Post-Test)</h2>
+        <p className="text-slate-500">Buktikan pemahaman Anda untuk mendapatkan badge.</p>
       </div>
-      <div className="flex-1 p-4 overflow-y-auto space-y-4">
-        {msgs.map((m, i) => (
-          <div key={i} className={`flex ${m.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${m.sender === 'me' ? 'bg-[#D12027] text-white rounded-br-none' : 'bg-white border text-slate-700 rounded-bl-none'}`}>
-              {m.text}
+      {!submitted ? (
+        <div className="space-y-6">
+          {questions.map((q, i) => (
+            <div key={q.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+              <p className="font-bold text-slate-800 mb-3">{i+1}. {q.q}</p>
+              <div className="space-y-2">
+                {q.options.map((opt, optIdx) => (
+                  <button key={optIdx} onClick={() => setAnswers({...answers, [i]: optIdx})} className={`w-full text-left p-3 rounded-lg border text-sm transition-all ${answers[i] === optIdx ? 'bg-[#D12027] text-white border-[#D12027]' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}>{opt}</button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-      <div className="p-4 bg-white border-t space-y-2">
-        {step < 2 ? choices[step].map((c, i) => (
-          <button key={i} onClick={() => handleChoice(c)} className="w-full p-3 border rounded-xl text-sm text-left hover:bg-slate-50 transition-colors">
-            {c.txt}
-          </button>
-        )) : <div className="text-center text-green-600 font-bold">Simulasi Selesai!</div>}
-      </div>
+          ))}
+          <button onClick={handleSubmit} disabled={Object.keys(answers).length < questions.length} className="btn-primary w-full py-3 rounded-xl font-bold disabled:opacity-50">Submit Final Exam</button>
+        </div>
+      ) : (
+        <div className="text-center animate-pop bg-white p-8 rounded-2xl border border-slate-200">
+          <h3 className="text-2xl font-bold text-slate-800 mb-2">Skor Akhir: {score}%</h3>
+          {score >= 80 ? (
+             <div className="text-emerald-600 font-bold mb-4 flex items-center justify-center gap-2"><Award/> LULUS - BADGE GRANTED</div>
+          ) : (
+             <div className="text-orange-500 font-bold mb-4">BELUM LULUS - Silakan Review Materi</div>
+          )}
+          <button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold">Lanjut ke Action Plan</button>
+        </div>
+      )}
     </div>
   );
+};
+
+// MODULE 8: ACTION PLAN
+const ActionPlanLesson = ({ onComplete }) => {
+    return (
+        <div className="max-w-3xl mx-auto animate-slideIn pb-12">
+            <h2 className="text-3xl font-serif font-black text-center text-slate-800 mb-8">Communication Pledge</h2>
+            <div className="bg-slate-800 text-white p-10 rounded-3xl text-center shadow-xl mb-10 relative overflow-hidden">
+                 <Quote className="mx-auto text-yellow-500 mb-6" size={48}/>
+                 <p className="text-2xl font-bold leading-relaxed mb-8 font-serif">
+                     "GOOD COMMUNICATION BUILDS <span className="text-yellow-400">UNDERSTANDING</span>.<br/>
+                     GREAT COMMUNICATION BUILDS <span className="text-yellow-400">TRUST</span>."
+                 </p>
+            </div>
+            <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-lg mb-2">My Action Plan</h3>
+                <input className="w-full p-3 border rounded-xl bg-slate-50" placeholder="1. Kelemahan saya..."/>
+                <input className="w-full p-3 border rounded-xl bg-slate-50" placeholder="2. Strategi perbaikan besok..."/>
+                <button onClick={onComplete} className="btn-primary w-full py-4 rounded-xl font-bold text-lg mt-4">Selesaikan & Kembali ke Dashboard</button>
+            </div>
+        </div>
+    );
 };
 
 // --- 5. MAIN COMPONENTS ---
@@ -455,8 +673,6 @@ const LoginScreen = ({ onLogin }) => (
     </div>
 );
 
-// --- NEW COMPONENT: TRAINING REQUEST SYSTEM ---
-
 const TrainingRequestView = () => {
     const [activeTab, setActiveTab] = useState('form');
     const [requests, setRequests] = useState(MOCK_TRAINING_REQUESTS);
@@ -473,7 +689,7 @@ const TrainingRequestView = () => {
                 vendor: form.provider === 'Internal' ? 'Kartika Sari L&D' : form.vendor,
                 date: form.date,
                 status: "Waiting SPV",
-                currentStep: 1 // 1: SPV, 2: HR, 3: Approved
+                currentStep: 1 
             };
             setRequests([newRequest, ...requests]);
             setForm({ title: '', provider: 'Internal', vendor: '', reason: '', date: '' });
@@ -642,7 +858,7 @@ const CoursePlayer = ({ user, updateUser, onBack }) => {
       if(currentIndex < MODULES_LIST.length - 1) {
           setActiveModule(MODULES_LIST[currentIndex + 1]);
       } else {
-        alert("Selamat! Anda telah menyelesaikan rangkaian modul ini.");
+        alert("Selamat! Anda telah menyelesaikan rangkaian training ini.");
         onBack();
       }
       
@@ -688,30 +904,21 @@ const CoursePlayer = ({ user, updateUser, onBack }) => {
               {/* Main Content */}
               <div className="flex-1 relative bg-slate-100">
                   <div className="absolute inset-0 overflow-y-auto p-4 md:p-8">
-                      {activeModule.id === 'm0' && <PreTestLesson onComplete={handleComplete} updateUser={updateUser} />}
+                      {activeModule.id === 'm0' && <PreTestLesson onComplete={handleComplete} updateUser={updateUser} score={user.preTestScore} />}
                       {activeModule.id === 'm1' && <VideoLesson onComplete={handleComplete} />}
-                      {activeModule.id === 'm2' && <TheoryLesson onComplete={handleComplete} />}
-                      {activeModule.id === 'm4' && <SimulationLesson onComplete={handleComplete} />}
-                      
-                      {/* Placeholder for locked/unimplemented modules */}
-                      {['m3', 'm5', 'm6'].includes(activeModule.id) && (
-                          <div className="flex items-center justify-center h-full flex-col text-center">
-                              <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                                  <Lock size={32} className="text-slate-400"/>
-                              </div>
-                              <h3 className="text-xl font-bold text-slate-700 mb-2">Modul Sedang Dipersiapkan</h3>
-                              <p className="text-slate-500 max-w-md mx-auto mb-8">Modul ini belum tersedia dalam versi demo. Anda dapat melewati modul ini untuk melihat modul selanjutnya.</p>
-                              <button onClick={handleComplete} className="btn-primary px-6 py-3 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all">
-                                  Skip & Complete (+{activeModule.xp} XP)
-                              </button>
-                          </div>
-                      )}
+                      {activeModule.id === 'm2' && <FundamentalsLesson onComplete={handleComplete} />}
+                      {activeModule.id === 'm3' && <SevenCsLesson onComplete={handleComplete} />}
+                      {activeModule.id === 'm4' && <LaserLesson onComplete={handleComplete} />}
+                      {activeModule.id === 'm5' && <EmailAuditLesson onComplete={handleComplete} />}
+                      {activeModule.id === 'm6' && <CaseStudyLesson onComplete={handleComplete} />}
+                      {activeModule.id === 'm7' && <PostTestLesson onComplete={handleComplete} updateUser={updateUser} score={user.postTestScore} />}
+                      {activeModule.id === 'm8' && <ActionPlanLesson onComplete={handleComplete} />}
                   </div>
               </div>
           </div>
       </div>
     )
-  }
+}
 
 const TrainingCenter = ({ user, updateUser, onBack }) => {
     const [activeTab, setActiveTab] = useState('lms');
@@ -1238,7 +1445,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
   );
 };
 
-const UserApp = () => {
+const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
   const [user, setUser] = useState(INITIAL_USER_DATA);
@@ -1336,4 +1543,4 @@ const UserApp = () => {
   );
 };
 
-export default UserApp;
+export default App;
