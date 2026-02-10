@@ -1,388 +1,356 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+/**
+ * @file App.jsx
+ * @description Enterprise-Grade HR & LMS Dashboard with Context-Aware Tutorials.
+ * @author Senior Frontend Developer
+ * @version 2.0.0 Production-Ready
+ */
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import Joyride, { STATUS, EVENTS, LIFECYCLE } from 'react-joyride';
 import {
   LayoutDashboard, Users, BookOpen, FileText, BarChart2,
-  Search, Bell, Plus, ChevronRight, ChevronLeft, MoreVertical,
-  CheckCircle, XCircle, Clock, AlertTriangle, HelpCircle,
+  Search, Bell, Plus, ChevronRight, MoreVertical,
+  CheckCircle, XCircle, Clock, AlertTriangle,
   Download, Award, DollarSign, Briefcase, GraduationCap,
-  PieChart as PieIcon, MapPin, X, LogOut, Filter,
-  Eye, Layers, Menu, ArrowLeft, Target, Settings,
-  FileCheck, PlayCircle, ToggleLeft, ToggleRight, Info,
-  ChevronDown, MessageSquare, Zap, Activity
+  PieChart as PieIcon, MapPin, X, LogOut,
+  Eye, Layers, Menu, ArrowLeft, Target,
+  FileCheck, PlayCircle, ToggleLeft, ToggleRight,
+  HelpCircle, Filter, ArrowUp, ArrowDown, ChevronLeft,
+  Save, Trash2, Mail
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, AreaChart, Area, Legend, ComposedChart,
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Cell
+  LineChart, Line, AreaChart, Area, Legend,
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
-import Joyride, { STATUS, EVENTS, ACTIONS } from 'react-joyride';
 
 // ==========================================
-// 1. CONFIGURATION & STYLES
+// 1. CONFIGURATION & THEME CONSTANTS
 // ==========================================
 
 const THEME = {
   primary: "#D12027",      // Karsa Red
+  primaryDark: "#b91c22",
   secondary: "#FDB913",    // Karsa Yellow
-  dark: "#1e293b",
-  light: "#f8fafc",
-  success: "#10b981",
-  warning: "#f59e0b",
+  bg: "#f8fafc",
+  text: "#334155",
+  success: "#22c55e",
+  warning: "#eab308",
   danger: "#ef4444",
-  info: "#3b82f6"
+  border: "#e2e8f0"
 };
 
+/**
+ * Global Styles injected into the head.
+ * Handles animations, scrollbars, and utility classes not found in Tailwind.
+ */
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
-    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #334155; -webkit-font-smoothing: antialiased; }
+    body { font-family: 'Inter', sans-serif; background-color: ${THEME.bg}; color: ${THEME.text}; }
     
-    /* Custom Animations */
-    .animate-fadeIn { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    .animate-slideUp { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    .animate-slideInRight { animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    .animate-scaleIn { animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-    .animate-pulse-soft { animation: pulseSoft 2s infinite; }
+    /* Animations */
+    .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+    .animate-slideIn { animation: slideIn 0.3s ease-out forwards; }
+    .animate-slideInRight { animation: slideInRight 0.3s ease-out forwards; }
+    .animate-pop { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    @keyframes pulseSoft { 0% { box-shadow: 0 0 0 0 rgba(209, 32, 39, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(209, 32, 39, 0); } 100% { box-shadow: 0 0 0 0 rgba(209, 32, 39, 0); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes pop { 0% { transform: scale(0.95); } 100% { transform: scale(1); } }
 
-    /* Scrollbar Styling */
+    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* Utility Classes */
-    .card-hover { transition: all 0.3s ease; }
-    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15); }
+    /* Utilities */
+    .card-hover { transition: all 0.2s; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     
-    .btn-primary {
-      background: linear-gradient(135deg, ${THEME.primary} 0%, #b91c22 100%);
-      color: white; border: none;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    .sidebar-active {
+      background: linear-gradient(90deg, rgba(209, 32, 39, 0.1) 0%, transparent 100%);
+      border-left: 4px solid ${THEME.primary};
+      color: ${THEME.primary};
     }
-    .btn-primary:hover { box-shadow: 0 4px 12px rgba(209, 32, 39, 0.3); transform: translateY(-1px); }
-    .btn-primary:active { transform: translateY(0); }
+    
+    /* Table Styling */
+    th { letter-spacing: 0.05em; }
+    tr { transition: background-color 0.15s; }
 
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-    }
-
-    /* Joyride Customization Overrides */
-    .__floater__body div { line-height: 1.6 !important; font-size: 14px !important; }
+    /* Joyride Overrides */
+    .react-joyride__tooltip { border-radius: 12px !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important; }
   `}</style>
 );
 
 // ==========================================
-// 2. ROBUST MOCK DATA ENGINE
+// 2. MOCK DATA & GENERATORS
 // ==========================================
 
-// Helper to generate dates
-const getDate = (daysOffset) => {
-  const d = new Date();
-  d.setDate(d.getDate() + daysOffset);
-  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-};
-
-const INITIAL_EMPLOYEES = Array.from({ length: 15 }).map((_, i) => ({
-  id: `E0${10 + i}`,
-  name: ['Budi Santoso', 'Siska Wijaya', 'Andi Pratama', 'Rina Melati', 'Dedi Kusuma', 'Eka Saputra', 'Fani Rahma', 'Gilang Ramadhan', 'Hani Pertiwi', 'Indra Lesmana', 'Joko Susilo', 'Kartika Sari', 'Lina Marlina', 'Maman Suherman', 'Nina Zatulini'][i],
-  role: ['Sales Staff', 'Store Manager', 'Head Baker', 'Supervisor', 'Logistics', 'Security', 'HR Admin', 'Marketing', 'Finance', 'IT Support', 'Driver', 'Baker', 'Cashier', 'Chef', 'QA'][i],
-  dept: ['Frontliner', 'Operational', 'Kitchen', 'Frontliner', 'Warehouse', 'Operational', 'Office', 'Office', 'Office', 'Office', 'Warehouse', 'Kitchen', 'Frontliner', 'Kitchen', 'Kitchen'][i],
-  branch: ['Kb. Kawung', 'Dago', 'Central', 'Buah Batu', 'Central', 'Cimahi', 'HQ', 'HQ', 'HQ', 'HQ', 'Central', 'Central', 'Antapani', 'Dago', 'Central'][i],
-  progress: Math.floor(Math.random() * 100),
-  compliance: Math.random() > 0.8 ? 'Non-Compliant' : Math.random() > 0.6 ? 'At Risk' : 'Compliant',
-  avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 5}`,
-  courses_assigned: Math.floor(Math.random() * 20) + 5,
-  courses_completed: Math.floor(Math.random() * 10),
-  email: `user${i}@kartikasari.com`,
-  phone: `0812-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000)}`,
-  joinDate: getDate(-Math.floor(Math.random() * 1000))
-}));
+const INITIAL_EMPLOYEES = [
+  { id: 'E001', name: 'Budi Santoso', role: 'Sales Staff', dept: 'Frontliner', branch: 'Kb. Kawung', progress: 85, compliance: 'Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Budi', courses_assigned: 12, courses_completed: 10, email: 'budi.s@kartikasari.com', phone: '0812-3456-7890', joinDate: '2022-01-12' },
+  { id: 'E002', name: 'Siska Wijaya', role: 'Store Manager', dept: 'Operational', branch: 'Dago', progress: 92, compliance: 'Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Siska', courses_assigned: 20, courses_completed: 18, email: 'siska.w@kartikasari.com', phone: '0812-9876-5432', joinDate: '2019-03-05' },
+  { id: 'E003', name: 'Andi Pratama', role: 'Head Baker', dept: 'Kitchen', branch: 'Central Kitchen', progress: 45, compliance: 'At Risk', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Andi', courses_assigned: 15, courses_completed: 6, email: 'andi.p@kartikasari.com', phone: '0813-4567-8901', joinDate: '2021-08-20' },
+  { id: 'E004', name: 'Rina Melati', role: 'Supervisor', dept: 'Frontliner', branch: 'Buah Batu', progress: 78, compliance: 'Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rina', courses_assigned: 18, courses_completed: 14, email: 'rina.m@kartikasari.com', phone: '0811-2345-6789', joinDate: '2020-11-10' },
+  { id: 'E005', name: 'Dedi Kusuma', role: 'Logistics', dept: 'Warehouse', branch: 'Central', progress: 60, compliance: 'Non-Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dedi', courses_assigned: 10, courses_completed: 6, email: 'dedi.k@kartikasari.com', phone: '0856-7890-1234', joinDate: '2023-02-15' },
+];
 
 const INITIAL_COURSES = [
-  { 
-    id: 'C01', title: 'Food Safety Standard (HACCP)', category: 'Mandatory', level: 'All Staff', 
-    assigned: 150, completed: 120, status: 'Active',
-    description: 'Mastery of Hazard Analysis Critical Control Point (HACCP) is crucial for our zero-incident policy. Includes bacterial growth prevention, cross-contamination handling, and critical limit monitoring.',
-    duration: '2h 30m', modules_count: 5, type: 'Video & Quiz', xp: 500
-  },
-  { 
-    id: 'C02', title: 'Service Excellence 2.0', category: 'Soft Skill', level: 'Frontliner', 
-    assigned: 80, completed: 45, status: 'Active',
-    description: 'Advanced hospitality techniques. Learn how to handle "The Difficult Customer", upscale selling without being pushy, and the art of greeting in Kartika Sari style.',
-    duration: '1h 45m', modules_count: 3, type: 'Video', xp: 300
-  },
-  { 
-    id: 'C03', title: 'POS System Advanced Troubleshooting', category: 'Technical', level: 'Cashier', 
-    assigned: 40, completed: 38, status: 'Active',
-    description: 'Deep dive into the Point of Sales system. How to handle offline transactions, void items correctly, and closing reports reconciliation.',
-    duration: '45m', modules_count: 2, type: 'Interactive', xp: 200
-  },
-  { 
-    id: 'C04', title: 'Leadership: From Peer to Boss', category: 'Managerial', level: 'Manager', 
-    assigned: 20, completed: 5, status: 'Draft',
-    description: 'Transitioning from a staff role to a leadership role. Covers delegation, feedback loops, and emotional intelligence in management.',
-    duration: '3h 00m', modules_count: 8, type: 'Mixed', xp: 800
-  },
-  { 
-    id: 'C05', title: 'Digital Marketing Basics', category: 'Skill', level: 'Office', 
-    assigned: 15, completed: 2, status: 'Active',
-    description: 'Understanding social media algorithms and content creation for regional brand awareness.',
-    duration: '1h 15m', modules_count: 4, type: 'Video', xp: 250
-  },
+  { id: 'C01', title: 'Food Safety Standard (HACCP)', category: 'Mandatory', level: 'All Staff', assigned: 150, completed: 120, status: 'Active', description: 'Comprehensive guide to Hazard Analysis Critical Control Point for food safety.', duration: '2h 30m', modules_count: 5, type: 'Video & Quiz' },
+  { id: 'C02', title: 'Service Excellence 2.0', category: 'Soft Skill', level: 'Frontliner', assigned: 80, completed: 45, status: 'Active', description: 'Advanced customer service techniques for handling complaints and premium service.', duration: '1h 45m', modules_count: 3, type: 'Video' },
+  { id: 'C03', title: 'POS System Advanced', category: 'Technical', level: 'Cashier', assigned: 40, completed: 38, status: 'Active', description: 'Technical mastery of the Point of Sales system including troubleshooting.', duration: '45m', modules_count: 2, type: 'Interactive' },
+  { id: 'C04', title: 'Leadership 101', category: 'Managerial', level: 'Manager', assigned: 20, completed: 5, status: 'Draft', description: 'Basic leadership principles for new supervisors and managers.', duration: '3h 00m', modules_count: 8, type: 'Mixed' },
 ];
 
 const INITIAL_REQUESTS = [
-  { id: 'R01', employee: 'Siska Wijaya', title: 'Advanced Latte Art Workshop', provider: 'Barista Academy BDG', cost: 2500000, date: getDate(-2), status: 'Pending', justification: 'To launch the new premium coffee menu at Dago branch next month. Competitor analysis shows high demand for visual coffee appeal.', vendor_details: 'Barista Academy BDG, Jl. Riau No. 5', timeline: '2 Days (Weekend)', leader_approval: true },
-  { id: 'R02', employee: 'Andi Pratama', title: 'Industrial Baking Technology', provider: 'Baking Center JKT', cost: 5000000, date: getDate(-5), status: 'Approved', justification: 'Required for operating the new Rotary Rack Oven imported from Italy. Vendor training was insufficient.', vendor_details: 'Baking Center JKT', timeline: '1 Week Certification', leader_approval: true },
-  { id: 'R03', employee: 'Warehouse Team', title: 'Defensive Driving & Safety', provider: 'Internal GA', cost: 0, date: getDate(-10), status: 'Rejected', justification: 'Budget constraint for Q4.', vendor_details: 'Internal GA Team', timeline: '1 Day', leader_approval: false },
-  { id: 'R04', employee: 'Nina Zatulini', title: 'ISO 9001:2015 Lead Auditor', provider: 'TUV Rheinland', cost: 7500000, date: getDate(-1), status: 'Pending', justification: 'Preparation for next year company-wide audit.', vendor_details: 'Online Course', timeline: '5 Days', leader_approval: true },
-];
-
-const SKILL_RADAR_DATA = [
-  { subject: 'HACCP', A: 120, B: 110, fullMark: 150 },
-  { subject: 'Service', A: 98, B: 130, fullMark: 150 },
-  { subject: 'Tech', A: 86, B: 130, fullMark: 150 },
-  { subject: 'Managerial', A: 99, B: 100, fullMark: 150 },
-  { subject: 'Safety', A: 85, B: 90, fullMark: 150 },
-  { subject: 'Product', A: 65, B: 85, fullMark: 150 },
+  { id: 'R01', employee: 'Siska Wijaya', title: 'Advanced Latte Art', provider: 'Barista Academy', cost: 2500000, date: '2023-11-20', status: 'Pending', justification: 'To improve premium coffee sales variant at Dago branch.', vendor_details: 'Barista Academy BDG', timeline: '2 Days Workshop', leader_approval: true },
+  { id: 'R02', employee: 'Andi Pratama', title: 'Industrial Baking Tech', provider: 'Baking Center JKT', cost: 5000000, date: '2023-11-22', status: 'Approved', justification: 'Efficiency for new oven machine.', vendor_details: 'Baking Center JKT', timeline: '1 Week Certification', leader_approval: true },
+  { id: 'R03', employee: 'Team Warehouse', title: 'Safety Driving', provider: 'Internal', cost: 0, date: '2023-12-01', status: 'Rejected', justification: 'Budget constraint.', vendor_details: 'Internal GA Team', timeline: '1 Day', leader_approval: true },
 ];
 
 // ==========================================
-// 3. TUTORIAL & HELP SYSTEM ENGINE
+// 3. UTILITY COMPONENTS (UI KIT)
 // ==========================================
 
-// This is the core of the "Tutorial Detail" requirement.
-// Instead of a single array, we define scenarios.
-
-const TUTORIAL_SCENARIOS = {
-  overview: {
-    title: "Platform Overview",
-    steps: [
-      {
-        target: 'body',
-        content: (
-          <div>
-            <h3 className="font-bold text-lg mb-2 text-[#D12027]">Selamat Datang di Karsa LMS!</h3>
-            <p>Ini adalah Command Center untuk pengembangan SDM Anda. Tutorial ini akan memandu Anda memahami ekosistem fitur yang tersedia secara menyeluruh.</p>
-          </div>
-        ),
-        placement: 'center',
-        disableBeacon: true,
-      },
-      {
-        target: '.tour-nav-dashboard',
-        content: 'Dashboard: Tempat Anda memantau KPI (Key Performance Indicators) secara real-time. Perhatikan metrik "At Risk Users" untuk tindakan preventif.',
-        placement: 'right'
-      },
-      {
-        target: '.tour-nav-employees',
-        content: 'Employee Database: Kelola 300+ karyawan, pantau progress individual, dan akses profil lengkap mereka.',
-        placement: 'right'
-      },
-      {
-        target: '.tour-nav-curriculum',
-        content: 'Curriculum Builder: Dapur pacu pembelajaran Anda. Buat kursus, upload materi, dan distribusikan ke departemen.',
-        placement: 'right'
-      },
-      {
-        target: '.tour-help-trigger',
-        content: 'Pusat Bantuan Cerdas: Kapanpun Anda bingung, klik tombol ini untuk memilih tutorial spesifik sesuai kebutuhan tugas Anda.',
-        placement: 'left'
-      }
-    ]
-  },
-  createCourse: {
-    title: "Mastering Course Creation",
-    steps: [
-      {
-        target: '.tour-curr-create-btn',
-        content: 'Mulai di sini. Membuat kursus terdiri dari 2 tahap: Informasi Dasar dan Upload Materi.',
-        placement: 'bottom',
-        spotlightPadding: 5
-      },
-      {
-        target: '.tour-curr-category',
-        content: 'Pilih Kategori dengan bijak. "Mandatory" akan otomatis memunculkan notifikasi prioritas tinggi di HP karyawan.',
-        placement: 'top'
-      },
-      {
-        target: '.tour-curr-upload-area',
-        content: 'Mendukung format: MP4 (Video), PDF (Dokumen), dan SCORM (Interaktif). Untuk retensi terbaik, gunakan format Video pendek (Micro-learning).',
-        placement: 'left'
-      }
-    ]
-  },
-  analytics: {
-    title: "Deep Dive Analytics",
-    steps: [
-      {
-        target: '.tour-analytics-radar',
-        content: 'Radar Chart ini membandingkan kompetensi antar departemen. Celah (Gap) yang besar menunjukkan kebutuhan training mendesak.',
-        placement: 'right'
-      },
-      {
-        target: '.tour-analytics-table',
-        content: 'Matrix Risiko: Kami mengkategorikan departemen berdasarkan "Compliance Score". Departemen dengan label merah memerlukan intervensi segera.',
-        placement: 'top'
-      }
-    ]
-  }
-};
-
-// ==========================================
-// 4. SHARED UI COMPONENTS
-// ==========================================
-
+/**
+ * Reusable Status Badge with consistent coloring
+ */
 const StatusBadge = ({ status }) => {
-  const configs = {
-    'Compliant': { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle },
-    'Active': { bg: 'bg-green-100', text: 'text-green-700', icon: PlayCircle },
-    'Approved': { bg: 'bg-blue-100', text: 'text-blue-700', icon: CheckCircle },
-    'Pending': { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: Clock },
-    'At Risk': { bg: 'bg-orange-100', text: 'text-orange-700', icon: AlertTriangle },
-    'Draft': { bg: 'bg-slate-100', text: 'text-slate-600', icon: FileText },
-    'Non-Compliant': { bg: 'bg-red-100', text: 'text-red-700', icon: XCircle },
-    'Rejected': { bg: 'bg-red-100', text: 'text-red-700', icon: XCircle },
+  const styles = {
+    'Compliant': 'bg-green-100 text-green-700 border-green-200',
+    'Active': 'bg-green-100 text-green-700 border-green-200',
+    'Approved': 'bg-green-100 text-green-700 border-green-200',
+    'Pending': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    'At Risk': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    'Draft': 'bg-slate-100 text-slate-600 border-slate-200',
+    'Non-Compliant': 'bg-red-100 text-red-700 border-red-200',
+    'Rejected': 'bg-red-100 text-red-700 border-red-200',
   };
-  const config = configs[status] || configs['Draft'];
-  const Icon = config.icon;
-
   return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border border-transparent flex items-center gap-1.5 w-fit ${config.bg} ${config.text}`}>
-      <Icon size={12} strokeWidth={3} /> {status}
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border whitespace-nowrap ${styles[status] || styles['Draft']}`}>
+      {status}
     </span>
   );
 };
 
-const ProgressBar = ({ value, colorClass = "bg-blue-600", height = "h-2" }) => (
-  <div className={`w-full ${height} bg-slate-200 rounded-full overflow-hidden`}>
-    <div className={`h-full rounded-full transition-all duration-1000 ease-out ${colorClass}`} style={{ width: `${value}%` }}></div>
+const ProgressBar = ({ value, colorClass = "bg-blue-600" }) => (
+  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+    <div className={`h-full rounded-full transition-all duration-500 ${colorClass}`} style={{ width: `${value}%` }}></div>
   </div>
 );
 
-const Card = ({ children, className = "", noPadding = false }) => (
-  <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300 ${noPadding ? '' : 'p-6'} ${className}`}>
-    {children}
-  </div>
-);
-
-const EmptyState = ({ title, message, icon: Icon }) => (
-  <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
-    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-      <Icon size={32} className="text-slate-400" />
-    </div>
-    <h3 className="text-lg font-bold text-slate-700 mb-1">{title}</h3>
-    <p className="text-slate-500 max-w-xs text-sm">{message}</p>
-  </div>
-);
-
-// ==========================================
-// 5. COMPLEX MODALS & FORMS
-// ==========================================
-
-const CreateCourseWizard = ({ isOpen, onClose, onSave }) => {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({ title: '', category: 'Mandatory', level: 'All Staff', description: '', duration: '', type: 'Video', modules: [] });
+const Button = ({ children, variant = 'primary', onClick, className = '', disabled = false, type = 'button' }) => {
+  const baseStyle = "px-4 py-2 rounded-lg text-sm font-bold transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 justify-center";
+  const variants = {
+    primary: `bg-[${THEME.primary}] text-white hover:bg-[${THEME.primaryDark}] shadow-md hover:shadow-lg`,
+    secondary: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 shadow-sm",
+    danger: "bg-white text-red-600 border border-red-200 hover:bg-red-50",
+    ghost: "bg-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+  };
   
-  // Reset when closed
-  useEffect(() => { if (!isOpen) { setStep(1); setFormData({ title: '', category: 'Mandatory', level: 'All Staff', description: '', duration: '', type: 'Video', modules: [] }); } }, [isOpen]);
+  // Safe color injection for dynamic classes in Tailwind (workaround)
+  const safeStyle = variant === 'primary' 
+    ? `bg-red-600 text-white hover:bg-red-700 shadow-md` 
+    : variants[variant];
+
+  return (
+    <button type={type} onClick={onClick} disabled={disabled} className={`${baseStyle} ${safeStyle} ${className}`}>
+      {children}
+    </button>
+  );
+};
+
+// ==========================================
+// 4. TUTORIAL ENGINE (JOYRIDE CONFIG)
+// ==========================================
+
+/**
+ * defineSteps - centralized tutorial logic.
+ * @param {string} view - The current active view (dashboard, employees, etc.)
+ * @returns {Array} Joyride steps
+ */
+const defineSteps = (view) => {
+  const commonSteps = [
+    { target: '.tour-sidebar', content: 'Sidebar Navigasi: Akses cepat ke modul utama. Menu yang aktif akan menyala.', placement: 'right', disableBeacon: true },
+    { target: '.tour-profile', content: 'Profil & Notifikasi: Cek alert sistem atau ubah pengaturan akun di sini.', placement: 'bottom-end' }
+  ];
+
+  switch(view) {
+    case 'dashboard':
+      return [
+        { 
+          target: 'body', 
+          content: (
+            <div className="text-left space-y-2">
+              <h4 className="font-bold text-lg">👋 Selamat Datang di Karsa LMS</h4>
+              <p>Dashboard ini dirancang untuk memberikan visibilitas instan terhadap kesehatan pelatihan organisasi Anda. Mari kita tur singkat!</p>
+            </div>
+          ), 
+          placement: 'center' 
+        },
+        ...commonSteps,
+        { target: '.tour-kpi-grid', content: 'KPI Cards: Metrik vital. Perhatikan "At Risk Users" - jika angka ini naik, segera lakukan audit kepatuhan.', placement: 'bottom' },
+        { target: '.tour-chart-activity', content: 'Activity Trend: Melihat pola belajar karyawan. Grafik menurun di jam kerja? Bagus, artinya operasional tidak terganggu.', placement: 'top' },
+        { target: '.tour-btn-analytics', content: 'Deep Dive: Klik ini untuk masuk ke modul Analitik lanjutan untuk melihat skill gap per departemen.', placement: 'top' }
+      ];
+    
+    case 'employees':
+      return [
+        { target: '.tour-emp-toolbar', content: 'Toolbar: Gunakan Search untuk filter cepat. Tombol "Add" akan membuka modal pendaftaran karyawan baru.', placement: 'bottom' },
+        { target: '.tour-emp-table', content: 'Data Grid: Tabel interaktif. Klik baris mana saja untuk melihat Detail Panel di sebelah kanan.', placement: 'top' },
+        { target: '.tour-status-badge', content: 'Status Kepatuhan: "Non-Compliant" berarti karyawan tersebut belum menyelesaikan pelatihan wajib (Mandatory).', placement: 'left' }
+      ];
+
+    case 'curriculum':
+      return [
+        { target: '.tour-curr-actions', content: 'Action Center: "Assign Learning" untuk distribusi massal, "Create Course" untuk membuat materi baru.', placement: 'bottom' },
+        { target: '.tour-curr-cards', content: 'Course Catalog: Kartu materi pembelajaran. Status "Draft" tidak akan muncul di aplikasi mobile karyawan.', placement: 'top' }
+      ];
+    
+    case 'requests':
+      return [
+        { target: '.tour-req-stats', content: 'Budget Watch: Pantau sisa budget pelatihan eksternal di sini agar tidak overspending.', placement: 'bottom' },
+        { target: '.tour-req-table', content: 'Approval Queue: Klik "Detail" untuk melihat justifikasi biaya dan lampiran persetujuan atasan sebelum Approve/Reject.', placement: 'top' }
+      ];
+
+    // MODAL TOURS
+    case 'modal-add-employee':
+      return [
+        { target: '.tour-modal-title', content: 'Form Pendaftaran: Pastikan data sesuai KTP. Email wajib menggunakan domain perusahaan.', placement: 'bottom' },
+        { target: '.tour-input-dept', content: 'Departemen: Pilihan ini akan menentukan kurikulum wajib (Mandatory Path) yang otomatis diberikan saat profil dibuat.', placement: 'right' },
+        { target: '.tour-modal-actions', content: 'Validasi: Tombol Save hanya aktif jika semua field mandatory terisi valid.', placement: 'top' }
+      ];
+
+    default:
+      return [];
+  }
+};
+
+// ==========================================
+// 5. COMPLEX SUB-COMPONENTS & MODALS
+// ==========================================
+
+const AddEmployeeModal = ({ isOpen, onClose, onSave }) => {
+  const [formData, setFormData] = useState({ name: '', role: '', dept: 'Frontliner', email: '' });
+  const [errors, setErrors] = useState({});
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Validation Logic
+  const validate = useCallback(() => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Full Name is required";
+    if (!formData.role.trim()) newErrors.role = "Job Role is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Invalid email format";
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [formData]);
+
+  // Real-time validation
+  useEffect(() => {
+    if (isDirty) validate();
+  }, [formData, isDirty, validate]);
+
+  const handleSubmit = () => {
+    setIsDirty(true);
+    if (!validate()) return;
+    
+    onSave({
+      ...formData, id: `E${Math.floor(Math.random() * 10000)}`,
+      progress: 0, compliance: 'Compliant', courses_assigned: 0, courses_completed: 0,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.name}`,
+      joinDate: new Date().toISOString().split('T')[0]
+    });
+    handleClose();
+  };
+
+  const handleClose = () => {
+    setFormData({ name: '', role: '', dept: 'Frontliner', email: '' });
+    setErrors({});
+    setIsDirty(false);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] animate-scaleIn overflow-hidden">
-        {/* Header */}
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+    <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-pop border border-slate-200">
+        <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl tour-modal-title">
           <div>
-            <h3 className="font-bold text-xl text-slate-800">Create New Course</h3>
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mt-1">
-              <span className={`px-2 py-0.5 rounded ${step === 1 ? 'bg-[#D12027] text-white' : 'bg-slate-200'}`}>1. Details</span>
-              <ChevronRight size={12}/>
-              <span className={`px-2 py-0.5 rounded ${step === 2 ? 'bg-[#D12027] text-white' : 'bg-slate-200'}`}>2. Content</span>
+            <h3 className="font-bold text-lg text-slate-800">Add New Employee</h3>
+            <p className="text-xs text-slate-500">Create profile & assign mandatory paths.</p>
+          </div>
+          <button onClick={handleClose}><X size={20} className="text-slate-400 hover:text-red-500 transition-colors"/></button>
+        </div>
+        
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name <span className="text-red-500">*</span></label>
+            <input 
+              value={formData.name} 
+              onChange={e => setFormData({...formData, name: e.target.value})} 
+              className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-red-100 outline-none transition-all ${errors.name ? 'border-red-300 bg-red-50' : 'border-slate-200'}`}
+              placeholder="e.g. John Doe"
+            />
+            {errors.name && <p className="text-xs text-red-500 mt-1 font-medium flex items-center gap-1"><AlertTriangle size={10}/> {errors.name}</p>}
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email Address <span className="text-red-500">*</span></label>
+            <input 
+              value={formData.email} 
+              onChange={e => setFormData({...formData, email: e.target.value})} 
+              className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-red-100 outline-none transition-all ${errors.email ? 'border-red-300 bg-red-50' : 'border-slate-200'}`}
+              placeholder="employee@company.com"
+            />
+            {errors.email && <p className="text-xs text-red-500 mt-1 font-medium flex items-center gap-1"><AlertTriangle size={10}/> {errors.email}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="tour-input-dept">
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Department</label>
+              <select 
+                value={formData.dept} 
+                onChange={e => setFormData({...formData, dept: e.target.value})} 
+                className="w-full p-2.5 border border-slate-200 rounded-lg outline-none bg-white focus:border-red-300"
+              >
+                <option>Frontliner</option>
+                <option>Kitchen</option>
+                <option>Operational</option>
+                <option>Warehouse</option>
+                <option>Management</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Role <span className="text-red-500">*</span></label>
+              <input 
+                value={formData.role} 
+                onChange={e => setFormData({...formData, role: e.target.value})} 
+                className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-red-100 outline-none ${errors.role ? 'border-red-300 bg-red-50' : 'border-slate-200'}`}
+                placeholder="e.g. Sales Staff"
+              />
+              {errors.role && <p className="text-xs text-red-500 mt-1 font-medium">{errors.role}</p>}
             </div>
           </div>
-          <button onClick={onClose}><X size={24} className="text-slate-400 hover:text-red-500 transition-colors"/></button>
+          
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-start gap-3">
+             <HelpCircle className="text-blue-500 shrink-0 mt-0.5" size={16} />
+             <p className="text-xs text-blue-700 leading-relaxed">
+               <strong>Auto-Assignment:</strong> Based on the selected Department, standard "Onboarding" and "Code of Conduct" modules will be automatically assigned upon creation.
+             </p>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="p-8 overflow-y-auto flex-1">
-          {step === 1 ? (
-            <div className="space-y-6 animate-slideInRight">
-              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex gap-3 text-sm text-blue-800">
-                <Info className="shrink-0" size={20}/>
-                <p><strong>Tips:</strong> Judul yang menarik meningkatkan "Click-through Rate" karyawan hingga 40%. Gunakan kata kerja aktif.</p>
-              </div>
-              
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Course Title <span className="text-red-500">*</span></label>
-                <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all font-medium" placeholder="e.g. Advanced Baking Techniques 2024"/>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-6 tour-curr-category">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Category</label>
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full p-3.5 border border-slate-200 rounded-xl outline-none bg-white focus:ring-2 focus:ring-red-100"><option>Mandatory</option><option>Soft Skill</option><option>Technical</option><option>Managerial</option></select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Target Audience</label>
-                  <select value={formData.level} onChange={e => setFormData({...formData, level: e.target.value})} className="w-full p-3.5 border border-slate-200 rounded-xl outline-none bg-white focus:ring-2 focus:ring-red-100"><option>All Staff</option><option>Frontliner</option><option>Manager</option><option>Kitchen Staff</option></select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Description</label>
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none h-32 resize-none" placeholder="Explain what they will learn..."/>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-6 animate-slideInRight">
-               <div className="grid grid-cols-2 gap-6">
-                 <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Est. Duration</label><input value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} className="w-full p-3.5 border border-slate-200 rounded-xl outline-none" placeholder="e.g. 2h 30m"/></div>
-                 <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Format Type</label><select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full p-3.5 border border-slate-200 rounded-xl outline-none bg-white"><option>Video Playlist</option><option>Interactive SCORM</option><option>PDF Document</option></select></div>
-               </div>
-               
-               <div className="tour-curr-upload-area border-2 border-dashed border-slate-300 rounded-2xl p-10 flex flex-col items-center justify-center text-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group">
-                  <div className="bg-white p-4 rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform">
-                    <Download size={32} className="text-[#D12027]"/>
-                  </div>
-                  <h4 className="font-bold text-slate-700 text-lg">Upload Content Materials</h4>
-                  <p className="text-sm text-slate-500 mt-1 max-w-sm">Drag and drop your video files, PDFs, or SCORM packages here. Max size 500MB per file.</p>
-                  <button className="mt-4 text-xs font-bold bg-white border border-slate-300 px-4 py-2 rounded-lg hover:border-[#D12027] hover:text-[#D12027] transition-all">Browse Files</button>
-               </div>
-
-               <div className="space-y-3">
-                 <h4 className="font-bold text-sm text-slate-700">Modules Preview</h4>
-                 {[1, 2].map(i => (
-                   <div key={i} className="flex items-center gap-4 p-3 border border-slate-100 rounded-xl bg-white shadow-sm">
-                      <div className="w-8 h-8 bg-slate-100 rounded flex items-center justify-center text-slate-500 font-bold text-xs">{i}</div>
-                      <div className="flex-1 h-2 bg-slate-100 rounded animate-pulse"></div>
-                      <div className="w-6 h-6 text-green-500"><CheckCircle size={20}/></div>
-                   </div>
-                 ))}
-               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-6 border-t border-slate-100 flex justify-between bg-slate-50">
-          {step === 2 ? 
-            <button onClick={() => setStep(1)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-colors"><ChevronLeft size={16}/> Back</button> : 
-            <button onClick={onClose} className="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">Cancel</button>
-          }
-          {step === 1 ? 
-            <button onClick={() => setStep(2)} className="tour-curr-next-btn btn-primary px-8 py-3 text-sm font-bold rounded-xl shadow-lg flex items-center gap-2">Next Step <ChevronRight size={16}/></button> : 
-            <button onClick={() => { onSave({...formData, id: `C${Date.now()}`, assigned: 0, completed: 0, status: 'Draft'}); onClose(); }} className="btn-primary px-8 py-3 text-sm font-bold rounded-xl shadow-lg flex items-center gap-2"><CheckCircle size={18}/> Publish Course</button>
-          }
+        <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-2xl tour-modal-actions">
+          <Button variant="ghost" onClick={handleClose}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit} disabled={Object.keys(errors).length > 0 && isDirty}>
+            <Save size={16} /> Save Employee
+          </Button>
         </div>
       </div>
     </div>
@@ -393,405 +361,446 @@ const CreateCourseWizard = ({ isOpen, onClose, onSave }) => {
 // 6. MAIN VIEW COMPONENTS
 // ==========================================
 
-const DashboardView = ({ onTriggerTutorial }) => {
+const DashboardView = ({ onNavigate }) => {
   return (
-    <div className="space-y-8 animate-fadeIn pb-24">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 tour-nav-dashboard">
+    <div className="space-y-6 animate-fadeIn pb-24">
+      {/* KPI GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 tour-kpi-grid">
         {[
-          { label: "Total Learners", val: "342", delta: "+12%", trend: "up", icon: Users, color: "blue" },
-          { label: "Completion Rate", val: "78%", delta: "+5.4%", trend: "up", icon: Activity, color: "green" },
-          { label: "Pending Approvals", val: "8", delta: "Urgent", trend: "neutral", icon: Clock, color: "yellow" },
-          { label: "Compliance Risk", val: "14", delta: "Requires Action", trend: "down", icon: AlertTriangle, color: "red" }
-        ].map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group cursor-default">
+          { title: 'Total Learners', value: '342', sub: '+12 this month', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' }, 
+          { title: 'Avg Completion', value: '78%', sub: '+2.4% vs last mo', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' }, 
+          { title: 'Pending Requests', value: '8', sub: 'Needs Approval', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50' }, 
+          { title: 'At Risk Users', value: '14', sub: 'Non-compliant', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' }
+        ].map((kpi, idx) => (
+          <div key={idx} className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 card-hover group cursor-pointer">
             <div className="flex justify-between items-start mb-4">
-              <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}>
-                <stat.icon size={24}/>
+              <div className={`p-3 rounded-xl ${kpi.bg} ${kpi.color} group-hover:scale-110 transition-transform duration-200`}>
+                <kpi.icon size={24} />
               </div>
-              <span className={`text-xs font-bold px-2 py-1 rounded-full ${stat.trend === 'up' ? 'bg-green-50 text-green-700' : stat.trend === 'down' ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-600'}`}>
-                {stat.delta}
-              </span>
+              <span className="text-slate-300 group-hover:text-slate-400"><MoreVertical size={16}/></span>
             </div>
-            <h3 className="text-3xl font-bold text-slate-800 mb-1">{stat.val}</h3>
-            <p className="text-sm text-slate-500 font-medium">{stat.label}</p>
+            <h3 className="text-3xl font-bold text-slate-800 mb-1">{kpi.value}</h3>
+            <p className="text-slate-500 text-sm font-medium">{kpi.title}</p>
+            <p className={`text-xs mt-2 font-bold ${kpi.sub.includes('Needs') || kpi.sub.includes('Non') ? 'text-red-500' : 'text-green-600'}`}>
+              {kpi.sub}
+            </p>
           </div>
         ))}
       </div>
 
-      {/* Main Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2">
+      {/* CHARTS ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 tour-chart-activity">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="font-bold text-lg text-slate-800">Learning Activity Trends</h3>
-              <p className="text-sm text-slate-500">Weekly active users vs module completion</p>
+               <h3 className="font-bold text-lg text-slate-800">Learning Activity Trends</h3>
+               <p className="text-xs text-slate-500">Video watch time & Quiz attempts per week</p>
             </div>
-            <select className="text-sm border-none bg-slate-50 rounded-lg px-3 py-2 font-bold text-slate-600 focus:ring-0 cursor-pointer hover:bg-slate-100">
+            <select className="text-xs border-slate-200 rounded-lg p-1 bg-slate-50 font-bold text-slate-600 outline-none">
               <option>Last 30 Days</option>
               <option>This Quarter</option>
-              <option>This Year</option>
             </select>
           </div>
-          <div className="h-80">
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={[
-                {name: 'W1', uv: 40, pv: 24}, {name: 'W2', uv: 30, pv: 13}, 
-                {name: 'W3', uv: 20, pv: 58}, {name: 'W4', uv: 27, pv: 39},
-                {name: 'W5', uv: 18, pv: 48}, {name: 'W6', uv: 23, pv: 38},
-                {name: 'W7', uv: 34, pv: 43}
-              ]}>
+              <AreaChart data={[{ name: 'W1', hours: 400 }, { name: 'W2', hours: 300 }, { name: 'W3', hours: 500 }, { name: 'W4', hours: 450 }]}>
                 <defs>
-                  <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#D12027" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#D12027" stopOpacity={0}/>
+                  <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={THEME.primary} stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor={THEME.primary} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0"/>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10}/>
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}}/>
-                <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'}}/>
-                <Area type="monotone" dataKey="pv" stroke="#D12027" strokeWidth={3} fillOpacity={1} fill="url(#colorPv)" />
-                <Area type="monotone" dataKey="uv" stroke="#cbd5e1" strokeWidth={2} strokeDasharray="5 5" fill="none" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                <YAxis axisLine={false} tickLine={false} width={30} tick={{fill: '#94a3b8', fontSize: 12}} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  itemStyle={{ color: THEME.primary, fontWeight: 'bold' }}
+                />
+                <Area type="monotone" dataKey="hours" stroke={THEME.primary} fillOpacity={1} fill="url(#colorHours)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </Card>
+        </div>
 
-        <Card className="flex flex-col">
-          <h3 className="font-bold text-lg text-slate-800 mb-6">Department Leaderboard</h3>
-          <div className="space-y-6 flex-1 overflow-y-auto pr-2">
-            {[
-              { name: 'Operational', val: 92, color: 'bg-green-500' },
-              { name: 'Frontliner', val: 85, color: 'bg-[#D12027]' },
-              { name: 'Kitchen', val: 64, color: 'bg-yellow-500' },
-              { name: 'Warehouse', val: 45, color: 'bg-slate-400' },
-              { name: 'Office', val: 30, color: 'bg-red-500' }
-            ].map((dept, i) => (
-              <div key={i} className="group">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="font-bold text-slate-700">{dept.name}</span>
-                  <span className="font-bold text-slate-900">{dept.val}%</span>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div>
+            <h3 className="font-bold text-lg text-slate-800 mb-6">Completion by Dept</h3>
+            <div className="space-y-6">
+              {[{ name: 'Frontliner', val: 85 }, { name: 'Kitchen', val: 72 }, { name: 'Operational', val: 95 }, { name: 'Warehouse', val: 60 }].map((dept) => (
+                <div key={dept.name} className="group">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="font-medium text-slate-700">{dept.name}</span>
+                    <span className="font-bold text-slate-800">{dept.val}%</span>
+                  </div>
+                  <ProgressBar value={dept.val} colorClass={dept.val > 80 ? "bg-green-500" : dept.val > 60 ? "bg-yellow-500" : "bg-red-500"} />
                 </div>
-                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${dept.color} transition-all duration-1000 group-hover:brightness-110`} style={{width: `${dept.val}%`}}></div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-          <button onClick={() => onTriggerTutorial('analytics')} className="mt-6 w-full py-3 text-sm font-bold text-[#D12027] bg-red-50 hover:bg-red-100 rounded-xl transition-colors flex items-center justify-center gap-2">
-             <PieIcon size={16}/> View Detailed Analytics
-          </button>
-        </Card>
+          <Button 
+            className="tour-btn-analytics w-full mt-8 border-red-200 text-red-600 hover:bg-red-50" 
+            variant="ghost"
+            onClick={() => onNavigate('analytics')}
+          >
+            <PieIcon size={16}/> View Detailed Analytics
+          </Button>
+        </div>
       </div>
     </div>
   );
 };
 
-// ==========================================
-// 7. ADMIN APP CONTAINER
-// ==========================================
+const EmployeesView = ({ data, onAdd }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+  const [selectedEmp, setSelectedEmp] = useState(null);
 
-const AdminApp = () => {
-  const [activeView, setActiveView] = useState('dashboard');
-  const [employees, setEmployees] = useState(INITIAL_EMPLOYEES);
-  const [courses, setCourses] = useState(INITIAL_COURSES);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
-  // -- TUTORIAL STATE --
-  const [tourState, setTourState] = useState({
-    run: false,
-    steps: [],
-    stepIndex: 0
-  });
-
-  const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false);
-  const [isCreateCourseOpen, setIsCreateCourseOpen] = useState(false);
-
-  // Trigger specific tutorial scenario
-  const startTutorial = (scenarioKey) => {
-    const scenario = TUTORIAL_SCENARIOS[scenarioKey];
-    if (scenario) {
-      setTourState({
-        run: true,
-        steps: scenario.steps,
-        stepIndex: 0
-      });
-      setIsHelpMenuOpen(false);
+  // Advanced Sorting & Filtering
+  const processedData = useMemo(() => {
+    let sortableItems = [...data];
+    if (searchTerm) {
+      sortableItems = sortableItems.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.dept.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
+    if (sortConfig.key) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [data, searchTerm, sortConfig]);
+
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
   };
+
+  return (
+    <div className="flex h-[calc(100vh-140px)] gap-6 animate-fadeIn">
+      {/* Main List */}
+      <div className={`flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 ${selectedEmp ? 'w-2/3 hidden lg:flex' : 'w-full'}`}>
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center tour-emp-toolbar">
+           <div className="relative w-64">
+             <Search className="absolute left-3 top-2.5 text-slate-400" size={16}/>
+             <input 
+                value={searchTerm} 
+                onChange={e => setSearchTerm(e.target.value)} 
+                placeholder="Search employee..." 
+                className="w-full pl-9 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-100 transition-all" 
+             />
+           </div>
+           <Button onClick={onAdd}><Plus size={16}/> Add Employee</Button>
+        </div>
+        
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-left border-collapse tour-emp-table">
+            <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+              <tr>
+                {['Employee', 'Role', 'Progress', 'Compliance'].map((head, i) => (
+                  <th key={i} className="p-4 text-xs font-bold text-slate-500 uppercase cursor-pointer hover:bg-slate-100" onClick={() => requestSort(head.toLowerCase())}>
+                    <div className="flex items-center gap-1">{head} <ArrowUp size={12} className={`text-slate-300 ${sortConfig.key === head.toLowerCase() && sortConfig.direction === 'asc' ? 'text-red-500' : ''}`} /></div>
+                  </th>
+                ))}
+                <th className="p-4 w-10"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {processedData.length > 0 ? processedData.map((emp) => (
+                <tr 
+                  key={emp.id} 
+                  onClick={() => setSelectedEmp(emp)}
+                  className={`cursor-pointer hover:bg-slate-50 transition-colors ${selectedEmp?.id === emp.id ? 'bg-red-50' : ''}`}
+                >
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <img src={emp.avatar} className="w-9 h-9 rounded-full bg-slate-200" alt="" />
+                      <div>
+                        <p className="font-bold text-slate-800 text-sm">{emp.name}</p>
+                        <p className="text-xs text-slate-500">{emp.id}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <p className="text-sm text-slate-700 font-medium">{emp.role}</p>
+                    <p className="text-xs text-slate-500">{emp.dept}</p>
+                  </td>
+                  <td className="p-4 w-40">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-slate-700">{emp.progress}%</span>
+                    </div>
+                    <ProgressBar value={emp.progress} colorClass={emp.progress < 50 ? 'bg-red-500' : 'bg-green-600'} />
+                  </td>
+                  <td className="p-4 tour-status-badge">
+                    <StatusBadge status={emp.compliance} />
+                  </td>
+                  <td className="p-4">
+                    <ChevronRight size={16} className="text-slate-300"/>
+                  </td>
+                </tr>
+              )) : (
+                <tr><td colSpan="5" className="p-8 text-center text-slate-400">No employees found.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Detail Panel */}
+      {selectedEmp && (
+        <div className="w-full lg:w-[400px] bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col animate-slideInRight z-20 absolute lg:static inset-0">
+           <div className="h-16 flex items-center px-4 border-b border-slate-100 lg:hidden">
+              <button onClick={() => setSelectedEmp(null)} className="flex items-center gap-2 text-slate-500 font-bold"><ArrowLeft size={20}/> Back</button>
+           </div>
+           
+           <div className="p-6 text-center border-b border-slate-100 relative">
+              <button onClick={() => setSelectedEmp(null)} className="absolute top-4 right-4 text-slate-300 hover:text-red-500 hidden lg:block"><X size={20}/></button>
+              <img src={selectedEmp.avatar} className="w-24 h-24 rounded-full mx-auto border-4 border-slate-50 mb-4" alt=""/>
+              <h2 className="text-xl font-bold text-slate-800">{selectedEmp.name}</h2>
+              <p className="text-slate-500 text-sm">{selectedEmp.role}</p>
+              <div className="flex justify-center gap-2 mt-4">
+                <Button variant="secondary" className="px-3 py-1 text-xs"><Mail size={14}/> Email</Button>
+                <Button variant="secondary" className="px-3 py-1 text-xs"><FileText size={14}/> Report</Button>
+              </div>
+           </div>
+
+           <div className="p-6 space-y-6 flex-1 overflow-auto bg-slate-50">
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                    <p className="text-xs text-slate-400 uppercase font-bold">Assigned</p>
+                    <p className="text-xl font-bold text-slate-800">{selectedEmp.courses_assigned}</p>
+                 </div>
+                 <div className="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                    <p className="text-xs text-slate-400 uppercase font-bold">Completed</p>
+                    <p className="text-xl font-bold text-green-600">{selectedEmp.courses_completed}</p>
+                 </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl border border-slate-200">
+                <h4 className="font-bold text-slate-700 mb-3 text-sm flex items-center gap-2"><Target size={16} className="text-red-500"/> Mandatory Training</h4>
+                <div className="space-y-3">
+                  {['HACCP Level 1', 'Company Ethics', 'Fire Safety'].map((c, i) => (
+                    <div key={i} className="flex items-center gap-3 text-sm">
+                      {i === 0 ? <CheckCircle size={16} className="text-green-500 shrink-0"/> : <Clock size={16} className="text-yellow-500 shrink-0"/>}
+                      <span className={i === 0 ? "text-slate-400 line-through" : "text-slate-700 font-medium"}>{c}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+           </div>
+
+           <div className="p-4 border-t border-slate-200 bg-white rounded-b-2xl">
+              <Button className="w-full">Assign New Course</Button>
+           </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ==========================================
+// 7. MAIN APPLICATION SHELL
+// ==========================================
+
+const App = () => {
+  const [activeView, setActiveView] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [employees, setEmployees] = useState(INITIAL_EMPLOYEES);
+  
+  // Tutorial State
+  const [runTour, setRunTour] = useState(false);
+  const [steps, setSteps] = useState([]);
+  const [modalOpen, setModalOpen] = useState(null); // 'add-employee', 'course-detail'
+
+  // --- TUTORIAL ORCHESTRATOR ---
+  
+  // Update steps when view changes or modal opens
+  useEffect(() => {
+    let context = modalOpen ? `modal-${modalOpen}` : activeView;
+    
+    // Check local storage if tour has been seen for this context
+    const hasSeen = localStorage.getItem(`tour_${context}`);
+    if (!hasSeen) {
+      setSteps(defineSteps(context));
+      setRunTour(true);
+    } else {
+      setRunTour(false);
+    }
+  }, [activeView, modalOpen]);
 
   const handleJoyrideCallback = (data) => {
-    const { status, action, index } = data;
-    const finishedStatuses = [STATUS.FINISHED, STATUS.SKIPPED];
-    
-    if (finishedStatuses.includes(status)) {
-      setTourState(prev => ({ ...prev, run: false }));
-    } else if (action === ACTIONS.CLOSE) {
-       setTourState(prev => ({ ...prev, run: false }));
+    const { status } = data;
+    const context = modalOpen ? `modal-${modalOpen}` : activeView;
+
+    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      setRunTour(false);
+      localStorage.setItem(`tour_${context}`, 'true');
     }
   };
 
-  // Nav Config
-  const NAV_ITEMS = [
-    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard, tourClass: 'tour-nav-dashboard' },
-    { id: 'employees', label: 'Employees', icon: Users, tourClass: 'tour-nav-employees' },
-    { id: 'curriculum', label: 'Curriculum', icon: BookOpen, tourClass: 'tour-nav-curriculum' },
-    { id: 'analytics', label: 'Analytics', icon: BarChart2, tourClass: 'tour-nav-analytics' },
-    { id: 'requests', label: 'Requests', icon: FileText, tourClass: 'tour-nav-requests', badge: 3 },
+  const manualStartTour = () => {
+    const context = modalOpen ? `modal-${modalOpen}` : activeView;
+    setSteps(defineSteps(context));
+    setRunTour(true);
+  };
+
+  const MENU_ITEMS = [
+    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+    { id: 'employees', label: 'Employee Management', icon: Users },
+    { id: 'curriculum', label: 'Curriculum', icon: BookOpen },
+    { id: 'requests', label: 'Training Requests', icon: FileText, badge: 3 },
+    { id: 'analytics', label: 'Analytics', icon: BarChart2 },
   ];
 
   return (
-    <div className="flex h-screen bg-[#f8fafc] text-slate-800 font-sans overflow-hidden">
+    <div className="flex h-screen bg-[#f8fafc] overflow-hidden">
       <GlobalStyles />
       
-      {/* --- JOYRIDE INSTANCE --- */}
+      {/* JOYRIDE INSTANCE */}
       <Joyride
-        steps={tourState.steps}
-        run={tourState.run}
-        stepIndex={tourState.stepIndex}
+        steps={steps}
+        run={runTour}
         continuous={true}
         showSkipButton={true}
         showProgress={true}
         callback={handleJoyrideCallback}
-        disableOverlayClose={true}
         styles={{
           options: {
             primaryColor: THEME.primary,
-            textColor: '#334155',
             zIndex: 10000,
-            overlayColor: 'rgba(0, 0, 0, 0.6)',
-            arrowColor: '#fff',
-            backgroundColor: '#fff',
-            width: 400,
           },
-          tooltip: {
-            borderRadius: '16px',
-            padding: '20px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          tooltipContainer: {
+            textAlign: 'left'
           },
           buttonNext: {
             backgroundColor: THEME.primary,
-            fontWeight: 700,
-            borderRadius: '8px',
-            outline: 'none',
-            fontSize: '14px',
-            padding: '12px 20px'
-          },
-          buttonBack: {
-            color: '#64748b',
-            marginRight: '10px',
-            fontWeight: 600
+            fontSize: 12,
+            fontWeight: 'bold'
           }
         }}
+        locale={{ last: 'Finish', next: 'Next', back: 'Back', skip: 'Dismiss' }}
       />
 
-      {/* --- SIDEBAR --- */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 shadow-2xl transition-transform duration-300 transform lg:translate-x-0 lg:static lg:shadow-none flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="h-24 flex items-center px-8 border-b border-slate-100">
-           <div className="w-10 h-10 bg-gradient-to-br from-[#D12027] to-[#b91c22] rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-red-200 mr-3">K</div>
-           <div>
-             <h1 className="font-extrabold text-2xl tracking-tight text-slate-900">KARSA</h1>
-             <p className="text-xs font-bold text-[#D12027] tracking-widest uppercase">LMS ADMIN</p>
-           </div>
-           <button onClick={() => setIsSidebarOpen(false)} className="ml-auto lg:hidden text-slate-400"><X size={24}/></button>
+      {/* MOBILE SIDEBAR OVERLAY */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm animate-fadeIn" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* SIDEBAR */}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 flex flex-col shadow-2xl lg:shadow-none transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} tour-sidebar`}>
+        <div className="h-20 flex items-center px-8 border-b border-slate-100 gap-3">
+          <div className="w-10 h-10 bg-[#D12027] rounded-xl flex items-center justify-center shadow-red-200 shadow-lg">
+             <span className="text-white font-black text-xl">K</span>
+          </div>
+          <div>
+            <h1 className="font-bold text-xl tracking-tight text-slate-900 leading-none">KARSA<span className="text-red-600">LMS</span></h1>
+            <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-1">Admin Portal</p>
+          </div>
         </div>
 
-        <nav className="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
-          <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Main Menu</p>
-          {NAV_ITEMS.map(item => (
+        <nav className="flex-1 py-6 space-y-1 overflow-y-auto px-4">
+          <p className="px-4 text-xs font-bold text-slate-400 uppercase mb-2">Main Module</p>
+          {MENU_ITEMS.map((item) => (
             <button
               key={item.id}
               onClick={() => { setActiveView(item.id); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 group ${activeView === item.id ? 'bg-red-50 text-[#D12027] shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${item.tourClass}`}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === item.id ? 'bg-red-50 text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
             >
               <div className="flex items-center gap-3">
-                <item.icon size={20} className={`transition-colors ${activeView === item.id ? 'text-[#D12027]' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                <item.icon size={20} className={activeView === item.id ? 'text-red-600' : 'text-slate-400'}/>
                 {item.label}
               </div>
-              {item.badge && <span className="bg-[#D12027] text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{item.badge}</span>}
+              {item.badge && <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{item.badge}</span>}
             </button>
           ))}
-          
-          <div className="mt-8">
-            <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Support</p>
-            <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900">
-              <Settings size={20} className="text-slate-400"/> Settings
-            </button>
-          </div>
         </nav>
 
-        <div className="p-6 border-t border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" className="w-10 h-10 rounded-full border-2 border-white shadow-sm bg-white" alt="Admin"/>
-            <div>
-              <p className="text-sm font-bold text-slate-800">Ilham (You)</p>
-              <p className="text-xs text-slate-500">Culture Manager</p>
-            </div>
-            <button className="ml-auto p-2 hover:bg-white rounded-full transition-colors text-slate-400 hover:text-red-500"><LogOut size={18}/></button>
-          </div>
+        <div className="p-6 border-t border-slate-100">
+           <div className="bg-slate-900 rounded-xl p-4 relative overflow-hidden group cursor-pointer">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-xl transform translate-x-1/2 -translate-y-1/2"></div>
+              <div className="relative z-10">
+                <p className="text-white font-bold text-sm">Need Help?</p>
+                <p className="text-slate-400 text-xs mt-1 mb-3">Check our documentation or contact support.</p>
+                <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg transition-colors font-bold w-full">Reset Tutorial</button>
+              </div>
+           </div>
         </div>
       </aside>
 
-      {/* --- MAIN CONTENT --- */}
-      <main className="flex-1 flex flex-col h-full relative overflow-hidden">
-        {/* Header */}
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 z-20 sticky top-0">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-600"><Menu size={24}/></button>
-            <div className="hidden md:flex items-center gap-2 text-sm font-medium text-slate-400">
-              <span>Admin Portal</span> <ChevronRight size={14}/> <span className="text-slate-800 capitalize">{activeView}</span>
-            </div>
-          </div>
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col h-screen relative w-full overflow-hidden">
+        {/* HEADER */}
+        <header className="h-20 bg-white/80 backdrop-blur border-b border-slate-200 flex items-center justify-between px-6 lg:px-8 z-20 shrink-0">
+           <div className="flex items-center gap-3">
+              <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg"><Menu size={24}/></button>
+              <h2 className="text-xl font-bold text-slate-800 capitalize hidden lg:block">{activeView.replace('-', ' ')}</h2>
+           </div>
 
-          <div className="flex items-center gap-4">
-            {/* HELP DROPDOWN TRIGGER */}
-            <div className="relative tour-help-trigger">
-              <button onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)} className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${isHelpMenuOpen ? 'bg-slate-800 text-white border-slate-800 shadow-lg' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}>
-                <HelpCircle size={18}/> 
-                <span className="text-sm font-bold hidden md:inline">Tutorials & Help</span>
-                <ChevronDown size={14} className={`transition-transform ${isHelpMenuOpen ? 'rotate-180' : ''}`}/>
+           <div className="flex items-center gap-4 lg:gap-6 tour-profile">
+              <div className="hidden md:flex items-center gap-2 bg-slate-100 rounded-full px-1 p-1">
+                 <Search size={18} className="text-slate-400 ml-2"/>
+                 <input type="text" placeholder="Global Search..." className="bg-transparent border-none focus:ring-0 text-sm w-48 outline-none text-slate-600"/>
+              </div>
+              
+              <button onClick={manualStartTour} className="text-slate-400 hover:text-red-600 transition-colors" title="Start Tour">
+                <HelpCircle size={22} />
+              </button>
+              
+              <button className="relative text-slate-400 hover:text-slate-600 transition-colors">
+                <Bell size={22} />
+                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
               </button>
 
-              {/* HELP MENU DROPDOWN */}
-              {isHelpMenuOpen && (
-                <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2 animate-scaleIn origin-top-right z-50">
-                  <div className="p-3 border-b border-slate-50 mb-2">
-                    <h4 className="font-bold text-slate-800 text-sm">Interactive Guides</h4>
-                    <p className="text-xs text-slate-400">Select a topic to start a tour.</p>
-                  </div>
-                  <div className="space-y-1">
-                    <button onClick={() => startTutorial('overview')} className="w-full text-left p-3 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-100 transition-colors"><LayoutDashboard size={16}/></div>
-                      <div><p className="text-sm font-bold text-slate-700">Platform Overview</p><p className="text-[10px] text-slate-400">Basic navigation & KPI</p></div>
-                    </button>
-                    <button onClick={() => { setActiveView('curriculum'); startTutorial('createCourse'); }} className="w-full text-left p-3 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-100 transition-colors"><Plus size={16}/></div>
-                      <div><p className="text-sm font-bold text-slate-700">How to Create Course</p><p className="text-[10px] text-slate-400">Step-by-step wizard</p></div>
-                    </button>
-                    <button onClick={() => { setActiveView('analytics'); startTutorial('analytics'); }} className="w-full text-left p-3 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-yellow-50 text-yellow-600 flex items-center justify-center group-hover:bg-yellow-100 transition-colors"><BarChart2 size={16}/></div>
-                      <div><p className="text-sm font-bold text-slate-700">Understanding Data</p><p className="text-[10px] text-slate-400">Gap analysis & reports</p></div>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="w-px h-8 bg-slate-200 mx-2 hidden md:block"></div>
-            <button className="relative p-2.5 text-slate-400 hover:bg-slate-50 rounded-full transition-colors"><Bell size={20}/><span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-[#D12027] rounded-full border-2 border-white"></span></button>
-          </div>
+              <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
+                 <div className="text-right hidden md:block">
+                    <p className="text-sm font-bold text-slate-800">Admin User</p>
+                    <p className="text-xs text-slate-500">Superadmin</p>
+                 </div>
+                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" className="w-10 h-10 rounded-full border-2 border-slate-100 bg-slate-50" alt="Profile" />
+              </div>
+           </div>
         </header>
 
-        {/* Scrollable View Area */}
-        <div className="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
-          <div className="max-w-7xl mx-auto">
-             <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                  <h2 className="text-3xl font-extrabold text-slate-800 capitalize mb-2 tracking-tight">{activeView}</h2>
-                  <p className="text-slate-500 font-medium">Manage your organization's learning ecosystem.</p>
-                </div>
-                {activeView === 'curriculum' && (
-                  <button onClick={() => setIsCreateCourseOpen(true)} className="tour-curr-create-btn btn-primary px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-red-200 flex items-center gap-2">
-                    <Plus size={18}/> Create New Course
-                  </button>
-                )}
-             </div>
-
-             {/* Dynamic Views */}
-             {activeView === 'dashboard' && <DashboardView onTriggerTutorial={key => { setActiveView(key); setTimeout(() => startTutorial(key), 500); }} />}
+        {/* CONTENT SCROLLABLE AREA */}
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth w-full relative">
+           <div className="max-w-7xl mx-auto">
+             {activeView === 'dashboard' && <DashboardView onNavigate={setActiveView} />}
+             {activeView === 'employees' && <EmployeesView data={employees} onAdd={() => setModalOpen('add-employee')} />}
              
-             {activeView === 'curriculum' && (
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
-                 {courses.map(course => (
-                   <Card key={course.id} noPadding className="group overflow-hidden flex flex-col h-full relative cursor-pointer">
-                      <div className="h-40 bg-slate-100 relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"/>
-                        <img src={`https://source.unsplash.com/random/400x200?work,office,${course.id}`} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
-                        <span className="absolute top-4 right-4 z-20"><StatusBadge status={course.status}/></span>
-                        <span className="absolute bottom-4 left-4 z-20 text-white font-bold text-sm bg-white/20 backdrop-blur px-2 py-1 rounded border border-white/30">{course.category}</span>
-                      </div>
-                      <div className="p-6 flex-1 flex flex-col">
-                        <h4 className="font-bold text-lg text-slate-800 mb-2 leading-tight group-hover:text-[#D12027] transition-colors">{course.title}</h4>
-                        <p className="text-sm text-slate-500 line-clamp-2 mb-4">{course.description}</p>
-                        <div className="mt-auto flex items-center justify-between text-xs font-bold text-slate-400 border-t border-slate-50 pt-4">
-                          <span className="flex items-center gap-1"><Clock size={14}/> {course.duration}</span>
-                          <span className="flex items-center gap-1"><Layers size={14}/> {course.modules_count} Modules</span>
-                        </div>
-                      </div>
-                   </Card>
-                 ))}
+             {/* Placeholder for other views */}
+             {['curriculum', 'requests', 'analytics'].includes(activeView) && (
+               <div className="flex flex-col items-center justify-center h-96 text-slate-400 animate-fadeIn border-2 border-dashed border-slate-200 rounded-3xl">
+                  <div className="bg-slate-50 p-6 rounded-full mb-4">
+                    {activeView === 'curriculum' ? <BookOpen size={48}/> : activeView === 'requests' ? <FileText size={48}/> : <BarChart2 size={48}/>}
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-600 capitalize">{activeView} Module</h3>
+                  <p className="text-sm">This module is part of the full suite. Refactoring in progress.</p>
+                  <Button className="mt-6" variant="secondary" onClick={() => setActiveView('dashboard')}>Return to Dashboard</Button>
                </div>
              )}
+           </div>
+        </main>
+      </div>
 
-             {activeView === 'analytics' && (
-               <div className="space-y-6 animate-fadeIn">
-                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                   <Card>
-                      <h3 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2"><Target size={20} className="text-[#D12027]"/> Skill Gap Radar</h3>
-                      <div className="h-80 tour-analytics-radar">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <RadarChart outerRadius={90} data={SKILL_RADAR_DATA}>
-                            <PolarGrid stroke="#e2e8f0"/>
-                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
-                            <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
-                            <Radar name="Frontliner" dataKey="A" stroke="#D12027" fill="#D12027" fillOpacity={0.3} />
-                            <Radar name="Kitchen" dataKey="B" stroke="#FDB913" fill="#FDB913" fillOpacity={0.3} />
-                            <Legend />
-                            <Tooltip contentStyle={{borderRadius: '12px'}}/>
-                          </RadarChart>
-                        </ResponsiveContainer>
-                      </div>
-                   </Card>
-                   <Card>
-                      <h3 className="font-bold text-lg text-slate-800 mb-4">Budget Utilization</h3>
-                      <div className="h-80 flex items-center justify-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        <p className="text-sm">Chart Placeholder (Detailed Budget View)</p>
-                      </div>
-                   </Card>
-                 </div>
-                 <Card className="tour-analytics-table">
-                   <h3 className="font-bold text-lg text-slate-800 mb-4">Detailed Risk Assessment</h3>
-                   <div className="overflow-x-auto">
-                     <table className="w-full text-left border-collapse">
-                       <thead><tr className="border-b border-slate-200 text-xs font-bold text-slate-500 uppercase"><th className="pb-3">Department</th><th className="pb-3">Head Count</th><th className="pb-3">Avg Score</th><th className="pb-3">Compliance</th><th className="pb-3">Status</th></tr></thead>
-                       <tbody className="divide-y divide-slate-100 text-sm">
-                         {[
-                           {d:'Frontliner', h:45, s:88, c:'High', st:'Compliant'},
-                           {d:'Kitchen', h:32, s:72, c:'Medium', st:'At Risk'},
-                           {d:'Warehouse', h:12, s:65, c:'Low', st:'Non-Compliant'}
-                         ].map((row, i) => (
-                           <tr key={i} className="group hover:bg-slate-50">
-                             <td className="py-4 font-bold text-slate-800">{row.d}</td>
-                             <td className="py-4 text-slate-600">{row.h}</td>
-                             <td className="py-4 font-bold text-slate-800">{row.s}</td>
-                             <td className="py-4"><div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full ${row.c === 'High' ? 'bg-green-500' : row.c === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'}`} style={{width: row.s+'%'}}></div></div></td>
-                             <td className="py-4"><StatusBadge status={row.st}/></td>
-                           </tr>
-                         ))}
-                       </tbody>
-                     </table>
-                   </div>
-                 </Card>
-               </div>
-             )}
-             
-             {/* Fallback for other views */}
-             {(activeView === 'employees' || activeView === 'requests') && (
-               <EmptyState title="Module Under Construction" message="This advanced view is part of the Premium setup. Please focus on Dashboard and Curriculum for the tutorial demo." icon={Zap} />
-             )}
-          </div>
-        </div>
-      </main>
-
-      {/* --- MODALS --- */}
-      <CreateCourseWizard 
-        isOpen={isCreateCourseOpen} 
-        onClose={() => setIsCreateCourseOpen(false)} 
-        onSave={(data) => { setCourses([...courses, data]); setIsCreateCourseOpen(false); }}
+      {/* MODALS */}
+      <AddEmployeeModal 
+        isOpen={modalOpen === 'add-employee'} 
+        onClose={() => setModalOpen(null)} 
+        onSave={(newEmp) => setEmployees([newEmp, ...employees])} 
       />
     </div>
   );
 };
 
-export default AdminApp;
+export default App;
