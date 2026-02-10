@@ -1656,4 +1656,3 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
   };
   
   export default App;
-  
