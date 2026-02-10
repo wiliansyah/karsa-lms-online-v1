@@ -21,10 +21,10 @@ import Joyride, { STATUS } from 'react-joyride'; // IMPORT JOYRIDE
 
 // --- 1. GLOBAL STYLES & THEME ---
 
-const KARSA_RED = "#D12027"; // Kartika Sari Red
-const KARSA_YELLOW = "#FDB913"; // Accent Yellow
+const KARSA_RED = "#D12027"; 
+const KARSA_YELLOW = "#FDB913"; 
 const KARSA_WHITE = "#FFFFFF";
-const KARSA_GREEN = "#2E7D32"; // Success Green
+const KARSA_GREEN = "#2E7D32"; 
 
 const GlobalStyles = () => (
   <style>{`
@@ -657,7 +657,6 @@ const ActionPlanLesson = ({ onComplete }) => {
         </div>
     );
 };
-
 // --- 5. MAIN COMPONENTS ---
 
 const LoginScreen = ({ onLogin }) => (
@@ -1236,10 +1235,10 @@ const LeaderboardView = ({ user }) => {
                                  <div className="flex flex-col items-center w-1/3">
                                      <div className="relative mb-3">
                                          <div className="w-20 h-20 rounded-full border-4 border-slate-200 shadow-lg overflow-hidden relative z-10">
-                                             <img src={topThree[1].avatar} alt="2nd" className="w-full h-full object-cover"/>
+                                              <img src={topThree[1].avatar} alt="2nd" className="w-full h-full object-cover"/>
                                          </div>
                                          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md text-xs font-bold shadow-sm z-20">
-                                             2nd
+                                              2nd
                                          </div>
                                      </div>
                                      <p className="text-sm font-bold text-slate-800 truncate w-full text-center">{topThree[1].name}</p>
@@ -1257,10 +1256,10 @@ const LeaderboardView = ({ user }) => {
                                  <div className="flex flex-col items-center w-1/3 -mt-10">
                                      <div className="relative mb-3">
                                          <div className="w-28 h-28 rounded-full border-4 border-[#FDB913] shadow-xl overflow-hidden relative z-10">
-                                             <img src={topThree[0].avatar} alt="1st" className="w-full h-full object-cover"/>
+                                              <img src={topThree[0].avatar} alt="1st" className="w-full h-full object-cover"/>
                                          </div>
                                          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-[#FDB913] text-white px-3 py-1 rounded-md text-sm font-bold shadow-md z-20">
-                                             1st
+                                              1st
                                          </div>
                                      </div>
                                      <p className="text-base font-bold text-slate-800 truncate w-full text-center">{topThree[0].name}</p>
@@ -1278,10 +1277,10 @@ const LeaderboardView = ({ user }) => {
                                   <div className="flex flex-col items-center w-1/3">
                                      <div className="relative mb-3">
                                          <div className="w-20 h-20 rounded-full border-4 border-orange-200 shadow-lg overflow-hidden relative z-10">
-                                             <img src={topThree[2].avatar} alt="3rd" className="w-full h-full object-cover"/>
+                                              <img src={topThree[2].avatar} alt="3rd" className="w-full h-full object-cover"/>
                                          </div>
                                          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-orange-200 text-orange-800 px-2 py-0.5 rounded-md text-xs font-bold shadow-sm z-20">
-                                             3rd
+                                              3rd
                                          </div>
                                      </div>
                                      <p className="text-sm font-bold text-slate-800 truncate w-full text-center">{topThree[2].name}</p>
@@ -1360,301 +1359,301 @@ const LeaderboardView = ({ user }) => {
         </div>
     );
 };
-
 // --- UPDATED DASHBOARD COMPONENT WITH TARGET CLASSES ---
 const Dashboard = ({ user, setView, onToggleAccess }) => {
-  const [activeTab, setActiveTab] = useState('nurture');
-
-  return (
-    <div className="space-y-8 animate-slideIn">
-      {/* Target Tutorial: Profile & Stats */}
-      <div className="tour-stats relative bg-white rounded-3xl p-8 border border-slate-200 shadow-sm overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
-          <div>
-            <h2 className="text-3xl font-bold text-slate-800 mb-2">Selamat Datang, {user.name}</h2>
-            <p className="text-slate-500 mb-6">Di Portal KARSA University. Teruslah berkembang bersama Kartika Sari.</p>
-            <div className="flex gap-4">
-                <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
-                    <p className="text-xs text-slate-400">Posisi Saat Ini</p>
-                    <p className="font-bold text-[#D12027]">{user.role}</p>
-                </div>
-                {user.hasAccelerationAccess && (
-                     <div className="bg-yellow-50 px-4 py-2 rounded-xl border border-yellow-100 cursor-pointer hover:bg-yellow-100 transition-colors" onClick={onToggleAccess}>
-                      <p className="text-xs text-yellow-600">Status Akses</p>
-                      <p className="font-bold text-yellow-700 flex items-center gap-1"><Star size={12}/> Acceleration Granted</p>
-                  </div>
-                )}
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg relative">
-            <LevelBar xp={user.xp} level={user.level} />
-            <div className="mt-4 flex gap-4 text-xs text-slate-500">
-              <div className="flex items-center gap-1"><Zap size={14} className="text-red-500"/> {user.streak} Hari Streak</div>
-              <div className="flex items-center gap-1"><Award size={14} className="text-yellow-500"/> {user.badges.length} Badges</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Target Tutorial: Tabs */}
-      <div className="tour-tabs flex items-center gap-8 border-b border-slate-200 px-2">
-        <button 
-            onClick={() => setActiveTab('nurture')}
-            className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'nurture' ? 'tab-active' : 'tab-inactive'}`}
-        >
-            <Shield size={18}/> KARSA Nurture (Mandatory)
-        </button>
-        {user.hasAccelerationAccess ? (
-            <button 
-                onClick={() => setActiveTab('acceleration')}
-                className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'acceleration' ? 'tab-active' : 'tab-inactive'}`}
-            >
-                <Rocket size={18}/> KARSA Acceleration
-            </button>
-        ) : (
-            <div className="pb-4 text-sm flex items-center gap-2 text-slate-300 cursor-not-allowed">
-                <Lock size={16}/> KARSA Acceleration (Locked)
-            </div>
-        )}
-      </div>
-
-      <div>
-        <div className="flex justify-between items-center mb-6">
+    const [activeTab, setActiveTab] = useState('nurture');
+  
+    return (
+      <div className="space-y-8 animate-slideIn">
+        {/* Target Tutorial: Profile & Stats */}
+        <div className="tour-stats relative bg-white rounded-3xl p-8 border border-slate-200 shadow-sm overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+          <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
             <div>
-                <h3 className="font-bold text-slate-800 text-xl">{activeTab === 'nurture' ? 'Program Nurture (Staff Level)' : 'Program Acceleration (Next Level)'}</h3>
-                <p className="text-sm text-slate-500">{activeTab === 'nurture' ? 'Materi wajib dan pengembangan dasar sesuai role Anda.' : 'Materi privilege untuk persiapan promosi ke level selanjutnya.'}</p>
-            </div>
-            {activeTab === 'acceleration' && <span className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold shadow-sm">Privilege Access</span>}
-        </div>
-
-        {/* Target Tutorial: Course Grid */}
-        <div className="tour-courses grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {TRAINING_CATEGORIES.map((cat) => {
-                const courses = activeTab === 'nurture' ? cat.nurture : cat.acceleration;
-                const isAccel = activeTab === 'acceleration';
-                return (
-                    <div key={cat.id} className={`bg-white rounded-2xl border p-5 flex flex-col h-full transition-all hover:shadow-lg hover:-translate-y-1 ${isAccel ? 'border-yellow-200' : 'border-slate-200'}`}>
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isAccel ? 'bg-yellow-100 text-yellow-700' : 'bg-red-50 text-[#D12027]'}`}>
-                            <cat.icon size={24} />
-                        </div>
-                        <h4 className="font-bold text-slate-800 mb-1">{cat.title}</h4>
-                        <p className="text-xs text-slate-400 mb-4">{isAccel ? 'Level: Supervisor/Manager' : 'Level: Staff'}</p>
-                        <div className="space-y-3 mt-auto">
-                            {courses.map((course, idx) => (
-                                <button 
-                                    key={idx}
-                                    disabled={course.status === 'locked'}
-                                    onClick={() => course.id === 'c1' ? setView('course') : null}
-                                    className={`w-full text-left p-3 rounded-lg border text-xs flex items-center justify-between group transition-colors
-                                        ${course.status === 'active' ? 'bg-red-50 border-red-100 cursor-pointer hover:bg-red-100' : 
-                                          course.status === 'completed' ? 'bg-green-50 border-green-100 cursor-default' : 
-                                          'bg-slate-50 border-slate-100 opacity-70 cursor-not-allowed'}
-                                    `}
-                                >
-                                    <div>
-                                        <span className={`font-bold block ${course.status === 'active' ? 'text-[#D12027]' : course.status === 'completed' ? 'text-green-700' : 'text-slate-600'}`}>{course.title}</span>
-                                        {course.subtitle && <span className="text-[9px] text-slate-400 block mt-0.5">{course.subtitle}</span>}
-                                    </div>
-                                    {course.status === 'locked' ? <Lock size={12} className="text-slate-400"/> : course.status === 'completed' ? <CheckCircle size={14} className="text-green-600"/> : <PlayCircle size={14} className="text-[#D12027]"/>}
-                                </button>
-                            ))}
-                        </div>
+              <h2 className="text-3xl font-bold text-slate-800 mb-2">Selamat Datang, {user.name}</h2>
+              <p className="text-slate-500 mb-6">Di Portal KARSA University. Teruslah berkembang bersama Kartika Sari.</p>
+              <div className="flex gap-4">
+                  <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                      <p className="text-xs text-slate-400">Posisi Saat Ini</p>
+                      <p className="font-bold text-[#D12027]">{user.role}</p>
+                  </div>
+                  {user.hasAccelerationAccess && (
+                       <div className="bg-yellow-50 px-4 py-2 rounded-xl border border-yellow-100 cursor-pointer hover:bg-yellow-100 transition-colors" onClick={onToggleAccess}>
+                        <p className="text-xs text-yellow-600">Status Akses</p>
+                        <p className="font-bold text-yellow-700 flex items-center gap-1"><Star size={12}/> Acceleration Granted</p>
                     </div>
-                );
-            })}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentView, setCurrentView] = useState('dashboard');
-  const [user, setUser] = useState(INITIAL_USER_DATA);
-
-  // --- TUTORIAL LOGIC START ---
-  const [runTour, setRunTour] = useState(false);
-
-  useEffect(() => {
-    // Jalankan tour hanya jika user sudah login DAN belum pernah melihat tutorial
-    if (isAuthenticated) {
-        const hasSeenTutorial = localStorage.getItem('hasSeenUserTutorial');
-        if (!hasSeenTutorial) {
-            setRunTour(true);
-        }
-    }
-  }, [isAuthenticated]);
-
-  const handleJoyrideCallback = (data) => {
-    const { status } = data;
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-      setRunTour(false);
-      localStorage.setItem('hasSeenUserTutorial', 'true');
-    }
-  };
-
-  const tourSteps = [
-    {
-      target: 'body',
-      content: (
-        <div className="text-left">
-          <h4 className="font-bold text-lg mb-2">Selamat Datang, {user.name.split(' ')[0]}! 👋</h4>
-          <p>Selamat datang di KARSA University. Mari kita lihat fitur-fitur yang tersedia untuk Anda.</p>
-        </div>
-      ),
-      placement: 'center',
-    },
-    {
-      target: '.tour-sidebar',
-      content: 'Ini adalah menu utama Anda. Akses Training, Diskusi, Leaderboard, dan Kirim Ide Inovasi dari sini.',
-      placement: 'right',
-    },
-    {
-      target: '.tour-stats',
-      content: 'Pantau Progress Level, XP, dan Streak harian Anda di sini. Semakin rajin belajar, semakin tinggi level Anda!',
-      placement: 'bottom',
-    },
-    {
-      target: '.tour-tabs',
-      content: (
-        <div className="text-left">
-            <p className="mb-2">Di sini Anda bisa memilih program belajar.</p>
-            {user.hasAccelerationAccess ? (
-                <div className="bg-yellow-50 p-2 rounded border border-yellow-200 text-xs text-yellow-800">
-                    <strong>Note:</strong> Karena Anda memiliki akses Supervisor, tab <strong>KARSA Acceleration</strong> terbuka untuk materi persiapan promosi.
-                </div>
-            ) : (
-                <p className="text-xs text-slate-500">Saat ini Anda berada di program Nurture (Standard).</p>
-            )}
-        </div>
-      ),
-      placement: 'bottom',
-    },
-    {
-      target: '.tour-courses',
-      content: 'Pilih topik yang ingin Anda pelajari. Materi yang aktif ditandai dengan warna merah.',
-      placement: 'top',
-    },
-  ];
-  // --- TUTORIAL LOGIC END ---
-
-  const handleLogin = (isSupervisor) => {
-      // Jika login sebagai supervisor, enable akses akselerasi
-      setUser({...user, hasAccelerationAccess: isSupervisor});
-      setIsAuthenticated(true);
-  };
-
-  const toggleAccess = () => {
-      setUser(prev => ({...prev, hasAccelerationAccess: !prev.hasAccelerationAccess}));
-  };
-
-  const updateUser = (data) => setUser(prev => ({...prev, ...data}));
-
-  if (!isAuthenticated) return <><GlobalStyles /><LoginScreen onLogin={handleLogin} /></>;
-
-  return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
-      <GlobalStyles />
-      
-      {/* JOYRIDE COMPONENT */}
-      <Joyride
-        steps={tourSteps}
-        run={runTour}
-        continuous={true}
-        showSkipButton={true}
-        showProgress={true}
-        callback={handleJoyrideCallback}
-        styles={{
-          options: {
-            primaryColor: '#D12027',
-            zIndex: 1000,
-          },
-        }}
-      />
-
-      <aside className="tour-sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col shadow-lg lg:shadow-none">
-        <div className="p-6 flex flex-col h-full">
-          <div className="flex items-center justify-center mb-10 bg-[#D12027] p-4 rounded-xl shadow-lg">
-              <img src={KARTIKA_LOGO} alt="Logo" className="h-8 brightness-0 invert"/>
+                  )}
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg relative">
+              <LevelBar xp={user.xp} level={user.level} />
+              <div className="mt-4 flex gap-4 text-xs text-slate-500">
+                <div className="flex items-center gap-1"><Zap size={14} className="text-red-500"/> {user.streak} Hari Streak</div>
+                <div className="flex items-center gap-1"><Award size={14} className="text-yellow-500"/> {user.badges.length} Badges</div>
+              </div>
+            </div>
           </div>
-          <nav className="flex-1 space-y-2">
-            <div className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Menu Utama</div>
-            {[
-                { id: 'dashboard', icon: LayoutTemplate, label: 'KARSA University' }, 
-                { id: 'course', icon: BookOpen, label: 'Training Saya' },
-                { id: 'community', icon: Users, label: 'Squad Diskusi' },
-                { id: 'analytics', icon: Trophy, label: 'Leaderboard' },
-                { id: 'ideas', icon: Lightbulb, label: 'KARSA Ideas' }
-            ].map(item => (
-              <button key={item.id} onClick={() => setCurrentView(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${currentView === item.id ? 'nav-item-active' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
-                <item.icon size={18} /> {item.label}
+        </div>
+  
+        {/* Target Tutorial: Tabs */}
+        <div className="tour-tabs flex items-center gap-8 border-b border-slate-200 px-2">
+          <button 
+              onClick={() => setActiveTab('nurture')}
+              className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'nurture' ? 'tab-active' : 'tab-inactive'}`}
+          >
+              <Shield size={18}/> KARSA Nurture (Mandatory)
+          </button>
+          {user.hasAccelerationAccess ? (
+              <button 
+                  onClick={() => setActiveTab('acceleration')}
+                  className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'acceleration' ? 'tab-active' : 'tab-inactive'}`}
+              >
+                  <Rocket size={18}/> KARSA Acceleration
               </button>
-            ))}
-          </nav>
-          <div className="mt-auto pt-6 border-t border-slate-100 flex items-center gap-3">
-              <img src={user.avatar} alt="User" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200" />
-              <div className="overflow-hidden">
-                  <p className="text-sm font-bold text-slate-800 truncate">{user.name}</p>
-                  <p className="text-xs text-slate-500 truncate">{user.role}</p>
-                  {/* Reset Tutorial Button (For Testing) */}
-                  <button 
-                    onClick={() => { localStorage.removeItem('hasSeenUserTutorial'); setRunTour(true); }}
-                    className="text-[10px] text-red-500 underline mt-1 hover:text-red-700"
-                  >
-                    Reset Tour
-                  </button>
+          ) : (
+              <div className="pb-4 text-sm flex items-center gap-2 text-slate-300 cursor-not-allowed">
+                  <Lock size={16}/> KARSA Acceleration (Locked)
               </div>
-          </div>
+          )}
         </div>
-      </aside>
-
-      <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-30">
-          <div className="flex items-center gap-2">
-              <h2 className="font-bold text-slate-700 capitalize">
-                 {currentView === 'dashboard' ? 'Portal KARSA University' : 
-                  currentView === 'analytics' ? 'Learning Dashboard & Leaderboard' : 
-                  currentView === 'ideas' ? 'Continuous Improvement System' : currentView.replace('_', ' ')}
-              </h2>
-          </div>
-          <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-white text-[#D12027] rounded-full text-xs font-bold border border-red-100 shadow-sm">
-                  <Zap size={14} fill="#D12027" /><span>{user.streak} Days</span>
+  
+        <div>
+          <div className="flex justify-between items-center mb-6">
+              <div>
+                  <h3 className="font-bold text-slate-800 text-xl">{activeTab === 'nurture' ? 'Program Nurture (Staff Level)' : 'Program Acceleration (Next Level)'}</h3>
+                  <p className="text-sm text-slate-500">{activeTab === 'nurture' ? 'Materi wajib dan pengembangan dasar sesuai role Anda.' : 'Materi privilege untuk persiapan promosi ke level selanjutnya.'}</p>
               </div>
-              <div className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm">
-                  <Star size={12} fill="#7c2d12" /> {user.xp} XP
-              </div>
+              {activeTab === 'acceleration' && <span className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold shadow-sm">Privilege Access</span>}
           </div>
-        </header>
-          
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-24 lg:pb-8">
-          <div className="max-w-6xl mx-auto">
-            {currentView === 'dashboard' && <Dashboard user={user} setView={setCurrentView} onToggleAccess={toggleAccess}/>}
-            {currentView === 'course' && <TrainingCenter user={user} updateUser={updateUser} onBack={() => setCurrentView('dashboard')} />}
-            {currentView === 'community' && <SquadFeed />}
-            {currentView === 'analytics' && <LeaderboardView user={user} />}
-            {currentView === 'ideas' && <SuggestionSystem />}
+  
+          {/* Target Tutorial: Course Grid */}
+          <div className="tour-courses grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {TRAINING_CATEGORIES.map((cat) => {
+                  const courses = activeTab === 'nurture' ? cat.nurture : cat.acceleration;
+                  const isAccel = activeTab === 'acceleration';
+                  return (
+                      <div key={cat.id} className={`bg-white rounded-2xl border p-5 flex flex-col h-full transition-all hover:shadow-lg hover:-translate-y-1 ${isAccel ? 'border-yellow-200' : 'border-slate-200'}`}>
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isAccel ? 'bg-yellow-100 text-yellow-700' : 'bg-red-50 text-[#D12027]'}`}>
+                              <cat.icon size={24} />
+                          </div>
+                          <h4 className="font-bold text-slate-800 mb-1">{cat.title}</h4>
+                          <p className="text-xs text-slate-400 mb-4">{isAccel ? 'Level: Supervisor/Manager' : 'Level: Staff'}</p>
+                          <div className="space-y-3 mt-auto">
+                              {courses.map((course, idx) => (
+                                  <button 
+                                      key={idx}
+                                      disabled={course.status === 'locked'}
+                                      onClick={() => course.id === 'c1' ? setView('course') : null}
+                                      className={`w-full text-left p-3 rounded-lg border text-xs flex items-center justify-between group transition-colors
+                                          ${course.status === 'active' ? 'bg-red-50 border-red-100 cursor-pointer hover:bg-red-100' : 
+                                           course.status === 'completed' ? 'bg-green-50 border-green-100 cursor-default' : 
+                                           'bg-slate-50 border-slate-100 opacity-70 cursor-not-allowed'}
+                                      `}
+                                  >
+                                      <div>
+                                          <span className={`font-bold block ${course.status === 'active' ? 'text-[#D12027]' : course.status === 'completed' ? 'text-green-700' : 'text-slate-600'}`}>{course.title}</span>
+                                          {course.subtitle && <span className="text-[9px] text-slate-400 block mt-0.5">{course.subtitle}</span>}
+                                      </div>
+                                      {course.status === 'locked' ? <Lock size={12} className="text-slate-400"/> : course.status === 'completed' ? <CheckCircle size={14} className="text-green-600"/> : <PlayCircle size={14} className="text-[#D12027]"/>}
+                                  </button>
+                              ))}
+                          </div>
+                      </div>
+                  );
+              })}
           </div>
-        </main>
-          
-        {/* Mobile Navigation */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 px-6 py-3 flex justify-between items-center pb-safe">
-            {MENU_ITEMS.map(item => (
-                <button 
-                    key={item.id} 
-                    onClick={() => setCurrentView(item.id)}
-                    className={`flex flex-col items-center gap-1 transition-all ${currentView === item.id ? 'text-[#D12027]' : 'text-slate-400'}`}
-                >
-                    <item.icon size={20} className={currentView === item.id ? 'fill-current' : ''} />
-                    <span className="text-[10px] font-bold">{item.mobileLabel}</span>
-                </button>
-            ))}
         </div>
       </div>
-    </div>
-  );
-};
-
-export default App;
+    );
+  };
+  
+  const App = () => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [currentView, setCurrentView] = useState('dashboard');
+    const [user, setUser] = useState(INITIAL_USER_DATA);
+  
+    // --- TUTORIAL LOGIC START ---
+    const [runTour, setRunTour] = useState(false);
+  
+    useEffect(() => {
+      // Jalankan tour hanya jika user sudah login DAN belum pernah melihat tutorial
+      if (isAuthenticated) {
+          const hasSeenTutorial = localStorage.getItem('hasSeenUserTutorial');
+          if (!hasSeenTutorial) {
+              setRunTour(true);
+          }
+      }
+    }, [isAuthenticated]);
+  
+    const handleJoyrideCallback = (data) => {
+      const { status } = data;
+      if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+        setRunTour(false);
+        localStorage.setItem('hasSeenUserTutorial', 'true');
+      }
+    };
+  
+    const tourSteps = [
+      {
+        target: 'body',
+        content: (
+          <div className="text-left">
+            <h4 className="font-bold text-lg mb-2">Selamat Datang, {user.name.split(' ')[0]}! 👋</h4>
+            <p>Selamat datang di KARSA University. Mari kita lihat fitur-fitur yang tersedia untuk Anda.</p>
+          </div>
+        ),
+        placement: 'center',
+      },
+      {
+        target: '.tour-sidebar',
+        content: 'Ini adalah menu utama Anda. Akses Training, Diskusi, Leaderboard, dan Kirim Ide Inovasi dari sini.',
+        placement: 'right',
+      },
+      {
+        target: '.tour-stats',
+        content: 'Pantau Progress Level, XP, dan Streak harian Anda di sini. Semakin rajin belajar, semakin tinggi level Anda!',
+        placement: 'bottom',
+      },
+      {
+        target: '.tour-tabs',
+        content: (
+          <div className="text-left">
+              <p className="mb-2">Di sini Anda bisa memilih program belajar.</p>
+              {user.hasAccelerationAccess ? (
+                  <div className="bg-yellow-50 p-2 rounded border border-yellow-200 text-xs text-yellow-800">
+                      <strong>Note:</strong> Karena Anda memiliki akses Supervisor, tab <strong>KARSA Acceleration</strong> terbuka untuk materi persiapan promosi.
+                  </div>
+              ) : (
+                  <p className="text-xs text-slate-500">Saat ini Anda berada di program Nurture (Standard).</p>
+              )}
+          </div>
+        ),
+        placement: 'bottom',
+      },
+      {
+        target: '.tour-courses',
+        content: 'Pilih topik yang ingin Anda pelajari. Materi yang aktif ditandai dengan warna merah.',
+        placement: 'top',
+      },
+    ];
+    // --- TUTORIAL LOGIC END ---
+  
+    const handleLogin = (isSupervisor) => {
+        // Jika login sebagai supervisor, enable akses akselerasi
+        setUser({...user, hasAccelerationAccess: isSupervisor});
+        setIsAuthenticated(true);
+    };
+  
+    const toggleAccess = () => {
+        setUser(prev => ({...prev, hasAccelerationAccess: !prev.hasAccelerationAccess}));
+    };
+  
+    const updateUser = (data) => setUser(prev => ({...prev, ...data}));
+  
+    if (!isAuthenticated) return <><GlobalStyles /><LoginScreen onLogin={handleLogin} /></>;
+  
+    return (
+      <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
+        <GlobalStyles />
+        
+        {/* JOYRIDE COMPONENT */}
+        <Joyride
+          steps={tourSteps}
+          run={runTour}
+          continuous={true}
+          showSkipButton={true}
+          showProgress={true}
+          callback={handleJoyrideCallback}
+          styles={{
+            options: {
+              primaryColor: '#D12027',
+              zIndex: 1000,
+            },
+          }}
+        />
+  
+        <aside className="tour-sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col shadow-lg lg:shadow-none">
+          <div className="p-6 flex flex-col h-full">
+            <div className="flex items-center justify-center mb-10 bg-[#D12027] p-4 rounded-xl shadow-lg">
+                <img src={KARTIKA_LOGO} alt="Logo" className="h-8 brightness-0 invert"/>
+            </div>
+            <nav className="flex-1 space-y-2">
+              <div className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Menu Utama</div>
+              {[
+                  { id: 'dashboard', icon: LayoutTemplate, label: 'KARSA University' }, 
+                  { id: 'course', icon: BookOpen, label: 'Training Saya' },
+                  { id: 'community', icon: Users, label: 'Squad Diskusi' },
+                  { id: 'analytics', icon: Trophy, label: 'Leaderboard' },
+                  { id: 'ideas', icon: Lightbulb, label: 'KARSA Ideas' }
+              ].map(item => (
+                <button key={item.id} onClick={() => setCurrentView(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${currentView === item.id ? 'nav-item-active' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                  <item.icon size={18} /> {item.label}
+                </button>
+              ))}
+            </nav>
+            <div className="mt-auto pt-6 border-t border-slate-100 flex items-center gap-3">
+                <img src={user.avatar} alt="User" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200" />
+                <div className="overflow-hidden">
+                    <p className="text-sm font-bold text-slate-800 truncate">{user.name}</p>
+                    <p className="text-xs text-slate-500 truncate">{user.role}</p>
+                    {/* Reset Tutorial Button (For Testing) */}
+                    <button 
+                      onClick={() => { localStorage.removeItem('hasSeenUserTutorial'); setRunTour(true); }}
+                      className="text-[10px] text-red-500 underline mt-1 hover:text-red-700"
+                    >
+                      Reset Tour
+                    </button>
+                </div>
+            </div>
+          </div>
+        </aside>
+  
+        <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+          <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-30">
+            <div className="flex items-center gap-2">
+                <h2 className="font-bold text-slate-700 capitalize">
+                   {currentView === 'dashboard' ? 'Portal KARSA University' : 
+                    currentView === 'analytics' ? 'Learning Dashboard & Leaderboard' : 
+                    currentView === 'ideas' ? 'Continuous Improvement System' : currentView.replace('_', ' ')}
+                </h2>
+            </div>
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-white text-[#D12027] rounded-full text-xs font-bold border border-red-100 shadow-sm">
+                    <Zap size={14} fill="#D12027" /><span>{user.streak} Days</span>
+                </div>
+                <div className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm">
+                    <Star size={12} fill="#7c2d12" /> {user.xp} XP
+                </div>
+            </div>
+          </header>
+            
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-24 lg:pb-8">
+            <div className="max-w-6xl mx-auto">
+              {currentView === 'dashboard' && <Dashboard user={user} setView={setCurrentView} onToggleAccess={toggleAccess}/>}
+              {currentView === 'course' && <TrainingCenter user={user} updateUser={updateUser} onBack={() => setCurrentView('dashboard')} />}
+              {currentView === 'community' && <SquadFeed />}
+              {currentView === 'analytics' && <LeaderboardView user={user} />}
+              {currentView === 'ideas' && <SuggestionSystem />}
+            </div>
+          </main>
+            
+          {/* Mobile Navigation */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 px-6 py-3 flex justify-between items-center pb-safe">
+              {MENU_ITEMS.map(item => (
+                  <button 
+                      key={item.id} 
+                      onClick={() => setCurrentView(item.id)}
+                      className={`flex flex-col items-center gap-1 transition-all ${currentView === item.id ? 'text-[#D12027]' : 'text-slate-400'}`}
+                  >
+                      <item.icon size={20} className={currentView === item.id ? 'fill-current' : ''} />
+                      <span className="text-[10px] font-bold">{item.mobileLabel}</span>
+                  </button>
+              ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+  export default App;
+  
