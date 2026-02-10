@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   BookOpen, Users, Target, TrendingUp, Award, MessageCircle,
   CheckCircle, Play, Zap, ArrowRight, ChevronRight,
@@ -12,12 +12,13 @@ import {
   Loader, ChevronDown, ChevronUp, Coffee, Layers, Unlock,
   Shield, Rocket, Trophy, Medal, Crown, PlusCircle, Sparkles,
   FileSignature, Building, CalendarClock, PenTool, TrendingDown,
-  Volume2, Eye, Brain, Ear, Quote, Gavel, Fingerprint, Search as MagnifyingGlass
+  Volume2, Eye, Brain, Ear, Quote, Gavel, Fingerprint, HelpCircle,
+  Search as MagnifyingGlass
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid
 } from 'recharts';
-import Joyride, { STATUS } from 'react-joyride'; // IMPORT JOYRIDE
+import Joyride, { STATUS, ACTIONS, EVENTS, LIFECYCLE } from 'react-joyride';
 
 // --- 1. GLOBAL STYLES & THEME ---
 
@@ -255,7 +256,7 @@ const LevelBar = ({ xp, level }) => {
   );
 };
 
-// --- 4. MODULE COMPONENTS (NEW CONTENT) ---
+// --- 4. MODULE COMPONENTS ---
 
 // MODULE 0: PRE-TEST
 const PreTestLesson = ({ onComplete, updateUser, score: existingScore }) => {
@@ -327,7 +328,6 @@ const VideoLesson = ({ onComplete }) => {
 
     const handleDownloadPdf = () => {
         setIsDownloading(true);
-        // Simulate a network request/download delay
         setTimeout(() => {
             setIsDownloading(false);
             alert("Materi Training 'Communication Mastery.pdf' berhasil diunduh ke perangkat Anda.");
@@ -692,7 +692,7 @@ const LoginScreen = ({ onLogin }) => (
     </div>
 );
 
-const TrainingRequestView = () => {
+const TrainingRequestView = ({ onStartGuide }) => {
     const [activeTab, setActiveTab] = useState('form');
     const [requests, setRequests] = useState(MOCK_TRAINING_REQUESTS);
     const [form, setForm] = useState({ title: '', provider: 'Internal', vendor: '', reason: '', date: '' });
@@ -740,9 +740,17 @@ const TrainingRequestView = () => {
                         </h2>
                         <p className="text-slate-500 mt-1">Submit request for internal workshops or external vendor training.</p>
                     </div>
-                    <div className="flex bg-slate-100 p-1 rounded-lg">
-                        <button onClick={() => setActiveTab('form')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${activeTab === 'form' ? 'bg-white shadow-sm text-[#D12027]' : 'text-slate-500'}`}>New Request</button>
-                        <button onClick={() => setActiveTab('history')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${activeTab === 'history' ? 'bg-white shadow-sm text-[#D12027]' : 'text-slate-500'}`}>My History</button>
+                    <div className="flex gap-2">
+                        {/* DEEP TUTORIAL: Sub-feature specific help button */}
+                        {activeTab === 'form' && (
+                            <button onClick={onStartGuide} className="flex items-center gap-1 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg text-sm font-bold border border-blue-100 hover:bg-blue-100 transition-colors">
+                                <HelpCircle size={16}/> Panduan Pengisian
+                            </button>
+                        )}
+                        <div className="flex bg-slate-100 p-1 rounded-lg">
+                            <button onClick={() => setActiveTab('form')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${activeTab === 'form' ? 'bg-white shadow-sm text-[#D12027]' : 'text-slate-500'}`}>New Request</button>
+                            <button onClick={() => setActiveTab('history')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${activeTab === 'history' ? 'bg-white shadow-sm text-[#D12027]' : 'text-slate-500'}`}>My History</button>
+                        </div>
                     </div>
                 </div>
 
@@ -751,8 +759,9 @@ const TrainingRequestView = () => {
                         <div className="grid md:grid-cols-2 gap-6 mb-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-slate-700">Training Topic / Title</label>
+                                {/* Added tour target class */}
                                 <input 
-                                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100" 
+                                    className="tour-req-title w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100" 
                                     placeholder="Ex: Advanced Pastry Technique..."
                                     value={form.title}
                                     onChange={e => setForm({...form, title: e.target.value})}
@@ -760,8 +769,9 @@ const TrainingRequestView = () => {
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-slate-700">Provider Type</label>
+                                {/* Added tour target class */}
                                 <select 
-                                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100"
+                                    className="tour-req-provider w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100"
                                     value={form.provider}
                                     onChange={e => setForm({...form, provider: e.target.value})}
                                 >
@@ -772,7 +782,7 @@ const TrainingRequestView = () => {
                         </div>
 
                         {form.provider === 'External' && (
-                             <div className="space-y-2 mb-6 animate-slideIn">
+                            <div className="space-y-2 mb-6 animate-slideIn">
                                 <label className="text-sm font-bold text-slate-700">Vendor Name & Contact</label>
                                 <div className="relative">
                                     <Building className="absolute left-3 top-3.5 text-slate-400" size={18}/>
@@ -789,17 +799,19 @@ const TrainingRequestView = () => {
                         <div className="grid md:grid-cols-2 gap-6 mb-6">
                              <div className="space-y-2">
                                 <label className="text-sm font-bold text-slate-700">Preferred Date</label>
+                                {/* Added tour target class */}
                                 <input 
                                     type="date"
-                                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100 text-slate-600"
+                                    className="tour-req-date w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100 text-slate-600"
                                     value={form.date}
                                     onChange={e => setForm({...form, date: e.target.value})}
                                 />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-slate-700">Business Justification</label>
+                                {/* Added tour target class */}
                                 <textarea 
-                                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100 h-[52px]" 
+                                    className="tour-req-reason w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100 h-[52px]" 
                                     placeholder="Why is this training needed?"
                                     value={form.reason}
                                     onChange={e => setForm({...form, reason: e.target.value})}
@@ -939,7 +951,7 @@ const CoursePlayer = ({ user, updateUser, onBack }) => {
    )
 }
 
-const TrainingCenter = ({ user, updateUser, onBack }) => {
+const TrainingCenter = ({ user, updateUser, onBack, onStartGuide }) => {
     const [activeTab, setActiveTab] = useState('lms');
 
     return (
@@ -969,7 +981,8 @@ const TrainingCenter = ({ user, updateUser, onBack }) => {
                       <CoursePlayer user={user} updateUser={updateUser} onBack={onBack}/>
                  ) : (
                       <div className="p-8">
-                          <TrainingRequestView />
+                          {/* Pass tour handler specifically for form guide */}
+                          <TrainingRequestView onStartGuide={onStartGuide} />
                       </div>
                  )}
              </div>
@@ -979,7 +992,8 @@ const TrainingCenter = ({ user, updateUser, onBack }) => {
 
 const SquadFeed = () => (
     <div className="max-w-2xl mx-auto space-y-6 animate-slideIn">
-        <div className="bg-gradient-to-r from-[#D12027] to-[#b01b21] rounded-2xl p-6 text-white shadow-lg flex items-center justify-between">
+        {/* Added tour target class */}
+        <div className="tour-squad-header bg-gradient-to-r from-[#D12027] to-[#b01b21] rounded-2xl p-6 text-white shadow-lg flex items-center justify-between">
             <div>
                 <h2 className="text-2xl font-bold flex items-center gap-2"><Users className="text-[#FDB913]"/> Squad Diskusi</h2>
                 <p className="text-red-100 text-sm">Berbagi insight dan tanya jawab seputar operasional.</p>
@@ -998,7 +1012,8 @@ const SquadFeed = () => (
 
         {/* Post Input */}
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <textarea className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-red-100 transition-all" rows="3" placeholder="Bagikan progress belajar atau tanya sesuatu ke squad..."></textarea>
+            {/* Added tour target class */}
+            <textarea className="tour-squad-input w-full p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-red-100 transition-all" rows="3" placeholder="Bagikan progress belajar atau tanya sesuatu ke squad..."></textarea>
             <div className="flex justify-between items-center">
                 <div className="flex gap-2">
                     <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><Camera size={18}/></button>
@@ -1011,28 +1026,31 @@ const SquadFeed = () => (
         </div>
 
         {/* Feed */}
-        {SQUAD_POSTS.map(post => (
-            <div key={post.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 border border-slate-100 overflow-hidden">
-                             <span className="text-xs">{post.user.substring(0,2)}</span>
+        {/* Added tour target class */}
+        <div className="tour-squad-feed">
+            {SQUAD_POSTS.map(post => (
+                <div key={post.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                    <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 border border-slate-100 overflow-hidden">
+                                 <span className="text-xs">{post.user.substring(0,2)}</span>
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-slate-800">{post.user}</p>
+                                <p className="text-xs text-slate-400">{post.role} • {post.time}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm font-bold text-slate-800">{post.user}</p>
-                            <p className="text-xs text-slate-400">{post.role} • {post.time}</p>
-                        </div>
+                        <button className="text-slate-400 hover:text-slate-600"><MoreHorizontal size={16}/></button>
                     </div>
-                    <button className="text-slate-400 hover:text-slate-600"><MoreHorizontal size={16}/></button>
+                    <p className="text-slate-700 text-sm mb-4 leading-relaxed">{post.content}</p>
+                    <div className="flex items-center gap-6 border-t border-slate-50 pt-4">
+                        <button className="flex items-center gap-2 text-slate-400 hover:text-[#D12027] text-sm font-bold transition-colors"><ThumbsUp size={16}/> {post.likes} Likes</button>
+                        <button className="flex items-center gap-2 text-slate-400 hover:text-blue-600 text-sm font-bold transition-colors"><MessageSquare size={16}/> Comment</button>
+                        <button className="flex items-center gap-2 text-slate-400 hover:text-green-600 text-sm font-bold ml-auto transition-colors"><Share2 size={16}/> Share</button>
+                    </div>
                 </div>
-                <p className="text-slate-700 text-sm mb-4 leading-relaxed">{post.content}</p>
-                <div className="flex items-center gap-6 border-t border-slate-50 pt-4">
-                    <button className="flex items-center gap-2 text-slate-400 hover:text-[#D12027] text-sm font-bold transition-colors"><ThumbsUp size={16}/> {post.likes} Likes</button>
-                    <button className="flex items-center gap-2 text-slate-400 hover:text-blue-600 text-sm font-bold transition-colors"><MessageSquare size={16}/> Comment</button>
-                    <button className="flex items-center gap-2 text-slate-400 hover:text-green-600 text-sm font-bold ml-auto transition-colors"><Share2 size={16}/> Share</button>
-                </div>
-            </div>
-        ))}
+            ))}
+        </div>
     </div>
 );
 
@@ -1063,7 +1081,8 @@ const SuggestionSystem = () => {
 
     return (
         <div className="space-y-6 animate-fadeIn">
-            <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-8 text-white relative overflow-hidden shadow-xl">
+            {/* Added tour target class */}
+            <div className="tour-idea-header bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-8 text-white relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                 <div className="relative z-10">
                     <h2 className="text-2xl font-bold mb-2 flex items-center gap-2"><Lightbulb className="text-[#FDB913]"/> KARSA Ideas</h2>
@@ -1091,8 +1110,9 @@ const SuggestionSystem = () => {
                     <div className="grid md:grid-cols-2 gap-6 mb-6">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">Judul Inovasi</label>
+                            {/* Added tour target class */}
                             <input 
-                                className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100" 
+                                className="tour-idea-title w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100" 
                                 placeholder="Contoh: Efisiensi Packing..."
                                 value={form.title}
                                 onChange={e => setForm({...form, title: e.target.value})}
@@ -1100,8 +1120,9 @@ const SuggestionSystem = () => {
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">Kategori</label>
+                            {/* Added tour target class */}
                             <select 
-                                className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100"
+                                className="tour-idea-category w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-100"
                                 value={form.category}
                                 onChange={e => setForm({...form, category: e.target.value})}
                             >
@@ -1114,8 +1135,9 @@ const SuggestionSystem = () => {
                     </div>
                     <div className="space-y-2 mb-6">
                         <label className="text-sm font-bold text-slate-700">Ide Perbaikan</label>
+                        {/* Added tour target class */}
                         <textarea 
-                            className="w-full p-3 border border-slate-200 rounded-xl h-24 focus:outline-none focus:ring-2 focus:ring-red-100"
+                            className="tour-idea-desc w-full p-3 border border-slate-200 rounded-xl h-24 focus:outline-none focus:ring-2 focus:ring-red-100"
                             placeholder="Jelaskan ide perbaikan Anda..."
                             value={form.solution}
                             onChange={e => setForm({...form, solution: e.target.value})}
@@ -1177,7 +1199,7 @@ const LeaderboardView = ({ user }) => {
     return (
         <div className="space-y-8 animate-fadeIn pb-12">
              {/* Mode Switcher */}
-             <div className="flex justify-center mb-6">
+             <div className="tour-lb-switch flex justify-center mb-6">
                  <div className="bg-slate-100 p-1 rounded-xl inline-flex gap-1 shadow-inner">
                      <button 
                         onClick={() => setViewMode('learning')}
@@ -1220,7 +1242,7 @@ const LeaderboardView = ({ user }) => {
              </div>
 
              {/* Podium Section */}
-             <div className="grid lg:grid-cols-3 gap-8">
+             <div className="tour-lb-podium grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
                       <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl relative overflow-hidden text-center min-h-[400px] flex flex-col">
                           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100 via-white to-white opacity-50"></div>
@@ -1472,74 +1494,180 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
     const [currentView, setCurrentView] = useState('dashboard');
     const [user, setUser] = useState(INITIAL_USER_DATA);
   
-    // --- TUTORIAL LOGIC START ---
-    const [runTour, setRunTour] = useState(false);
-  
+    // --- DEEP TUTORIAL ENGINE ---
+    const [tourState, setTourState] = useState({
+        run: false,
+        steps: [],
+        stepIndex: 0,
+    });
+
+    // 1. DEFINE SCENARIOS: Each view has a unique learning outcome
+    const SCENARIOS = {
+        dashboard: [
+            {
+                target: 'body',
+                placement: 'center',
+                content: (
+                    <div className="text-left space-y-2">
+                        <h4 className="font-bold text-lg">Welcome to KARSA University</h4>
+                        <p>Platform ini bukan sekadar tempat training, tapi ekosistem untuk pertumbuhan karir Anda.</p>
+                        <p className="text-xs text-slate-500 mt-2 italic">Klik 'Next' untuk melihat fitur utama.</p>
+                    </div>
+                ),
+                disableBeacon: true,
+            },
+            {
+                target: '.tour-stats',
+                content: (
+                    <div className="text-left">
+                        <h5 className="font-bold text-[#D12027] mb-1">Growth Mindset</h5>
+                        <p className="text-sm">XP dan Level mencerminkan dedikasi Anda. Level yang lebih tinggi membuka peluang promosi dan akses ke materi "Acceleration".</p>
+                    </div>
+                ),
+                placement: 'bottom',
+            },
+            {
+                target: '.tour-tabs',
+                content: (
+                    <div className="text-left">
+                        <h5 className="font-bold text-[#D12027] mb-1">Dua Jalur Pengembangan</h5>
+                        <ul className="list-disc ml-4 text-sm space-y-1">
+                            <li><strong>Nurture:</strong> Wajib untuk posisi Anda saat ini.</li>
+                            <li><strong>Acceleration:</strong> Jalur khusus untuk mempersiapkan Anda menjadi Leader.</li>
+                        </ul>
+                    </div>
+                ),
+            }
+        ],
+        community: [
+            {
+                target: '.tour-squad-header',
+                content: (
+                    <div className="text-left">
+                        <h5 className="font-bold text-[#D12027] mb-1">Collaborative Learning</h5>
+                        <p className="text-sm">Belajar tidak harus sendiri. Di sini kita memecahkan masalah operasional bersama-sama.</p>
+                    </div>
+                ),
+                placement: 'bottom',
+            },
+            {
+                target: '.tour-squad-input',
+                content: 'Jangan ragu bertanya! Budaya kita menghargai rasa ingin tahu. Pertanyaan "bodoh" adalah pertanyaan yang tidak ditanyakan.',
+                placement: 'bottom',
+            },
+            {
+                target: '.tour-squad-feed',
+                content: 'Berikan like atau komentar pada solusi teman Anda. Apresiasi kecil membangun tim yang kuat.',
+                placement: 'top',
+            }
+        ],
+        ideas: [
+            {
+                target: '.tour-idea-header',
+                content: (
+                    <div className="text-left">
+                        <h5 className="font-bold text-[#D12027] mb-1">Innovation Culture</h5>
+                        <p className="text-sm">Anda yang paling tahu kondisi lapangan. Ide kecil Anda bisa berdampak besar pada efisiensi perusahaan.</p>
+                    </div>
+                ),
+                placement: 'bottom',
+            },
+            {
+                target: '.tour-idea-category',
+                content: 'Pilih kategori yang tepat agar ide Anda sampai ke departemen yang relevan (misal: HR, Ops, atau Tech).',
+            }
+        ],
+        analytics: [
+            {
+                target: '.tour-lb-switch',
+                content: (
+                    <div className="text-left">
+                        <h5 className="font-bold text-[#D12027] mb-1">Balanced Performance</h5>
+                        <p className="text-sm">Kita menghargai dua hal: Ketekunan (Top Learners) dan Kreativitas (Top Innovators). Jadilah keduanya!</p>
+                    </div>
+                ),
+            },
+            {
+                target: '.tour-lb-podium',
+                content: 'Champion bulanan akan mendapatkan insentif khusus dan lunch bersama direksi. Keep fighting!',
+                placement: 'top',
+            }
+        ],
+        // SUB-FEATURE: SPECIFIC FORM GUIDE
+        requestForm: [
+            {
+                target: '.tour-req-title',
+                content: 'Judul harus spesifik. Hindari "Training Masak". Gunakan "Workshop Teknik Laminasi Pastry Level 2".',
+                disableBeacon: true,
+            },
+            {
+                target: '.tour-req-provider',
+                content: 'Pilih "Internal" jika Anda ingin belajar dari senior di Kartika Sari, atau "External" jika butuh vendor luar.',
+            },
+            {
+                target: '.tour-req-reason',
+                content: (
+                    <div className="text-left">
+                        <h5 className="font-bold text-[#D12027] mb-1">Business Impact</h5>
+                        <p className="text-sm">Jelaskan ROI (Return on Investment). Contoh: "Training ini akan mengurangi waste adonan sebesar 10%".</p>
+                    </div>
+                ),
+            }
+        ]
+    };
+
+    // 2. DETECT CONTEXT CHANGE & LOAD SCENARIO
     useEffect(() => {
-      // Jalankan tour hanya jika user sudah login DAN belum pernah melihat tutorial
-      if (isAuthenticated) {
-          const hasSeenTutorial = localStorage.getItem('hasSeenUserTutorial');
-          if (!hasSeenTutorial) {
-              setRunTour(true);
-          }
-      }
-    }, [isAuthenticated]);
-  
+        if (!isAuthenticated) return;
+
+        // Reset tour state momentarily to allow reloading steps
+        setTourState(prev => ({ ...prev, run: false }));
+
+        const timer = setTimeout(() => {
+            let steps = [];
+            // Select steps based on current view
+            if (SCENARIOS[currentView]) {
+                steps = SCENARIOS[currentView];
+            }
+
+            // Check if user has seen this specific scenario
+            const seenKey = `seen_tour_${currentView}`;
+            const hasSeen = localStorage.getItem(seenKey);
+
+            if (steps.length > 0 && !hasSeen) {
+                setTourState({
+                    run: true,
+                    steps: steps,
+                    stepIndex: 0
+                });
+            }
+        }, 500); // Small delay to ensure DOM is ready
+
+        return () => clearTimeout(timer);
+    }, [currentView, isAuthenticated]);
+
+    // 3. HANDLE JOYRIDE CALLBACKS
     const handleJoyrideCallback = (data) => {
-      const { status } = data;
-      if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-        setRunTour(false);
-        localStorage.setItem('hasSeenUserTutorial', 'true');
-      }
+        const { status, type } = data;
+        const finishedStatuses = [STATUS.FINISHED, STATUS.SKIPPED];
+
+        if (finishedStatuses.includes(status)) {
+            // Mark current view as seen
+            localStorage.setItem(`seen_tour_${currentView}`, 'true');
+            setTourState(prev => ({ ...prev, run: false }));
+        }
+    };
+
+    // 4. SUB-FEATURE TRIGGER (Manual Guide)
+    const handleStartFormGuide = () => {
+        setTourState({
+            run: true,
+            steps: SCENARIOS.requestForm,
+            stepIndex: 0
+        });
     };
   
-    const tourSteps = [
-      {
-        target: 'body',
-        content: (
-          <div className="text-left">
-            <h4 className="font-bold text-lg mb-2">Selamat Datang, {user.name.split(' ')[0]}! 👋</h4>
-            <p>Selamat datang di KARSA University. Mari kita lihat fitur-fitur yang tersedia untuk Anda.</p>
-          </div>
-        ),
-        placement: 'center',
-      },
-      {
-        target: '.tour-sidebar',
-        content: 'Ini adalah menu utama Anda. Akses Training, Diskusi, Leaderboard, dan Kirim Ide Inovasi dari sini.',
-        placement: 'right',
-      },
-      {
-        target: '.tour-stats',
-        content: 'Pantau Progress Level, XP, dan Streak harian Anda di sini. Semakin rajin belajar, semakin tinggi level Anda!',
-        placement: 'bottom',
-      },
-      {
-        target: '.tour-tabs',
-        content: (
-          <div className="text-left">
-              <p className="mb-2">Di sini Anda bisa memilih program belajar.</p>
-              {user.hasAccelerationAccess ? (
-                  <div className="bg-yellow-50 p-2 rounded border border-yellow-200 text-xs text-yellow-800">
-                      <strong>Note:</strong> Karena Anda memiliki akses Supervisor, tab <strong>KARSA Acceleration</strong> terbuka untuk materi persiapan promosi.
-                  </div>
-              ) : (
-                  <p className="text-xs text-slate-500">Saat ini Anda berada di program Nurture (Standard).</p>
-              )}
-          </div>
-        ),
-        placement: 'bottom',
-      },
-      {
-        target: '.tour-courses',
-        content: 'Pilih topik yang ingin Anda pelajari. Materi yang aktif ditandai dengan warna merah.',
-        placement: 'top',
-      },
-    ];
-    // --- TUTORIAL LOGIC END ---
-  
     const handleLogin = (isSupervisor) => {
-        // Jika login sebagai supervisor, enable akses akselerasi
         setUser({...user, hasAccelerationAccess: isSupervisor});
         setIsAuthenticated(true);
     };
@@ -1556,10 +1684,11 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
       <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
         <GlobalStyles />
         
-        {/* JOYRIDE COMPONENT */}
+        {/* JOYRIDE INSTANCE */}
         <Joyride
-          steps={tourSteps}
-          run={runTour}
+          steps={tourState.steps}
+          run={tourState.run}
+          stepIndex={tourState.stepIndex}
           continuous={true}
           showSkipButton={true}
           showProgress={true}
@@ -1567,8 +1696,19 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
           styles={{
             options: {
               primaryColor: '#D12027',
-              zIndex: 1000,
+              zIndex: 10000,
             },
+            tooltip: {
+                borderRadius: '16px',
+                fontFamily: 'Inter, sans-serif'
+            },
+            buttonNext: {
+                backgroundColor: '#D12027',
+                fontWeight: 'bold'
+            }
+          }}
+          floaterProps={{
+              disableAnimation: true,
           }}
         />
   
@@ -1579,13 +1719,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
             </div>
             <nav className="flex-1 space-y-2">
               <div className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Menu Utama</div>
-              {[
-                  { id: 'dashboard', icon: LayoutTemplate, label: 'KARSA University' }, 
-                  { id: 'course', icon: BookOpen, label: 'Training Saya' },
-                  { id: 'community', icon: Users, label: 'Squad Diskusi' },
-                  { id: 'analytics', icon: Trophy, label: 'Leaderboard' },
-                  { id: 'ideas', icon: Lightbulb, label: 'KARSA Ideas' }
-              ].map(item => (
+              {MENU_ITEMS.map(item => (
                 <button key={item.id} onClick={() => setCurrentView(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${currentView === item.id ? 'nav-item-active' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
                   <item.icon size={18} /> {item.label}
                 </button>
@@ -1598,10 +1732,13 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                     <p className="text-xs text-slate-500 truncate">{user.role}</p>
                     {/* Reset Tutorial Button (For Testing) */}
                     <button 
-                      onClick={() => { localStorage.removeItem('hasSeenUserTutorial'); setRunTour(true); }}
+                      onClick={() => { 
+                          localStorage.clear(); 
+                          window.location.reload(); 
+                      }}
                       className="text-[10px] text-red-500 underline mt-1 hover:text-red-700"
                     >
-                      Reset Tour
+                      Reset All Tours
                     </button>
                 </div>
             </div>
@@ -1630,7 +1767,8 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
           <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-24 lg:pb-8">
             <div className="max-w-6xl mx-auto">
               {currentView === 'dashboard' && <Dashboard user={user} setView={setCurrentView} onToggleAccess={toggleAccess}/>}
-              {currentView === 'course' && <TrainingCenter user={user} updateUser={updateUser} onBack={() => setCurrentView('dashboard')} />}
+              {/* Passed handleStartFormGuide to TrainingCenter to be used in the Request form */}
+              {currentView === 'course' && <TrainingCenter user={user} updateUser={updateUser} onBack={() => setCurrentView('dashboard')} onStartGuide={handleStartFormGuide} />}
               {currentView === 'community' && <SquadFeed />}
               {currentView === 'analytics' && <LeaderboardView user={user} />}
               {currentView === 'ideas' && <SuggestionSystem />}
