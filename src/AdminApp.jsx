@@ -1,16 +1,4 @@
-/**
- * @file AdminApp.js
- * @description Main Entry Point for KARSA LMS Dashboard.
- * * Includes:
- * - Context-Aware Tutorial Engine (Joyride)
- * - Complex State Management for LMS Data
- * - Interactive Data Visualization (Recharts)
- * - Atomic UI Components
- * * @author Senior Frontend Specialist
- * @version 2.0.0 (Production-Ready)
- */
-
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   LayoutDashboard, Users, BookOpen, FileText, BarChart2,
   Search, Bell, Plus, ChevronRight, MoreVertical,
@@ -18,163 +6,138 @@ import {
   Download, Award, DollarSign, Briefcase, GraduationCap,
   PieChart as PieIcon, MapPin, X, LogOut,
   Eye, Layers, Menu, ArrowLeft, Target,
-  FileCheck, PlayCircle, ToggleLeft, ToggleRight,
-  Filter, ArrowUp, ArrowDown, HelpCircle, Save
+  FileCheck, PlayCircle, ToggleLeft, ToggleRight, HelpCircle, Info
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, AreaChart, Area, Legend,
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
-import Joyride, { STATUS, EVENTS, LIFECYCLE } from 'react-joyride';
+import Joyride, { STATUS, EVENTS } from 'react-joyride';
 
-// ==========================================
-// 1. CONSTANTS & THEME CONFIGURATION
-// ==========================================
-
-const THEME = {
-  colors: {
-    primary: "#D12027",      // Karsa Red
-    primaryDark: "#b91c22",
-    primaryLight: "#fef2f2",
-    secondary: "#FDB913",    // Karsa Yellow
-    success: "#22c55e",
-    warning: "#f59e0b",
-    danger: "#ef4444",
-    dark: "#0f172a",
-    slate: "#64748b",
-    border: "#e2e8f0",
-    bg: "#f8fafc"
-  },
-  fonts: {
-    body: "'Inter', sans-serif"
-  }
-};
+// ============================================================================
+// 1. KONFIGURASI TEMA & STYLE GLOBAL
+// ============================================================================
 
 /**
- * Global CSS Styles injected into the head.
- * Handles animations, scrollbars, and utility classes not covered by Tailwind.
+ * Warna identitas perusahaan (Corporate Identity)
+ * Digunakan di seluruh komponen untuk konsistensi branding.
  */
+const WARNA_TEMA = {
+  MERAH: "#D12027",
+  KUNING: "#FDB913",
+  ABU_GELAP: "#334155",
+  ABU_TERANG: "#f1f5f9",
+  SUKSES: "#10b981",
+  BAHAYA: "#ef4444"
+};
+
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
-    body { font-family: ${THEME.fonts.body}; background-color: ${THEME.colors.bg}; color: #334155; -webkit-font-smoothing: antialiased; }
+    body { font-family: 'Inter', sans-serif; background-color: ${WARNA_TEMA.ABU_TERANG}; color: ${WARNA_TEMA.ABU_GELAP}; }
     
-    /* Animations */
-    .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-    .animate-slideIn { animation: slideIn 0.3s ease-out forwards; }
+    /* Animasi Utilitas */
+    .animate-masuk { animation: fadeIn 0.4s ease-out forwards; }
+    .animate-naik { animation: slideIn 0.3s ease-out forwards; }
     .animate-pop { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pop { 0% { transform: scale(0.95); } 100% { transform: scale(1); } }
 
-    /* Custom Scrollbar */
+    /* Scrollbar Kustom */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* Utility Classes */
-    .card-hover { transition: all 0.2s; }
-    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    /* Komponen Interaktif */
+    .kartu-hover { transition: all 0.2s; }
+    .kartu-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     
-    .btn-primary {
-      background: ${THEME.colors.primary}; color: white;
+    .tombol-utama {
+      background: ${WARNA_TEMA.MERAH}; color: white;
       transition: all 0.2s;
     }
-    .btn-primary:hover { background: ${THEME.colors.primaryDark}; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(209, 32, 39, 0.3); }
-    .btn-primary:active { transform: translateY(0); }
-
-    /* Sidebar Active State */
-    .sidebar-active {
-      background: linear-gradient(90deg, rgba(209, 32, 39, 0.08) 0%, transparent 100%);
-      border-left: 4px solid ${THEME.colors.primary};
-      color: ${THEME.colors.primary};
+    .tombol-utama:hover { background: #b91c22; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(209, 32, 39, 0.3); }
+    
+    .sidebar-aktif {
+      background: linear-gradient(90deg, rgba(209, 32, 39, 0.1) 0%, transparent 100%);
+      border-left: 4px solid ${WARNA_TEMA.MERAH};
+      color: ${WARNA_TEMA.MERAH};
     }
+
+    /* Tooltip Kustom untuk InfoTip */
+    .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
   `}</style>
 );
 
-// ==========================================
-// 2. MOCK DATA FACTORIES
-// ==========================================
+// ============================================================================
+// 2. MOCK DATA (DILOKALISASI)
+// ============================================================================
 
-const INITIAL_EMPLOYEES = [
-  { id: 'E001', name: 'Budi Santoso', role: 'Sales Staff', dept: 'Frontliner', branch: 'Kb. Kawung', progress: 85, compliance: 'Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Budi', courses_assigned: 12, courses_completed: 10, email: 'budi.s@kartikasari.com', phone: '0812-3456-7890', joinDate: '2022-01-12' },
-  { id: 'E002', name: 'Siska Wijaya', role: 'Store Manager', dept: 'Operational', branch: 'Dago', progress: 92, compliance: 'Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Siska', courses_assigned: 20, courses_completed: 18, email: 'siska.w@kartikasari.com', phone: '0812-9876-5432', joinDate: '2019-03-05' },
-  { id: 'E003', name: 'Andi Pratama', role: 'Head Baker', dept: 'Kitchen', branch: 'Central Kitchen', progress: 45, compliance: 'At Risk', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Andi', courses_assigned: 15, courses_completed: 6, email: 'andi.p@kartikasari.com', phone: '0813-4567-8901', joinDate: '2021-08-20' },
-  { id: 'E004', name: 'Rina Melati', role: 'Supervisor', dept: 'Frontliner', branch: 'Buah Batu', progress: 78, compliance: 'Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rina', courses_assigned: 18, courses_completed: 14, email: 'rina.m@kartikasari.com', phone: '0811-2345-6789', joinDate: '2020-11-10' },
-  { id: 'E005', name: 'Dedi Kusuma', role: 'Logistics', dept: 'Warehouse', branch: 'Central', progress: 60, compliance: 'Non-Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dedi', courses_assigned: 10, courses_completed: 6, email: 'dedi.k@kartikasari.com', phone: '0856-7890-1234', joinDate: '2023-02-15' },
-  { id: 'E006', name: 'Siti Aminah', role: 'Cashier', dept: 'Frontliner', branch: 'Dago', progress: 95, compliance: 'Compliant', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Siti', courses_assigned: 12, courses_completed: 11, email: 'siti.a@kartikasari.com', phone: '0812-1111-2222', joinDate: '2022-06-01' },
+const DATA_KARYAWAN = [
+  { id: 'K001', nama: 'Budi Santoso', peran: 'Staf Penjualan', dept: 'Frontliner', cabang: 'Kb. Kawung', progres: 85, kepatuhan: 'Patuh', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Budi', kursus_ditugaskan: 12, kursus_selesai: 10, email: 'budi.s@kartikasari.com', telepon: '0812-3456-7890', tgl_gabung: '12 Jan 2022' },
+  { id: 'K002', nama: 'Siska Wijaya', peran: 'Manajer Toko', dept: 'Operasional', cabang: 'Dago', progres: 92, kepatuhan: 'Patuh', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Siska', kursus_ditugaskan: 20, kursus_selesai: 18, email: 'siska.w@kartikasari.com', telepon: '0812-9876-5432', tgl_gabung: '05 Mar 2019' },
+  { id: 'K003', nama: 'Andi Pratama', peran: 'Kepala Baker', dept: 'Dapur', cabang: 'Pusat Produksi', progres: 45, kepatuhan: 'Berisiko', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Andi', kursus_ditugaskan: 15, kursus_selesai: 6, email: 'andi.p@kartikasari.com', telepon: '0813-4567-8901', tgl_gabung: '20 Agu 2021' },
+  { id: 'K004', nama: 'Rina Melati', peran: 'Supervisor', dept: 'Frontliner', cabang: 'Buah Batu', progres: 78, kepatuhan: 'Patuh', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rina', kursus_ditugaskan: 18, kursus_selesai: 14, email: 'rina.m@kartikasari.com', telepon: '0811-2345-6789', tgl_gabung: '10 Nov 2020' },
+  { id: 'K005', nama: 'Dedi Kusuma', peran: 'Logistik', dept: 'Gudang', cabang: 'Pusat', progres: 60, kepatuhan: 'Tidak Patuh', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dedi', kursus_ditugaskan: 10, kursus_selesai: 6, email: 'dedi.k@kartikasari.com', telepon: '0856-7890-1234', tgl_gabung: '15 Feb 2023' },
 ];
 
-const INITIAL_COURSES = [
+const DATA_KURSUS = [
   { 
-    id: 'C01', title: 'Food Safety Standard (HACCP)', category: 'Mandatory', level: 'All Staff', 
-    assigned: 150, completed: 120, status: 'Active',
-    description: 'Comprehensive guide to Hazard Analysis Critical Control Point for food safety. Covers storage, handling, and serving protocols.',
-    duration: '2h 30m', modules_count: 5, type: 'Video & Quiz'
+    id: 'M01', judul: 'Standar Keamanan Pangan (HACCP)', kategori: 'Wajib', level: 'Semua Staf', 
+    ditugaskan: 150, selesai: 120, status: 'Aktif',
+    deskripsi: 'Panduan komprehensif tentang Analisis Bahaya dan Titik Kendali Kritis untuk keamanan produk.',
+    durasi: '2j 30m', jumlah_modul: 5, tipe: 'Video & Kuis'
   },
   { 
-    id: 'C02', title: 'Service Excellence 2.0', category: 'Soft Skill', level: 'Frontliner', 
-    assigned: 80, completed: 45, status: 'Active',
-    description: 'Advanced customer service techniques for handling complaints, upselling, and providing premium service.',
-    duration: '1h 45m', modules_count: 3, type: 'Video'
+    id: 'M02', judul: 'Pelayanan Prima 2.0', kategori: 'Soft Skill', level: 'Frontliner', 
+    ditugaskan: 80, selesai: 45, status: 'Aktif',
+    deskripsi: 'Teknik pelayanan pelanggan tingkat lanjut untuk menangani keluhan dan memberikan pengalaman premium.',
+    durasi: '1j 45m', jumlah_modul: 3, tipe: 'Video'
   },
   { 
-    id: 'C03', title: 'POS System Advanced', category: 'Technical', level: 'Cashier', 
-    assigned: 40, completed: 38, status: 'Active',
-    description: 'Technical mastery of the Point of Sales system including troubleshooting and daily closing reports.',
-    duration: '45m', modules_count: 2, type: 'Interactive'
-  },
-  { 
-    id: 'C04', title: 'Leadership 101', category: 'Managerial', level: 'Manager', 
-    assigned: 20, completed: 5, status: 'Draft',
-    description: 'Basic leadership principles for new supervisors and managers. Includes conflict resolution and team motivation.',
-    duration: '3h 00m', modules_count: 8, type: 'Mixed'
+    id: 'M03', judul: 'Sistem Kasir POS Lanjutan', kategori: 'Teknis', level: 'Kasir', 
+    ditugaskan: 40, selesai: 38, status: 'Aktif',
+    deskripsi: 'Penguasaan teknis sistem Point of Sales termasuk troubleshooting dasar.',
+    durasi: '45m', jumlah_modul: 2, tipe: 'Interaktif'
   },
 ];
 
-const INITIAL_REQUESTS = [
-  { id: 'R01', employee: 'Siska Wijaya', title: 'Advanced Latte Art', provider: 'Barista Academy', cost: 2500000, date: '2023-11-20', status: 'Pending', justification: 'To improve premium coffee sales variant at Dago branch.', vendor_details: 'Barista Academy BDG', timeline: '2 Days Workshop', leader_approval: true },
-  { id: 'R02', employee: 'Andi Pratama', title: 'Industrial Baking Tech', provider: 'Baking Center JKT', cost: 5000000, date: '2023-11-22', status: 'Approved', justification: 'Efficiency for new oven machine.', vendor_details: 'Baking Center JKT', timeline: '1 Week Certification', leader_approval: true },
-  { id: 'R03', employee: 'Team Warehouse', title: 'Safety Driving', provider: 'Internal', cost: 0, date: '2023-12-01', status: 'Rejected', justification: 'Budget constraint for Q4.', vendor_details: 'Internal GA Team', timeline: '1 Day', leader_approval: true },
+const DATA_REQUEST = [
+  { id: 'R01', karyawan: 'Siska Wijaya', judul: 'Latte Art Tingkat Lanjut', penyedia: 'Barista Academy', biaya: 2500000, tgl: '20-11-2023', status: 'Menunggu', justifikasi: 'Meningkatkan varian menu kopi premium di cabang Dago.', detail_vendor: 'Barista Academy BDG', timeline: 'Workshop 2 Hari', persetujuan_leader: true },
+  { id: 'R02', karyawan: 'Andi Pratama', judul: 'Teknologi Baking Industri', penyedia: 'Baking Center JKT', biaya: 5000000, tgl: '22-11-2023', status: 'Disetujui', justifikasi: 'Efisiensi penggunaan mesin oven baru.', detail_vendor: 'Baking Center JKT', timeline: 'Sertifikasi 1 Minggu', persetujuan_leader: true },
 ];
 
-const HISTORY_MOCK = [
-  { id: 1, action: 'Completed Module', detail: 'Food Safety (HACCP)', date: 'Oct 24, 2023', score: '95%' },
-  { id: 2, action: 'Badge Earned', detail: 'Hygiene Hero', date: 'Oct 24, 2023', score: '-' },
-  { id: 3, action: 'Quiz Failed', detail: 'Customer Service Basics', date: 'Oct 20, 2023', score: '45%' },
-  { id: 4, action: 'Started Course', detail: 'Product Knowledge: Bolen', date: 'Oct 15, 2023', score: '-' },
+const DATA_RADAR_SKILL = [
+  { subjek: 'HACCP', A: 120, B: 110, fullMark: 150 },
+  { subjek: 'Service', A: 98, B: 130, fullMark: 150 },
+  { subjek: 'Teknis', A: 86, B: 130, fullMark: 150 },
+  { subjek: 'Manajerial', A: 99, B: 100, fullMark: 150 },
+  { subjek: 'Safety', A: 85, B: 90, fullMark: 150 },
 ];
 
-const SKILL_RADAR_DATA = [
-  { subject: 'HACCP', A: 120, B: 110, fullMark: 150 },
-  { subject: 'Service', A: 98, B: 130, fullMark: 150 },
-  { subject: 'Tech', A: 86, B: 130, fullMark: 150 },
-  { subject: 'Managerial', A: 99, B: 100, fullMark: 150 },
-  { subject: 'Safety', A: 85, B: 90, fullMark: 150 },
-  { subject: 'Product', A: 65, B: 85, fullMark: 150 },
-];
-
-// ==========================================
-// 3. ATOMIC UI COMPONENTS
-// ==========================================
+// ============================================================================
+// 3. KOMPONEN UTILITAS & UI KIT
+// ============================================================================
 
 /**
- * Standard Status Badge with varied semantic colors.
+ * Menampilkan badge status dengan kode warna yang sesuai.
+ * @param {string} status - Status (misal: 'Patuh', 'Menunggu', 'Aktif')
  */
-const StatusBadge = ({ status }) => {
+const BadgeStatus = ({ status }) => {
   const styles = {
-    'Compliant': 'bg-green-100 text-green-700 border-green-200',
-    'Active': 'bg-green-100 text-green-700 border-green-200',
-    'Approved': 'bg-green-100 text-green-700 border-green-200',
-    'Pending': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    'At Risk': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    'Patuh': 'bg-green-100 text-green-700 border-green-200',
+    'Aktif': 'bg-green-100 text-green-700 border-green-200',
+    'Disetujui': 'bg-green-100 text-green-700 border-green-200',
+    'Menunggu': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    'Berisiko': 'bg-yellow-100 text-yellow-700 border-yellow-200',
     'Draft': 'bg-slate-100 text-slate-600 border-slate-200',
-    'Non-Compliant': 'bg-red-100 text-red-700 border-red-200',
-    'Rejected': 'bg-red-100 text-red-700 border-red-200',
+    'Tidak Patuh': 'bg-red-100 text-red-700 border-red-200',
+    'Ditolak': 'bg-red-100 text-red-700 border-red-200',
   };
   return (
     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border whitespace-nowrap ${styles[status] || styles['Draft']}`}>
@@ -183,168 +146,54 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const ProgressBar = ({ value, colorClass = "bg-blue-600", showLabel = false }) => (
-  <div className="flex items-center gap-2 w-full">
-    <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-      <div className={`h-full rounded-full transition-all duration-500 ${colorClass}`} style={{ width: `${value}%` }}></div>
-    </div>
-    {showLabel && <span className="text-xs font-bold text-slate-600 w-8 text-right">{value}%</span>}
+const ProgressBar = ({ nilai, warna = "bg-blue-600" }) => (
+  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+    <div className={`h-full rounded-full transition-all duration-500 ${warna}`} style={{ width: `${nilai}%` }}></div>
   </div>
 );
 
 /**
- * Reusable Form Input with Validation Styling
+ * Komponen InfoTip untuk "Sub-Feature Deep Dive".
+ * Menampilkan ikon 'i' kecil yang memunculkan tooltip saat di-hover.
+ * Berguna untuk menjelaskan field formulir yang kompleks.
  */
-const InputField = ({ label, value, onChange, placeholder, type = "text", error, required = false, icon: Icon }) => (
-  <div className="space-y-1">
-    <label className="block text-xs font-bold text-slate-500 uppercase">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <div className="relative">
-      {Icon && <Icon size={16} className="absolute left-3 top-3 text-slate-400" />}
-      <input 
-        type={type}
-        value={value} 
-        onChange={onChange} 
-        className={`w-full p-2.5 ${Icon ? 'pl-9' : ''} border rounded-lg text-sm focus:outline-none focus:ring-2 transition-all ${error ? 'border-red-300 focus:ring-red-100 bg-red-50' : 'border-slate-200 focus:ring-red-100'}`}
-        placeholder={placeholder}
-      />
+const InfoTip = ({ teks }) => (
+  <div className="group relative inline-block ml-2 cursor-help tooltip-container">
+    <Info size={14} className="text-slate-400 hover:text-blue-500 transition-colors" />
+    <div className="tooltip-text invisible opacity-0 w-48 bg-slate-800 text-white text-xs rounded-lg py-2 px-3 absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-200 text-center shadow-xl">
+      {teks}
+      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
     </div>
-    {error && <p className="text-xs text-red-500 font-medium flex items-center gap-1"><XCircle size={10}/> {error}</p>}
   </div>
 );
 
-const SelectField = ({ label, value, onChange, options, error, required = false }) => (
-    <div className="space-y-1">
-      <label className="block text-xs font-bold text-slate-500 uppercase">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <div className="relative">
-        <select 
-          value={value} 
-          onChange={onChange} 
-          className={`w-full p-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-all appearance-none bg-white ${error ? 'border-red-300 focus:ring-red-100' : 'border-slate-200 focus:ring-red-100'}`}
-        >
-          {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-        </select>
-        <div className="absolute right-3 top-3 pointer-events-none text-slate-500">
-            <ChevronRight size={16} className="rotate-90" />
-        </div>
-      </div>
-      {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
-    </div>
-);
+// ============================================================================
+// 4. MODAL & FORMULIR (DENGAN VALIDASI & KONTEKS EDUKATIF)
+// ============================================================================
 
-// ==========================================
-// 4. CUSTOM HOOKS
-// ==========================================
-
-/**
- * Hook for managing form validation logic.
- */
-const useFormValidation = (initialState, validationRules) => {
-    const [values, setValues] = useState(initialState);
+const ModalTambahKaryawan = ({ isOpen, onClose, onSave }) => {
+    const [formData, setFormData] = useState({ nama: '', peran: '', dept: 'Frontliner', email: '' });
     const [errors, setErrors] = useState({});
 
-    const handleChange = (field, value) => {
-        setValues(prev => ({ ...prev, [field]: value }));
-        // Clear error on change
-        if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
+    // Reset saat modal dibuka
+    useEffect(() => { if (isOpen) { setFormData({ nama: '', peran: '', dept: 'Frontliner', email: '' }); setErrors({}); } }, [isOpen]);
+
+    const validasi = () => {
+        let tempErrors = {};
+        if (!formData.nama) tempErrors.nama = "Nama lengkap wajib diisi.";
+        if (!formData.email) tempErrors.email = "Email perusahaan wajib diisi.";
+        if (!formData.peran) tempErrors.peran = "Jabatan spesifik wajib diisi.";
+        setErrors(tempErrors);
+        return Object.keys(tempErrors).length === 0;
     };
-
-    const validate = () => {
-        const newErrors = {};
-        let isValid = true;
-        Object.keys(validationRules).forEach(key => {
-            const rule = validationRules[key];
-            if (rule.required && !values[key]) {
-                newErrors[key] = 'This field is required';
-                isValid = false;
-            } else if (rule.pattern && !rule.pattern.test(values[key])) {
-                newErrors[key] = rule.message || 'Invalid format';
-                isValid = false;
-            } else if (rule.min && values[key].length < rule.min) {
-                newErrors[key] = `Must be at least ${rule.min} chars`;
-                isValid = false;
-            }
-        });
-        setErrors(newErrors);
-        return isValid;
-    };
-
-    const reset = () => {
-        setValues(initialState);
-        setErrors({});
-    }
-
-    return { values, handleChange, errors, validate, reset, setValues };
-};
-
-/**
- * Hook to manage Sorting and Filtering of tabular data.
- */
-const useDataGrid = (data, initialSortConfig = { key: 'name', direction: 'asc' }) => {
-    const [sortConfig, setSortConfig] = useState(initialSortConfig);
-    const [filterText, setFilterText] = useState('');
-
-    const sortedData = useMemo(() => {
-        let sortableItems = [...data];
-        if (sortConfig.key) {
-            sortableItems.sort((a, b) => {
-                const aValue = a[sortConfig.key];
-                const bValue = b[sortConfig.key];
-                if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-        }
-        return sortableItems;
-    }, [data, sortConfig]);
-
-    const filteredData = useMemo(() => {
-        if (!filterText) return sortedData;
-        return sortedData.filter(item => 
-            Object.values(item).some(val => 
-                String(val).toLowerCase().includes(filterText.toLowerCase())
-            )
-        );
-    }, [sortedData, filterText]);
-
-    const requestSort = (key) => {
-        let direction = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
-    };
-
-    return { items: filteredData, requestSort, sortConfig, filterText, setFilterText };
-};
-
-// ==========================================
-// 5. COMPLEX MODALS WITH CONTEXT AWARENESS
-// ==========================================
-
-const AddEmployeeModal = ({ isOpen, onClose, onSave }) => {
-    const { values, handleChange, errors, validate, reset } = useFormValidation(
-        { name: '', role: '', dept: 'Frontliner', email: '', phone: '' },
-        {
-            name: { required: true, min: 3 },
-            email: { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' },
-            role: { required: true },
-            phone: { required: true, pattern: /^[0-9\-\+]{9,15}$/, message: 'Invalid phone number' }
-        }
-    );
-
-    useEffect(() => { if (!isOpen) reset(); }, [isOpen]);
 
     const handleSubmit = () => {
-        if (validate()) {
+        if (validasi()) {
             onSave({
-                ...values, id: `E${Math.floor(Math.random() * 10000)}`,
-                progress: 0, compliance: 'Compliant', courses_assigned: 0, courses_completed: 0,
-                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${values.name}`,
-                joinDate: new Date().toISOString().split('T')[0]
+                ...formData, id: `K${Math.floor(Math.random() * 1000)}`,
+                progres: 0, kepatuhan: 'Patuh', kursus_ditugaskan: 0, kursus_selesai: 0,
+                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.nama}`,
+                tgl_gabung: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
             });
             onClose();
         }
@@ -353,537 +202,429 @@ const AddEmployeeModal = ({ isOpen, onClose, onSave }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-            <div id="modal-add-employee" className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-pop border border-slate-100">
-                <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4 animate-masuk backdrop-blur-sm">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-pop modal-karyawan-container">
+                <div className="p-5 border-b border-slate-100 flex justify-between items-center">
                     <div>
-                        <h3 className="font-bold text-lg text-slate-800">New Employee Onboarding</h3>
-                        <p className="text-xs text-slate-500">Create profile & assign default learning path</p>
+                        <h3 className="font-bold text-lg text-slate-800">Tambah Karyawan Baru</h3>
+                        <p className="text-xs text-slate-500">Pastikan data sesuai KTP/Kontrak.</p>
                     </div>
-                    <button onClick={onClose}><X size={20} className="text-slate-400 hover:text-red-500 transition-colors"/></button>
+                    <button onClick={onClose}><X size={20} className="text-slate-400 hover:text-red-500"/></button>
                 </div>
-                
                 <div className="p-6 space-y-4">
-                    <InputField label="Full Name" value={values.name} onChange={e => handleChange('name', e.target.value)} error={errors.name} placeholder="e.g. John Doe" required />
-                    <InputField label="Email Address" value={values.email} onChange={e => handleChange('email', e.target.value)} error={errors.email} placeholder="john@company.com" icon={FileText} required />
-                    <InputField label="Phone Number" value={values.phone} onChange={e => handleChange('phone', e.target.value)} error={errors.phone} placeholder="0812-xxxx-xxxx" required />
-                    
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                            Nama Lengkap <InfoTip teks="Gunakan nama sesuai identitas resmi untuk keperluan sertifikat."/>
+                        </label>
+                        <input value={formData.nama} onChange={e => setFormData({...formData, nama: e.target.value})} 
+                            className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-100 outline-none ${errors.nama ? 'border-red-500' : 'border-slate-200'}`} placeholder="Contoh: Budi Santoso"/>
+                        {errors.nama && <p className="text-red-500 text-xs mt-1">{errors.nama}</p>}
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email Perusahaan</label>
+                        <input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} 
+                            className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-100 outline-none ${errors.email ? 'border-red-500' : 'border-slate-200'}`} placeholder="nama@kartikasari.com"/>
+                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <SelectField label="Department" value={values.dept} onChange={e => handleChange('dept', e.target.value)} options={['Frontliner', 'Kitchen', 'Operational', 'Warehouse', 'Office']} />
-                        <InputField label="Job Role" value={values.role} onChange={e => handleChange('role', e.target.value)} error={errors.role} placeholder="e.g. Supervisor" required />
-                    </div>
-
-                    <div className="bg-blue-50 p-3 rounded-lg flex items-start gap-3 text-xs text-blue-700">
-                        <HelpCircle size={16} className="shrink-0 mt-0.5" />
-                        <p>User will receive an automated email with login credentials and a link to the "New Hire Orientation" module.</p>
-                    </div>
-                </div>
-
-                <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-2xl">
-                    <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">Cancel</button>
-                    <button id="btn-save-employee" onClick={handleSubmit} className="btn-primary px-6 py-2 text-sm font-bold rounded-lg shadow-lg flex items-center gap-2">
-                        <Save size={16}/> Save & Invite
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const CourseDetailModal = ({ course, isOpen, onClose, onToggleStatus }) => {
-    if(!isOpen || !course) return null;
-    const isActive = course.status === 'Active';
-
-    return (
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-            <div id="modal-course-detail" className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl animate-pop overflow-hidden max-h-[90vh] flex flex-col">
-                {/* Header with Parallax-like effect */}
-                <div className="bg-slate-900 text-white p-6 relative shrink-0 overflow-hidden">
-                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#D12027] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-40"></div>
-                     <div className="relative z-10 flex justify-between items-start">
                         <div>
-                            <span className="bg-white/10 px-2 py-1 rounded text-xs font-bold border border-white/20 mb-2 inline-block backdrop-blur-md">{course.category}</span>
-                            <h2 className="text-2xl font-bold tracking-tight">{course.title}</h2>
-                            <p className="text-slate-300 text-sm mt-2 flex items-center gap-4">
-                                <span className="flex items-center gap-1"><Clock size={14}/> {course.duration}</span>
-                                <span className="flex items-center gap-1"><Layers size={14}/> {course.modules_count} Modules</span>
-                                <span className="flex items-center gap-1"><Users size={14}/> {course.level}</span>
-                            </p>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Departemen</label>
+                            <select value={formData.dept} onChange={e => setFormData({...formData, dept: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg outline-none bg-white">
+                                <option>Frontliner</option><option>Dapur</option><option>Operasional</option><option>Gudang</option>
+                            </select>
                         </div>
-                        <button onClick={onClose} className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors"><X size={20}/></button>
-                     </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 space-y-6">
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="font-bold text-slate-800 mb-3 text-lg">Course Description</h3>
-                                <p className="text-sm text-slate-600 leading-relaxed">{course.description || 'No description provided.'}</p>
-                            </div>
-                            
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="font-bold text-slate-800 text-lg">Curriculum</h3>
-                                    <button className="text-xs font-bold text-[#D12027] hover:underline">Edit Content</button>
-                                </div>
-                                <div className="space-y-3">
-                                    {[1,2,3].map(i => (
-                                        <div key={i} className="group flex items-center gap-4 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition-all hover:border-red-100">
-                                            <div className="w-10 h-10 bg-slate-100 text-slate-500 group-hover:bg-[#D12027] group-hover:text-white rounded-lg flex items-center justify-center font-bold text-sm transition-colors">0{i}</div>
-                                            <div className="flex-1">
-                                                <p className="text-sm font-bold text-slate-700 group-hover:text-[#D12027] transition-colors">Introduction to {course.title}</p>
-                                                <p className="text-xs text-slate-400">Video Lesson • 15 mins</p>
-                                            </div>
-                                            <PlayCircle size={20} className="text-slate-300 group-hover:text-[#D12027]"/>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div id="course-actions-panel" className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm sticky top-0">
-                                <h3 className="font-bold text-slate-800 mb-4">Management Actions</h3>
-                                
-                                <div className="mb-6">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-bold text-slate-500 uppercase">Visibility</span>
-                                        <StatusBadge status={course.status} />
-                                    </div>
-                                    <p className="text-xs text-slate-400 mb-4">
-                                        {isActive ? 'Visible to all assigned employees.' : 'Hidden from student dashboard.'}
-                                    </p>
-                                    <button 
-                                        onClick={() => onToggleStatus(course.id)} 
-                                        className={`w-full py-2.5 rounded-lg text-sm font-bold border transition-all flex items-center justify-center gap-2 ${isActive ? 'border-red-200 text-red-600 hover:bg-red-50' : 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-200'}`}
-                                    >
-                                        {isActive ? <><ToggleRight size={18}/> Deactivate</> : <><ToggleLeft size={18}/> Publish Course</>}
-                                    </button>
-                                </div>
-
-                                <div className="border-t border-slate-100 pt-4 space-y-3">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-slate-500">Enrolled</span>
-                                        <span className="font-bold text-slate-800">{course.assigned} Users</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-slate-500">Avg. Score</span>
-                                        <span className="font-bold text-green-600">88%</span>
-                                    </div>
-                                    <div className="pt-2">
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span className="text-slate-500">Completion Rate</span>
-                                            <span className="font-bold text-slate-800">{Math.round((course.completed/course.assigned)*100)}%</span>
-                                        </div>
-                                        <ProgressBar value={Math.round((course.completed/course.assigned)*100)} colorClass="bg-[#D12027]" />
-                                    </div>
-                                </div>
-                            </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Jabatan</label>
+                            <input value={formData.peran} onChange={e => setFormData({...formData, peran: e.target.value})} 
+                                className={`w-full p-2 border rounded-lg outline-none ${errors.peran ? 'border-red-500' : 'border-slate-200'}`}/>
                         </div>
                     </div>
+                </div>
+                <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-2xl">
+                    <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800">Batal</button>
+                    <button onClick={handleSubmit} className="tombol-utama px-6 py-2 text-sm font-bold rounded-lg shadow-lg">Simpan Data</button>
                 </div>
             </div>
         </div>
     );
 };
 
-// ==========================================
-// 6. MAIN VIEW COMPONENTS
-// ==========================================
-
-const EmployeeManager = ({ employees, onAddEmployee }) => {
-    const { items, requestSort, sortConfig, filterText, setFilterText } = useDataGrid(employees);
-    const [selectedEmp, setSelectedEmp] = useState(null);
-    const [isAddModalOpen, setAddModalOpen] = useState(false);
-
-    // Sorting Indicator Component
-    const SortIcon = ({ columnKey }) => {
-        if (sortConfig.key !== columnKey) return <div className="w-4" />;
-        return sortConfig.direction === 'asc' ? <ArrowUp size={14} className="text-[#D12027]" /> : <ArrowDown size={14} className="text-[#D12027]" />;
+const ModalBuatKursus = ({ isOpen, onClose, onSave }) => {
+    const [langkah, setLangkah] = useState(1);
+    const [formData, setFormData] = useState({ judul: '', kategori: 'Wajib', level: 'Semua Staf', deskripsi: '', durasi: '', tipe: 'Video' });
+    
+    const handleSubmit = () => {
+        if(!formData.judul) return alert('Judul materi wajib diisi');
+        onSave({ ...formData, id: `M${Math.floor(Math.random() * 1000)}`, ditugaskan: 0, selesai: 0, status: 'Draft', jumlah_modul: 0 });
+        onClose(); setFormData({ judul: '', kategori: 'Wajib', level: 'Semua Staf', deskripsi: '', durasi: '', tipe: 'Video' }); setLangkah(1);
     };
 
+    if (!isOpen) return null;
     return (
-        <div className="h-full flex flex-col gap-6 animate-fadeIn pb-20 lg:pb-0">
-             {/* Toolbar */}
-             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div>
-                    <h3 className="font-bold text-lg text-slate-800">Directory</h3>
-                    <p className="text-sm text-slate-500">Manage {employees.length} registered employees</p>
+        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4 animate-masuk backdrop-blur-sm">
+            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl animate-pop overflow-hidden">
+                <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <div><h3 className="font-bold text-lg text-slate-800">Buat Kurikulum Baru</h3><p className="text-xs text-slate-500">Langkah {langkah} dari 2</p></div>
+                    <button onClick={onClose}><X size={20} className="text-slate-400 hover:text-red-500"/></button>
                 </div>
-                <div className="flex flex-col md:flex-row gap-3 w-full lg:w-auto">
-                    <div id="tour-emp-search" className="relative">
-                        <Search className="absolute left-3 top-2.5 text-slate-400" size={16}/>
-                        <input 
-                            value={filterText} 
-                            onChange={e => setFilterText(e.target.value)} 
-                            placeholder="Search by name, role..." 
-                            className="w-full md:w-64 pl-9 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-100" 
-                        />
-                    </div>
-                    <button 
-                        id="tour-emp-add"
-                        onClick={() => setAddModalOpen(true)} 
-                        className="btn-primary px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-bold"
-                    >
-                        <Plus size={16}/> <span className="whitespace-nowrap">Add Employee</span>
-                    </button>
+                <div className="p-6 md:p-8">
+                    {langkah === 1 ? (
+                        <div className="space-y-4 animate-naik">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Judul Materi</label>
+                                <input value={formData.judul} onChange={e => setFormData({...formData, judul: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none" placeholder="Contoh: Teknik Baking Lanjutan"/>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Kategori <InfoTip teks="Kategori menentukan prioritas dalam algoritma rekomendasi."/></label>
+                                    <select value={formData.kategori} onChange={e => setFormData({...formData, kategori: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl outline-none bg-white"><option>Wajib</option><option>Soft Skill</option><option>Teknis</option><option>Manajerial</option></select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Target Peserta</label>
+                                    <select value={formData.level} onChange={e => setFormData({...formData, level: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl outline-none bg-white"><option>Semua Staf</option><option>Frontliner</option><option>Manajer</option><option>Staf Dapur</option></select>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Deskripsi Singkat</label>
+                                <textarea value={formData.deskripsi} onChange={e => setFormData({...formData, deskripsi: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none h-24 resize-none" placeholder="Jelaskan tujuan pembelajaran..."/>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 animate-naik">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Estimasi Durasi</label><input value={formData.durasi} onChange={e => setFormData({...formData, durasi: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none" placeholder="e.g. 2j 30m"/></div>
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipe Konten</label><select value={formData.tipe} onChange={e => setFormData({...formData, tipe: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl outline-none bg-white"><option>Video</option><option>Interaktif SCORM</option><option>Dokumen / PDF</option><option>Campuran</option></select></div>
+                            </div>
+                            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-red-50 hover:border-red-200 transition-colors cursor-pointer">
+                                <div className="bg-white p-3 rounded-full shadow-sm mb-3"><Download size={24} className="text-slate-400"/></div>
+                                <p className="font-bold text-slate-600">Unggah Materi Pembelajaran</p>
+                                <p className="text-xs text-slate-400">Drag & drop file atau <span className="text-[#D12027] hover:underline">Jelajahi</span></p>
+                            </div>
+                        </div>
+                    )}
                 </div>
-             </div>
+                <div className="p-5 border-t border-slate-100 flex justify-between bg-slate-50">
+                    {langkah === 2 ? <button onClick={() => setLangkah(1)} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800">Kembali</button> : <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800">Batal</button>}
+                    {langkah === 1 ? <button onClick={() => setLangkah(2)} className="tombol-utama px-6 py-2 text-sm font-bold rounded-lg shadow-lg flex items-center gap-2">Lanjut <ChevronRight size={16}/></button> : <button onClick={handleSubmit} className="tombol-utama px-6 py-2 text-sm font-bold rounded-lg shadow-lg">Simpan Draft</button>}
+                </div>
+            </div>
+        </div>
+    );
+};
 
-             {/* Data Grid */}
-             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex-1 flex flex-col">
+// ============================================================================
+// 5. SUB-VIEWS (HALAMAN UTAMA)
+// ============================================================================
+
+const OverviewDashboard = ({ pemicuAnalitik }) => (
+  <div className="space-y-6 animate-masuk pb-20">
+    {/* KPI Cards */}
+    <div className="tour-kpi-utama grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {[
+        { judul: 'Total Pelajar', nilai: '342', sub: '+12 bulan ini', ikon: Users, warna: 'text-blue-600', bg: 'bg-blue-50' }, 
+        { judul: 'Rata-rata Selesai', nilai: '78%', sub: '+2.4% vs bulan lalu', ikon: CheckCircle, warna: 'text-green-600', bg: 'bg-green-50' }, 
+        { judul: 'Request Pending', nilai: '8', sub: 'Perlu Persetujuan', ikon: Clock, warna: 'text-yellow-600', bg: 'bg-yellow-50' }, 
+        { judul: 'Karyawan Berisiko', nilai: '14', sub: 'Tidak Patuh', ikon: AlertTriangle, warna: 'text-red-600', bg: 'bg-red-50' }
+      ].map((kpi, idx) => (
+        <div key={idx} className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 kartu-hover">
+          <div className="flex justify-between items-start mb-4"><div className={`p-3 rounded-xl ${kpi.bg} ${kpi.warna}`}><kpi.ikon size={24} /></div></div>
+          <h3 className="text-3xl font-bold text-slate-800 mb-1">{kpi.nilai}</h3>
+          <p className="text-slate-500 text-sm font-medium">{kpi.judul}</p>
+          <p className={`text-xs mt-2 ${kpi.sub.includes('Perlu') || kpi.sub.includes('Tidak') ? 'text-red-500 font-bold' : 'text-green-600'}`}>{kpi.sub}</p>
+        </div>
+      ))}
+    </div>
+
+    {/* Grafik Utama */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200">
+          <h3 className="font-bold text-lg text-slate-800 mb-6">Tren Aktivitas Pembelajaran (Jam)</h3>
+          <div className="h-64 md:h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={[{ n: 'M1', jam: 400 }, { n: 'M2', jam: 300 }, { n: 'M3', jam: 500 }, { n: 'M4', jam: 450 }]}>
+                      <defs><linearGradient id="gradWarna" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D12027" stopOpacity={0.1}/><stop offset="95%" stopColor="#D12027" stopOpacity={0}/></linearGradient></defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                      <XAxis dataKey="n" axisLine={false} tickLine={false} />
+                      <YAxis axisLine={false} tickLine={false} width={30}/>
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}/>
+                      <Area type="monotone" dataKey="jam" stroke="#D12027" fillOpacity={1} fill="url(#gradWarna)" strokeWidth={3} />
+                  </AreaChart>
+              </ResponsiveContainer>
+          </div>
+      </div>
+      
+      {/* Mini Leaderboard */}
+      <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div>
+              <h3 className="font-bold text-lg text-slate-800 mb-6">Penyelesaian per Departemen</h3>
+              <div className="space-y-6">
+                  {[{ nama: 'Frontliner', val: 85 }, { nama: 'Dapur', val: 72 }, { nama: 'Operasional', val: 95 }, { nama: 'Gudang', val: 60 }].map((dept) => (
+                      <div key={dept.nama}>
+                          <div className="flex justify-between text-sm mb-2"><span className="font-medium text-slate-700">{dept.nama}</span><span className="font-bold text-slate-800">{dept.val}%</span></div>
+                          <ProgressBar nilai={dept.val} warna={dept.val > 80 ? "bg-green-500" : dept.val > 60 ? "bg-yellow-500" : "bg-red-500"} />
+                      </div>
+                  ))}
+              </div>
+          </div>
+          <button onClick={pemicuAnalitik} className="tour-tombol-analitik w-full mt-8 py-3 text-sm text-[#D12027] font-bold border border-[#D12027] rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2">
+              <PieIcon size={16}/> Lihat Analisis Mendalam
+          </button>
+      </div>
+    </div>
+  </div>
+);
+
+const ManajemenKaryawan = ({ karyawan, onTambah }) => {
+    const [filterTeks, setFilterTeks] = useState("");
+    const [bukaModalTambah, setBukaModalTambah] = useState(false);
+
+    // Filter logika sederhana
+    const dataTampil = karyawan.filter(k => 
+        k.nama.toLowerCase().includes(filterTeks.toLowerCase()) || 
+        k.peran.toLowerCase().includes(filterTeks.toLowerCase())
+    );
+
+    return (
+        <div className="space-y-6 animate-masuk pb-20">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div><h3 className="font-bold text-lg text-slate-800">Direktori Karyawan</h3><p className="text-sm text-slate-500">Kelola akses dan pantau progres individu.</p></div>
+                <div className="flex gap-2 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-64 tour-cari-karyawan">
+                        <Search className="absolute left-3 top-2.5 text-slate-400" size={16}/>
+                        <input value={filterTeks} onChange={e => setFilterTeks(e.target.value)} placeholder="Cari nama atau jabatan..." className="w-full pl-9 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-100" />
+                    </div>
+                    <button onClick={() => setBukaModalTambah(true)} className="tour-tambah-karyawan tombol-utama px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold whitespace-nowrap"><Plus size={16}/> Tambah</button>
+                </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table id="tour-emp-table" className="w-full text-left border-collapse min-w-[1000px]">
-                        <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200">
-                            <tr>
-                                <th onClick={() => requestSort('name')} className="p-4 text-xs font-bold text-slate-500 uppercase cursor-pointer hover:bg-slate-100 transition-colors select-none"><div className="flex items-center gap-2">Employee <SortIcon columnKey="name"/></div></th>
-                                <th onClick={() => requestSort('role')} className="p-4 text-xs font-bold text-slate-500 uppercase cursor-pointer hover:bg-slate-100 transition-colors select-none"><div className="flex items-center gap-2">Role & Dept <SortIcon columnKey="role"/></div></th>
-                                <th onClick={() => requestSort('progress')} className="p-4 text-xs font-bold text-slate-500 uppercase cursor-pointer hover:bg-slate-100 transition-colors select-none"><div className="flex items-center gap-2">Learning Progress <SortIcon columnKey="progress"/></div></th>
-                                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Compliance</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 uppercase text-right">Actions</th>
-                            </tr>
-                        </thead>
+                    <table className="w-full text-left tour-tabel-karyawan">
+                        <thead className="bg-slate-50 border-b border-slate-100"><tr>{['Nama Karyawan', 'Jabatan / Dept', 'Progres Belajar', 'Status Kepatuhan', 'Aksi'].map(h => <th key={h} className="p-4 text-xs font-bold text-slate-500 uppercase">{h}</th>)}</tr></thead>
                         <tbody className="divide-y divide-slate-100">
-                            {items.map((emp) => (
-                                <tr key={emp.id} onClick={() => setSelectedEmp(emp)} className="hover:bg-slate-50 transition-colors cursor-pointer group">
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <img src={emp.avatar} className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200" alt="" />
-                                            <div>
-                                                <p className="font-bold text-slate-800 text-sm group-hover:text-[#D12027] transition-colors">{emp.name}</p>
-                                                <p className="text-[11px] text-slate-400 font-mono">{emp.email}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4">
-                                        <p className="text-sm text-slate-700 font-medium">{emp.role}</p>
-                                        <p className="text-xs text-slate-500">{emp.dept} • {emp.branch}</p>
-                                    </td>
-                                    <td className="p-4 w-64">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="text-xs font-bold text-slate-700">{emp.courses_completed}/{emp.courses_assigned} Mods</span>
-                                            <span className="text-xs font-bold text-slate-500">{emp.progress}%</span>
-                                        </div>
-                                        <ProgressBar value={emp.progress} colorClass={emp.progress < 50 ? 'bg-red-500' : emp.progress < 80 ? 'bg-yellow-500' : 'bg-[#D12027]'} />
-                                    </td>
-                                    <td className="p-4"><StatusBadge status={emp.compliance} /></td>
-                                    <td className="p-4 text-right">
-                                        <button className="p-2 text-slate-400 hover:text-[#D12027] hover:bg-red-50 rounded-full transition-all">
-                                            <MoreVertical size={16} />
-                                        </button>
-                                    </td>
+                            {dataTampil.map((k, idx) => (
+                                <tr key={k.id} className="hover:bg-slate-50 transition-colors cursor-pointer group">
+                                    <td className="p-4"><div className="flex items-center gap-3"><img src={k.avatar} className="w-10 h-10 rounded-full bg-slate-200" alt="" /><div><p className="font-bold text-slate-800">{k.nama}</p><p className="text-xs text-slate-500">ID: {k.id}</p></div></div></td>
+                                    <td className="p-4"><p className="text-sm text-slate-700 font-medium">{k.peran}</p><p className="text-xs text-slate-500">{k.dept}</p></td>
+                                    <td className="p-4 w-48"><div className="flex items-center gap-2 mb-1"><span className="text-xs font-bold text-slate-700">{k.progres}%</span></div><ProgressBar nilai={k.progres} warna={k.progres < 50 ? 'bg-red-500' : 'bg-[#D12027]'} /></td>
+                                    <td className="p-4"><BadgeStatus status={k.kepatuhan} /></td>
+                                    <td className="p-4"><button className="text-slate-400 hover:text-[#D12027] group-hover:bg-red-50 p-2 rounded-full transition-all"><MoreVertical size={18} /></button></td>
                                 </tr>
                             ))}
-                            {items.length === 0 && (
-                                <tr>
-                                    <td colSpan="5" className="p-8 text-center text-slate-500">
-                                        <div className="flex flex-col items-center justify-center gap-2">
-                                            <Search size={32} className="text-slate-300"/>
-                                            <p className="text-sm">No employees match your search.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
                         </tbody>
                     </table>
+                    {dataTampil.length === 0 && <div className="p-8 text-center text-slate-500">Data tidak ditemukan. Coba kata kunci lain.</div>}
                 </div>
-                <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center text-xs text-slate-500">
-                    <span>Showing {items.length} of {employees.length} entries</span>
-                    <div className="flex gap-2">
-                        <button className="px-3 py-1 border border-slate-200 rounded hover:bg-white disabled:opacity-50" disabled>Previous</button>
-                        <button className="px-3 py-1 border border-slate-200 rounded hover:bg-white">Next</button>
-                    </div>
-                </div>
-             </div>
-
-             <AddEmployeeModal isOpen={isAddModalOpen} onClose={() => setAddModalOpen(false)} onSave={onAddEmployee} />
+            </div>
+            <ModalTambahKaryawan isOpen={bukaModalTambah} onClose={() => setBukaModalTambah(false)} onSave={onTambah} />
         </div>
     );
 };
 
-// ==========================================
-// 7. MAIN LAYOUT & TOUR CONTROLLER
-// ==========================================
+const ManajemenKurikulum = ({ kursus, onBuat }) => {
+    const [modalBuatOpen, setModalBuatOpen] = useState(false);
+    return (
+        <div className="space-y-6 animate-masuk pb-20">
+            <div className="flex justify-between items-center">
+                <div><h3 className="font-bold text-xl text-slate-800">Modul Pembelajaran</h3><p className="text-slate-500 text-sm">Kelola materi pelatihan digital.</p></div>
+                <button onClick={() => setModalBuatOpen(true)} className="tour-buat-kursus tombol-utama px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg"><Plus size={18}/> Buat Modul</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 tour-grid-kursus">
+                {kursus.map((k) => (
+                    <div key={k.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden kartu-hover group relative flex flex-col h-full cursor-pointer">
+                        <div className="h-32 bg-slate-100 relative shrink-0">
+                            <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center"><BookOpen className="text-slate-300 group-hover:text-white transition-colors" size={48} /></div>
+                            <div className="absolute top-3 right-3"><BadgeStatus status={k.status} /></div>
+                            <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-bold text-slate-700 shadow-sm">{k.kategori}</div>
+                        </div>
+                        <div className="p-5 flex-1 flex flex-col">
+                            <h4 className="font-bold text-slate-800 text-lg mb-1">{k.judul}</h4>
+                            <p className="text-xs text-slate-400 mb-4 line-clamp-2">{k.deskripsi}</p>
+                            <div className="mt-auto flex justify-between items-center text-xs text-slate-500 border-t border-slate-50 pt-3">
+                                <div className="flex items-center gap-1"><Clock size={12}/> {k.durasi}</div>
+                                <div className="flex items-center gap-1"><Users size={12}/> {k.ditugaskan} Peserta</div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <ModalBuatKursus isOpen={modalBuatOpen} onClose={() => setModalBuatOpen(false)} onSave={onBuat} />
+        </div>
+    );
+};
+
+// ============================================================================
+// 6. APLIKASI UTAMA (SHELL & JOYRIDE ENGINE)
+// ============================================================================
 
 const AdminApp = () => {
-    const [activeView, setActiveView] = useState('dashboard');
-    const [employees, setEmployees] = useState(INITIAL_EMPLOYEES);
-    const [courses, setCourses] = useState(INITIAL_COURSES);
-    const [modalState, setModalState] = useState({ type: null, data: null }); // 'ADD_EMP', 'COURSE_DETAIL', etc.
+    const [halamanAktif, setHalamanAktif] = useState('dashboard');
+    const [sidebarTerbuka, setSidebarTerbuka] = useState(false);
+    
+    // State Data
+    const [dataKaryawan, setDataKaryawan] = useState(DATA_KARYAWAN);
+    const [dataKursus, setDataKursus] = useState(DATA_KURSUS);
 
-    // --- CONTEXT-AWARE TOUR ENGINE ---
-    const [tourState, setTourState] = useState({
-        run: false,
-        steps: [],
-        stepIndex: 0
-    });
+    // Konfigurasi Joyride (Tutorial Engine)
+    const [jalankanTour, setJalankanTour] = useState(false);
+    const [langkahTour, setLangkahTour] = useState([]);
 
     /**
-     * The Brain of the Tutorial System.
-     * Generates steps dynamically based on:
-     * 1. Active View (Dashboard vs Employees vs Curriculum)
-     * 2. Active Modal (Is the user trying to Add Employee?)
+     * Menghasilkan langkah tutorial berdasarkan halaman yang sedang aktif.
+     * Menggunakan bahasa Indonesia yang edukatif (menjelaskan "Mengapa").
      */
-    const updateTourContext = useCallback(() => {
-        let steps = [];
+    const dapatkanLangkahTour = (halaman) => {
+        const langkahUmum = [
+            { target: '.tour-sidebar', content: 'Menu Navigasi Utama: Gunakan panel ini untuk berpindah antar modul sistem HRIS.', placement: 'right', disableBeacon: true },
+            { target: '.tour-profil', content: 'Pusat Kontrol: Akses pengaturan akun, notifikasi, dan tombol bantuan di sini.', placement: 'bottom-end' }
+        ];
 
-        // CASE A: User is in a Modal
-        if (modalState.type === 'ADD_EMP') {
-            steps = [
-                {
-                    target: '#modal-add-employee',
-                    content: 'This is the Onboarding Form. It does more than just add data.',
-                    placement: 'center',
-                    disableBeacon: true,
-                },
-                {
-                    target: 'input[placeholder="john@company.com"]',
-                    content: 'Entering the email here triggers an automatic invitation sent to the employee via SendGrid.',
-                    placement: 'right',
-                },
-                {
-                    target: '#btn-save-employee',
-                    content: 'Clicking Save will also assign the "General Orientation" learning path automatically.',
-                    placement: 'top',
-                }
-            ];
-        } 
-        else if (modalState.type === 'COURSE_DETAIL') {
-            steps = [
-                {
-                    target: '#modal-course-detail',
-                    content: 'This is the Course Control Center. Manage content and visibility here.',
-                    placement: 'right',
-                },
-                {
-                    target: '#course-actions-panel',
-                    content: 'Use these controls to publish the course or track real-time engagement metrics.',
-                    placement: 'left',
-                }
-            ];
-        }
-        // CASE B: User is on a Main Page
-        else {
-            const commonSteps = [
-                { target: '#sidebar-nav', content: 'Navigate between modules using this sidebar.', placement: 'right' },
-            ];
+        const langkahPerHalaman = {
+            'dashboard': [
+                { target: 'body', content: <div className="text-left"><h4 className="font-bold mb-2">👋 Selamat Datang, Admin!</h4><p>Ini adalah Dashboard Learning Management System (LMS) Anda. Mari kita pelajari cara memantau kesehatan pelatihan organisasi.</p></div>, placement: 'center' },
+                ...langkahUmum,
+                { target: '.tour-kpi-utama', content: 'KPI Operasional: Pantau metrik kunci seperti tingkat penyelesaian dan kepatuhan (compliance) secara real-time untuk audit.', placement: 'bottom' },
+                { target: '.tour-tombol-analitik', content: 'Analisis Mendalam: Klik di sini untuk melihat peta kompetensi (skill gap) per departemen.', placement: 'top' }
+            ],
+            'karyawan': [
+                { target: '.tour-cari-karyawan', content: 'Pencarian Cepat: Temukan data karyawan spesifik untuk mengecek status kepatuhan wajib mereka.', placement: 'bottom' },
+                { target: '.tour-tambah-karyawan', content: 'Onboarding: Gunakan tombol ini saat ada karyawan baru masuk untuk membuatkan akun pembelajaran.', placement: 'left' },
+                { target: '.tour-tabel-karyawan', content: 'Daftar Personel: Klik baris karyawan untuk melihat "Rapor Pembelajaran" individu secara detail.', placement: 'top' }
+            ],
+            'kurikulum': [
+                { target: '.tour-buat-kursus', content: 'Authoring Tool: Buat materi pelatihan baru (Video, PDF, atau SCORM) di sini.', placement: 'left' },
+                { target: '.tour-grid-kursus', content: 'Katalog Modul: Kelola status aktif/non-aktif materi pelatihan. Materi non-aktif tidak akan muncul di aplikasi karyawan.', placement: 'top' }
+            ]
+        };
 
-            switch(activeView) {
-                case 'dashboard':
-                    steps = [
-                        { target: 'body', placement: 'center', content: <div className="text-center"><strong>Welcome to KARSA LMS Admin!</strong><br/>Let's take a quick tour of your new command center.</div> },
-                        ...commonSteps,
-                        { target: '#kpi-grid', content: 'These cards show live health metrics of your training ecosystem.', placement: 'bottom' },
-                        { target: '#chart-activity', content: 'Track learning hours over time to identify peak usage days.', placement: 'top' }
-                    ];
-                    break;
-                case 'employees':
-                    steps = [
-                        { target: '#tour-emp-table', content: 'This is the master employee database.', placement: 'top' },
-                        { target: '#tour-emp-search', content: 'Use real-time search to find staff across branches.', placement: 'bottom' },
-                        { target: '#tour-emp-add', content: 'Click here to onboard new staff. (Try clicking it now!)', placement: 'left' }
-                    ];
-                    break;
-                default:
-                    steps = commonSteps;
-            }
-        }
-
-        setTourState(prev => ({ ...prev, steps, run: true, stepIndex: 0 }));
-    }, [activeView, modalState.type]);
-
-    // Trigger tour update when context changes
-    useEffect(() => {
-        // Only auto-start tour if not seen before (mocked with session storage for demo)
-        // For demo purposes, we restart tour on view change to show capabilities
-        updateTourContext(); 
-    }, [updateTourContext]);
-
-    // Handlers
-    const handleAddEmployee = (data) => {
-        setEmployees(prev => [data, ...prev]);
-        setModalState({ type: null }); // Close modal
+        return langkahPerHalaman[halaman] || [];
     };
+
+    // Efek Samping: Jalankan tour saat halaman berubah (jika belum pernah dilihat)
+    useEffect(() => {
+        const kunciPenyimpanan = `sudahLihat_${halamanAktif}`;
+        const sudahLihat = localStorage.getItem(kunciPenyimpanan);
+        
+        // Reset langkah dan set yang baru
+        setLangkahTour(dapatkanLangkahTour(halamanAktif));
+        
+        if (!sudahLihat) {
+            // Beri sedikit jeda agar DOM ter-render sempurna
+            setTimeout(() => setJalankanTour(true), 500);
+        } else {
+            setJalankanTour(false);
+        }
+    }, [halamanAktif]);
 
     const handleJoyrideCallback = (data) => {
-        const { status, type } = data;
+        const { status } = data;
         if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-            setTourState(prev => ({ ...prev, run: false }));
+            setJalankanTour(false);
+            localStorage.setItem(`sudahLihat_${halamanAktif}`, 'true');
         }
     };
 
+    const mulaiTourManual = () => {
+        setLangkahTour(dapatkanLangkahTour(halamanAktif));
+        setJalankanTour(true);
+    };
+
+    const MENU_NAVIGASI = [
+        { id: 'dashboard', label: 'Ringkasan', ikon: LayoutDashboard },
+        { id: 'karyawan', label: 'Data Karyawan', ikon: Users },
+        { id: 'kurikulum', label: 'Kurikulum', ikon: BookOpen },
+        { id: 'request', label: 'Request Training', ikon: FileText },
+        { id: 'analitik', label: 'Analitik & Laporan', ikon: BarChart2 },
+    ];
+
     return (
-        <div className="flex h-screen overflow-hidden bg-[#f8fafc]">
+        <div className="flex h-screen bg-[#f8fafc] overflow-hidden text-slate-800 font-sans">
             <GlobalStyles />
             
+            {/* --- JOYRIDE ENGINE --- */}
             <Joyride
-                steps={tourState.steps}
-                run={tourState.run}
-                stepIndex={tourState.stepIndex}
+                steps={langkahTour}
+                run={jalankanTour}
                 continuous={true}
                 showSkipButton={true}
                 showProgress={true}
+                callback={handleJoyrideCallback}
+                locale={{ back: 'Kembali', close: 'Tutup', last: 'Selesai', next: 'Lanjut', skip: 'Lewati' }}
                 styles={{
                     options: {
-                        primaryColor: THEME.colors.primary,
-                        textColor: '#334155',
-                        zIndex: 10000,
+                        primaryColor: WARNA_TEMA.MERAH,
+                        zIndex: 1000,
+                        arrowColor: '#fff',
+                        backgroundColor: '#fff',
+                        textColor: '#333',
+                        width: 400,
                     },
-                    tooltip: {
-                        borderRadius: '12px',
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                    },
-                    buttonNext: {
-                        fontWeight: 700,
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                        padding: '8px 16px'
-                    }
+                    buttonNext: { fontWeight: 'bold', borderRadius: '8px', fontSize: '12px', padding: '10px 16px' },
+                    tooltipContent: { fontSize: '14px', lineHeight: '1.6' },
+                    tooltipTitle: { fontSize: '16px', fontWeight: 'bold', color: WARNA_TEMA.MERAH }
                 }}
-                callback={handleJoyrideCallback}
             />
 
-            {/* Sidebar */}
-            <aside id="sidebar-nav" className="w-64 bg-white border-r border-slate-200 flex flex-col z-40 hidden lg:flex">
-                <div className="h-20 flex items-center px-8 border-b border-slate-100">
-                    <div className="w-8 h-8 bg-[#D12027] rounded-lg flex items-center justify-center mr-3">
-                        <span className="text-white font-black text-lg">K</span>
+            {/* Sidebar Mobile Overlay */}
+            {sidebarTerbuka && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm animate-masuk" onClick={() => setSidebarTerbuka(false)}/>}
+            
+            {/* --- SIDEBAR --- */}
+            <aside className={`tour-sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col shadow-xl lg:shadow-none transition-transform duration-300 ${sidebarTerbuka ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+                <div className="h-16 lg:h-20 flex items-center px-6 lg:px-8 border-b border-slate-100 justify-between lg:justify-start">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-[#D12027] rounded-lg flex items-center justify-center"><span className="text-white font-black text-lg">K</span></div>
+                        <div><h1 className="font-bold text-lg tracking-tight text-slate-900 leading-tight">KARSA<br/><span className="text-[#D12027] text-sm font-medium">LMS Admin</span></h1></div>
                     </div>
-                    <div>
-                        <h1 className="font-bold text-lg tracking-tight text-slate-900 leading-tight">KARSA<br/><span className="text-[#D12027] text-xs font-bold uppercase tracking-wider">Admin</span></h1>
-                    </div>
+                    <button onClick={() => setSidebarTerbuka(false)} className="lg:hidden text-slate-400"><X size={24} /></button>
                 </div>
-                <nav className="flex-1 py-6 space-y-1">
-                    {[
-                        { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-                        { id: 'employees', label: 'Employees', icon: Users },
-                        { id: 'curriculum', label: 'Curriculum', icon: BookOpen },
-                        { id: 'analytics', label: 'Analytics', icon: BarChart2 },
-                    ].map(menu => (
-                        <button 
-                            key={menu.id} 
-                            onClick={() => { setActiveView(menu.id); setModalState({ type: null }); }}
-                            className={`w-full flex items-center gap-3 px-8 py-3.5 text-sm font-medium transition-all ${activeView === menu.id ? 'sidebar-active' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-                        >
-                            <menu.icon size={18} className={activeView === menu.id ? 'text-[#D12027]' : 'text-slate-400'}/>
+                <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
+                    {MENU_NAVIGASI.map((menu) => (
+                        <button key={menu.id} onClick={() => { setHalamanAktif(menu.id); setSidebarTerbuka(false); }} 
+                            className={`w-full flex items-center gap-3 px-6 lg:px-8 py-3.5 text-sm font-medium transition-all ${halamanAktif === menu.id ? 'sidebar-aktif' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}>
+                            <menu.ikon size={18} className={halamanAktif === menu.id ? 'text-[#D12027]' : 'text-slate-400'}/>
                             {menu.label}
                         </button>
                     ))}
                 </nav>
+                <div className="p-6 border-t border-slate-100">
+                    <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="text-xs text-slate-400 hover:text-[#D12027] underline w-full text-left mb-4">Reset Tutorial Demo</button>
+                    <button className="flex items-center gap-3 text-slate-500 hover:text-red-600 transition-colors text-sm font-bold"><LogOut size={18}/> Keluar</button>
+                </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-                <header className="h-20 bg-white/80 backdrop-blur border-b border-slate-200 flex items-center justify-between px-8 z-30 shrink-0">
-                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <span className="font-medium text-slate-400">Admin Portal</span>
-                        <ChevronRight size={14}/>
-                        <span className="font-bold text-slate-800 capitalize">{activeView}</span>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <button onClick={updateTourContext} className="flex items-center gap-2 text-sm font-bold text-[#D12027] bg-red-50 px-4 py-2 rounded-lg border border-red-100 hover:bg-red-100 transition-colors">
-                            <HelpCircle size={16}/> Show Tutorial
-                        </button>
-                        <div className="w-10 h-10 bg-[#D12027] rounded-full text-white flex items-center justify-center font-bold shadow-md border-2 border-white">HR</div>
+            {/* --- KONTEN UTAMA --- */}
+            <div className="flex-1 flex flex-col h-screen relative w-full">
+                <header className="h-16 lg:h-20 bg-white/80 backdrop-blur border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-20 sticky top-0">
+                    <div className="flex items-center gap-3 lg:hidden"><button onClick={() => setSidebarTerbuka(true)} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg"><Menu size={24}/></button><span className="font-bold text-slate-800 capitalize">{halamanAktif}</span></div>
+                    <div className="hidden lg:flex items-center gap-2 text-sm text-slate-500"><span className="cursor-pointer hover:text-[#D12027]">Beranda</span><ChevronRight size={14}/><span className="font-bold text-slate-800 capitalize">{MENU_NAVIGASI.find(m => m.id === halamanAktif)?.label}</span></div>
+                    
+                    <div className="tour-profil flex items-center gap-4 lg:gap-6">
+                        <button onClick={mulaiTourManual} className="text-sm font-bold text-[#D12027] bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-100 transition-colors flex items-center gap-2"><HelpCircle size={16}/> Bantuan ?</button>
+                        <button className="relative p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors"><Bell size={20}/><span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span></button>
+                        <div className="flex items-center gap-3 pl-4 lg:pl-6 border-l border-slate-200">
+                            <div className="text-right hidden md:block"><p className="text-sm font-bold text-slate-800">Admin HR</p><p className="text-xs text-slate-500">Akses Superadmin</p></div>
+                            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#D12027] rounded-full text-white flex items-center justify-center font-bold border-2 border-red-100 shadow-sm text-sm">HR</div>
+                        </div>
                     </div>
                 </header>
-
-                <div className="flex-1 overflow-y-auto p-8 bg-[#f8fafc]">
-                    <div className="max-w-7xl mx-auto h-full">
-                        {activeView === 'dashboard' && (
-                            <div className="space-y-6 animate-fadeIn">
-                                <div id="kpi-grid" className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                        <div className="flex justify-between mb-4"><div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Users size={24}/></div></div>
-                                        <h3 className="text-3xl font-bold text-slate-800">342</h3>
-                                        <p className="text-slate-500 text-sm font-medium">Total Learners</p>
-                                    </div>
-                                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                        <div className="flex justify-between mb-4"><div className="p-3 bg-green-50 text-green-600 rounded-xl"><CheckCircle size={24}/></div></div>
-                                        <h3 className="text-3xl font-bold text-slate-800">89%</h3>
-                                        <p className="text-slate-500 text-sm font-medium">Completion Rate</p>
-                                    </div>
-                                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                        <div className="flex justify-between mb-4"><div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl"><Clock size={24}/></div></div>
-                                        <h3 className="text-3xl font-bold text-slate-800">12</h3>
-                                        <p className="text-slate-500 text-sm font-medium">Pending Approvals</p>
-                                    </div>
-                                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                        <div className="flex justify-between mb-4"><div className="p-3 bg-red-50 text-red-600 rounded-xl"><AlertTriangle size={24}/></div></div>
-                                        <h3 className="text-3xl font-bold text-slate-800">5</h3>
-                                        <p className="text-slate-500 text-sm font-medium">At Risk Users</p>
-                                    </div>
-                                </div>
-                                <div id="chart-activity" className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                    <h3 className="font-bold text-lg text-slate-800 mb-6">Learning Activity Trends</h3>
-                                    <div className="h-80">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart data={[{name:'Mon',v:10},{name:'Tue',v:30},{name:'Wed',v:25},{name:'Thu',v:45},{name:'Fri',v:20}]}>
-                                                <defs>
-                                                    <linearGradient id="colorV" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#D12027" stopOpacity={0.1}/>
-                                                        <stop offset="95%" stopColor="#D12027" stopOpacity={0}/>
-                                                    </linearGradient>
-                                                </defs>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0"/>
-                                                <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                                                <YAxis axisLine={false} tickLine={false} />
-                                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}/>
-                                                <Area type="monotone" dataKey="v" stroke="#D12027" strokeWidth={3} fillOpacity={1} fill="url(#colorV)" />
-                                            </AreaChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                </div>
+                
+                <main className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth w-full">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="hidden lg:flex mb-8 justify-between items-end">
+                            <div>
+                                <h2 className="text-3xl font-bold text-slate-800 mb-2 capitalize">{MENU_NAVIGASI.find(m => m.id === halamanAktif)?.label}</h2>
+                                <p className="text-slate-500">Kelola ekosistem pembelajaran organisasi Anda.</p>
                             </div>
-                        )}
-
-                        {activeView === 'employees' && (
-                            <EmployeeManager 
-                                employees={employees} 
-                                onAddEmployee={(data) => {
-                                    setModalState({ type: 'ADD_EMP' }); // Set modal type first to trigger tour update? 
-                                    // Actually, we usually set state to open modal.
-                                    setModalState({ type: 'ADD_EMP' }); 
-                                }} 
-                            />
-                        )}
-                        
-                        {activeView === 'curriculum' && (
-                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
-                                {courses.map(course => (
-                                    <div key={course.id} onClick={() => setModalState({ type: 'COURSE_DETAIL', data: course })} className="bg-white rounded-2xl border border-slate-200 overflow-hidden card-hover cursor-pointer group">
-                                        <div className="h-40 bg-slate-100 relative">
-                                             <div className="absolute inset-0 flex items-center justify-center text-slate-300 group-hover:text-slate-400 transition-colors"><BookOpen size={48}/></div>
-                                             <div className="absolute top-4 right-4"><StatusBadge status={course.status}/></div>
-                                        </div>
-                                        <div className="p-6">
-                                            <h4 className="font-bold text-slate-800 text-lg mb-2">{course.title}</h4>
-                                            <p className="text-sm text-slate-500 line-clamp-2">{course.description}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                             </div>
-                        )}
+                        </div>
+                        {halamanAktif === 'dashboard' && <OverviewDashboard pemicuAnalitik={() => setHalamanAktif('analitik')} />}
+                        {halamanAktif === 'karyawan' && <ManajemenKaryawan karyawan={dataKaryawan} onTambah={(data) => setDataKaryawan([...dataKaryawan, data])} />}
+                        {halamanAktif === 'kurikulum' && <ManajemenKurikulum kursus={dataKursus} onBuat={(data) => setDataKursus([...dataKursus, data])} />}
+                        {/* Placeholder untuk halaman lain agar kode tidak terlalu panjang */}
+                        {halamanAktif === 'request' && <div className="text-center py-20 text-slate-400">Modul Request Training (Sedang dimuat...)</div>}
+                        {halamanAktif === 'analitik' && <div className="text-center py-20 text-slate-400">Modul Analitik Lanjutan (Sedang dimuat...)</div>}
                     </div>
-                </div>
-            </main>
-
-            {/* Render Modals based on State */}
-            <AddEmployeeModal 
-                isOpen={modalState.type === 'ADD_EMP'} 
-                onClose={() => setModalState({ type: null })} 
-                onSave={handleAddEmployee} 
-            />
-            <CourseDetailModal 
-                isOpen={modalState.type === 'COURSE_DETAIL'} 
-                course={modalState.data}
-                onClose={() => setModalState({ type: null })}
-                onToggleStatus={(id) => {
-                     setCourses(prev => prev.map(c => c.id === id ? {...c, status: c.status === 'Active' ? 'Draft' : 'Active'} : c));
-                     setModalState(prev => ({ ...prev, data: { ...prev.data, status: prev.data.status === 'Active' ? 'Draft' : 'Active' } }));
-                }}
-            />
+                </main>
+            </div>
         </div>
     );
 };
