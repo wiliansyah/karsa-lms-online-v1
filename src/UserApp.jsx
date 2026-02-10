@@ -251,7 +251,7 @@ const MOCK_TRAINING_REQUESTS = [
 const LevelBar = ({ xp, level }) => {
   const nextLevelXp = (level + 1) * 500;
   const progress = ((xp % 500) / 500) * 100;
-   
+    
   return (
     <div className="w-full">
       <div className="flex justify-between text-xs mb-1">
@@ -375,7 +375,7 @@ const VideoLesson = ({ onComplete }) => {
                 <iframe 
                     width="100%" 
                     height="100%" 
-                    src="https://www.youtube.com/embed/lg48Bi9DA54?start=1" 
+                    src="https://www.youtube.com/embed/cnJb64Mza-E?start=1" 
                     title="Communication Training Video" 
                     frameBorder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -1233,140 +1233,140 @@ const LeaderboardView = ({ user }) => {
              {/* Podium Section */}
              <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
-                     <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl relative overflow-hidden text-center min-h-[400px] flex flex-col">
-                         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100 via-white to-white opacity-50"></div>
-                         
-                         <h3 className="font-black text-2xl text-slate-800 mb-12 relative z-10 flex items-center justify-center gap-2 uppercase tracking-tight">
-                             <Crown size={28} className="text-[#FDB913] fill-[#FDB913]"/> {viewMode === 'learning' ? 'Monthly Champions' : 'Innovation Heroes'}
-                         </h3>
+                      <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl relative overflow-hidden text-center min-h-[400px] flex flex-col">
+                          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100 via-white to-white opacity-50"></div>
+                          
+                          <h3 className="font-black text-2xl text-slate-800 mb-12 relative z-10 flex items-center justify-center gap-2 uppercase tracking-tight">
+                              <Crown size={28} className="text-[#FDB913] fill-[#FDB913]"/> {viewMode === 'learning' ? 'Monthly Champions' : 'Innovation Heroes'}
+                          </h3>
 
-                         <div className="flex justify-center items-end gap-4 md:gap-8 relative z-10 flex-1">
-                             {/* 2nd Place */}
-                             {topThree[1] && (
-                                <div className="flex flex-col items-center w-1/3">
-                                    <div className="relative mb-3">
-                                        <div className="w-20 h-20 rounded-full border-4 border-slate-200 shadow-lg overflow-hidden relative z-10">
-                                            <img src={topThree[1].avatar} alt="2nd" className="w-full h-full object-cover"/>
-                                        </div>
-                                        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md text-xs font-bold shadow-sm z-20">
-                                            2nd
-                                        </div>
-                                    </div>
-                                    <p className="text-sm font-bold text-slate-800 truncate w-full text-center">{topThree[1].name}</p>
-                                    <p className="text-xs text-slate-500 font-medium mb-2">{topThree[1].dept}</p>
-                                    <div className={`w-full ${getRankStyle(1).bg} rounded-t-xl flex items-end justify-center pb-4 shadow-inner h-32 relative group`}>
-                                        <div className="text-slate-600 font-black text-lg opacity-30 group-hover:opacity-50 transition-opacity">
-                                            {viewMode === 'learning' ? topThree[1].xp : topThree[1].ideasApproved}
-                                        </div>
-                                    </div>
-                                </div>
-                             )}
-                             
-                             {/* 1st Place */}
-                             {topThree[0] && (
-                                <div className="flex flex-col items-center w-1/3 -mt-10">
-                                    <div className="relative mb-3">
-                                        <div className="w-28 h-28 rounded-full border-4 border-[#FDB913] shadow-xl overflow-hidden relative z-10">
-                                            <img src={topThree[0].avatar} alt="1st" className="w-full h-full object-cover"/>
-                                        </div>
-                                        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-[#FDB913] text-white px-3 py-1 rounded-md text-sm font-bold shadow-md z-20">
-                                            1st
-                                        </div>
-                                    </div>
-                                    <p className="text-base font-bold text-slate-800 truncate w-full text-center">{topThree[0].name}</p>
-                                    <div className="bg-[#D12027] text-white text-[10px] px-2 py-0.5 rounded-full font-bold mb-1 shadow-sm">Department Champion</div>
-                                    <div className={`w-full ${getRankStyle(0).bg} rounded-t-xl flex items-end justify-center pb-6 shadow-inner h-44 relative group`}>
-                                     <div className="text-yellow-800 font-black text-2xl opacity-30 group-hover:opacity-50 transition-opacity">
-                                        {viewMode === 'learning' ? topThree[0].xp : topThree[0].ideasApproved}
-                                     </div>
-                                    </div>
-                                </div>
-                             )}
-
-                             {/* 3rd Place */}
-                             {topThree[2] && (
+                          <div className="flex justify-center items-end gap-4 md:gap-8 relative z-10 flex-1">
+                              {/* 2nd Place */}
+                              {topThree[1] && (
                                  <div className="flex flex-col items-center w-1/3">
-                                    <div className="relative mb-3">
-                                        <div className="w-20 h-20 rounded-full border-4 border-orange-200 shadow-lg overflow-hidden relative z-10">
-                                            <img src={topThree[2].avatar} alt="3rd" className="w-full h-full object-cover"/>
-                                        </div>
-                                        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-orange-200 text-orange-800 px-2 py-0.5 rounded-md text-xs font-bold shadow-sm z-20">
-                                            3rd
-                                        </div>
-                                    </div>
-                                    <p className="text-sm font-bold text-slate-800 truncate w-full text-center">{topThree[2].name}</p>
-                                    <p className="text-xs text-slate-500 font-medium mb-2">{topThree[2].dept}</p>
-                                    <div className={`w-full ${getRankStyle(2).bg} rounded-t-xl flex items-end justify-center pb-4 shadow-inner h-24 relative group`}>
-                                        <div className="text-orange-900 font-black text-lg opacity-30 group-hover:opacity-50 transition-opacity">
-                                            {viewMode === 'learning' ? topThree[2].xp : topThree[2].ideasApproved}
-                                        </div>
-                                    </div>
+                                     <div className="relative mb-3">
+                                         <div className="w-20 h-20 rounded-full border-4 border-slate-200 shadow-lg overflow-hidden relative z-10">
+                                             <img src={topThree[1].avatar} alt="2nd" className="w-full h-full object-cover"/>
+                                         </div>
+                                         <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md text-xs font-bold shadow-sm z-20">
+                                             2nd
+                                         </div>
+                                     </div>
+                                     <p className="text-sm font-bold text-slate-800 truncate w-full text-center">{topThree[1].name}</p>
+                                     <p className="text-xs text-slate-500 font-medium mb-2">{topThree[1].dept}</p>
+                                     <div className={`w-full ${getRankStyle(1).bg} rounded-t-xl flex items-end justify-center pb-4 shadow-inner h-32 relative group`}>
+                                         <div className="text-slate-600 font-black text-lg opacity-30 group-hover:opacity-50 transition-opacity">
+                                             {viewMode === 'learning' ? topThree[1].xp : topThree[1].ideasApproved}
+                                         </div>
+                                     </div>
                                  </div>
-                             )}
-                          </div>
-                      </div>
+                              )}
+                              
+                              {/* 1st Place */}
+                              {topThree[0] && (
+                                 <div className="flex flex-col items-center w-1/3 -mt-10">
+                                     <div className="relative mb-3">
+                                         <div className="w-28 h-28 rounded-full border-4 border-[#FDB913] shadow-xl overflow-hidden relative z-10">
+                                             <img src={topThree[0].avatar} alt="1st" className="w-full h-full object-cover"/>
+                                         </div>
+                                         <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-[#FDB913] text-white px-3 py-1 rounded-md text-sm font-bold shadow-md z-20">
+                                             1st
+                                         </div>
+                                     </div>
+                                     <p className="text-base font-bold text-slate-800 truncate w-full text-center">{topThree[0].name}</p>
+                                     <div className="bg-[#D12027] text-white text-[10px] px-2 py-0.5 rounded-full font-bold mb-1 shadow-sm">Department Champion</div>
+                                     <div className={`w-full ${getRankStyle(0).bg} rounded-t-xl flex items-end justify-center pb-6 shadow-inner h-44 relative group`}>
+                                      <div className="text-yellow-800 font-black text-2xl opacity-30 group-hover:opacity-50 transition-opacity">
+                                          {viewMode === 'learning' ? topThree[0].xp : topThree[0].ideasApproved}
+                                      </div>
+                                     </div>
+                                 </div>
+                              )}
 
-                      {/* Rest of the list */}
-                      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                          <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                              <h3 className="font-bold text-slate-800">Global Rankings</h3>
-                              <button className="text-xs font-bold text-blue-600 hover:underline">View Full Report</button>
-                          </div>
-                          <div className="divide-y divide-slate-100">
-                              {rest.map((entry) => (
-                                  <div key={entry.rank} className={`flex items-center justify-between p-4 hover:bg-slate-50 transition-colors ${entry.isMe ? 'bg-blue-50/50' : ''}`}>
-                                      <div className="flex items-center gap-4">
-                                          <div className="w-8 text-center font-bold text-slate-400 text-lg">#{entry.rank}</div>
-                                          <div className="relative">
-                                             <img src={entry.avatar} alt={entry.name} className="w-10 h-10 rounded-full bg-slate-200"/>
-                                             {entry.isMe && <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></div>}
-                                          </div>
-                                          <div>
-                                             <div className="flex items-center gap-2">
-                                                <p className={`text-sm font-bold ${entry.isMe ? 'text-[#D12027]' : 'text-slate-700'}`}>{entry.name} {entry.isMe && '(You)'}</p>
-                                                {entry.trend === 'up' && <TrendingUp size={12} className="text-green-500"/>}
-                                                {entry.trend === 'down' && <TrendingDown size={12} className="text-red-500"/>}
-                                             </div>
-                                             <p className="text-xs text-slate-400">{entry.role} • {entry.dept}</p>
-                                          </div>
-                                      </div>
-                                      <div className="text-right">
-                                          <p className="text-sm font-bold text-slate-700 font-mono">{viewMode === 'learning' ? `${entry.xp.toLocaleString()} XP` : `${entry.ideasApproved} Approved`}</p>
-                                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{viewMode === 'learning' ? `Level ${entry.level}` : entry.label}</p>
-                                      </div>
+                              {/* 3rd Place */}
+                              {topThree[2] && (
+                                  <div className="flex flex-col items-center w-1/3">
+                                     <div className="relative mb-3">
+                                         <div className="w-20 h-20 rounded-full border-4 border-orange-200 shadow-lg overflow-hidden relative z-10">
+                                             <img src={topThree[2].avatar} alt="3rd" className="w-full h-full object-cover"/>
+                                         </div>
+                                         <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-orange-200 text-orange-800 px-2 py-0.5 rounded-md text-xs font-bold shadow-sm z-20">
+                                             3rd
+                                         </div>
+                                     </div>
+                                     <p className="text-sm font-bold text-slate-800 truncate w-full text-center">{topThree[2].name}</p>
+                                     <p className="text-xs text-slate-500 font-medium mb-2">{topThree[2].dept}</p>
+                                     <div className={`w-full ${getRankStyle(2).bg} rounded-t-xl flex items-end justify-center pb-4 shadow-inner h-24 relative group`}>
+                                         <div className="text-orange-900 font-black text-lg opacity-30 group-hover:opacity-50 transition-opacity">
+                                             {viewMode === 'learning' ? topThree[2].xp : topThree[2].ideasApproved}
+                                         </div>
+                                     </div>
                                   </div>
-                              ))}
-                          </div>
-                      </div>
-                </div>
+                              )}
+                           </div>
+                       </div>
 
-                <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h3 className="font-bold text-slate-800 mb-4 text-sm">Completion by Department</h3>
-                        <div className="h-48 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={CHART_DATA_DEPT} layout="vertical" margin={{ left: 20 }}>
-                                    <XAxis type="number" hide />
-                                    <YAxis dataKey="name" type="category" width={80} tick={{fontSize: 10}} />
-                                    <Tooltip cursor={{fill: 'transparent'}} />
-                                    <Bar dataKey="completion" radius={[0, 4, 4, 0]} barSize={20}>
-                                        {CHART_DATA_DEPT.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={index === 1 ? '#D12027' : '#e2e8f0'} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                     
-                    <div className="bg-[#D12027] p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                        <h3 className="font-bold text-lg mb-2 relative z-10">Department Race</h3>
-                        <p className="text-red-100 text-sm mb-4 relative z-10">Your department "Frontliner" is currently #2. Complete 5 more modules to take the lead!</p>
-                        <button className="w-full bg-white text-[#D12027] font-bold py-2 rounded-lg text-sm shadow-sm relative z-10">Go to Learning</button>
-                    </div>
-                </div>
-             </div>
+                       {/* Rest of the list */}
+                       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                           <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                               <h3 className="font-bold text-slate-800">Global Rankings</h3>
+                               <button className="text-xs font-bold text-blue-600 hover:underline">View Full Report</button>
+                           </div>
+                           <div className="divide-y divide-slate-100">
+                               {rest.map((entry) => (
+                                   <div key={entry.rank} className={`flex items-center justify-between p-4 hover:bg-slate-50 transition-colors ${entry.isMe ? 'bg-blue-50/50' : ''}`}>
+                                       <div className="flex items-center gap-4">
+                                           <div className="w-8 text-center font-bold text-slate-400 text-lg">#{entry.rank}</div>
+                                           <div className="relative">
+                                              <img src={entry.avatar} alt={entry.name} className="w-10 h-10 rounded-full bg-slate-200"/>
+                                              {entry.isMe && <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></div>}
+                                           </div>
+                                           <div>
+                                              <div className="flex items-center gap-2">
+                                                 <p className={`text-sm font-bold ${entry.isMe ? 'text-[#D12027]' : 'text-slate-700'}`}>{entry.name} {entry.isMe && '(You)'}</p>
+                                                 {entry.trend === 'up' && <TrendingUp size={12} className="text-green-500"/>}
+                                                 {entry.trend === 'down' && <TrendingDown size={12} className="text-red-500"/>}
+                                              </div>
+                                              <p className="text-xs text-slate-400">{entry.role} • {entry.dept}</p>
+                                           </div>
+                                       </div>
+                                       <div className="text-right">
+                                           <p className="text-sm font-bold text-slate-700 font-mono">{viewMode === 'learning' ? `${entry.xp.toLocaleString()} XP` : `${entry.ideasApproved} Approved`}</p>
+                                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{viewMode === 'learning' ? `Level ${entry.level}` : entry.label}</p>
+                                       </div>
+                                   </div>
+                               ))}
+                           </div>
+                       </div>
+                 </div>
+
+                 <div className="space-y-6">
+                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                         <h3 className="font-bold text-slate-800 mb-4 text-sm">Completion by Department</h3>
+                         <div className="h-48 w-full">
+                             <ResponsiveContainer width="100%" height="100%">
+                                 <BarChart data={CHART_DATA_DEPT} layout="vertical" margin={{ left: 20 }}>
+                                     <XAxis type="number" hide />
+                                     <YAxis dataKey="name" type="category" width={80} tick={{fontSize: 10}} />
+                                     <Tooltip cursor={{fill: 'transparent'}} />
+                                     <Bar dataKey="completion" radius={[0, 4, 4, 0]} barSize={20}>
+                                         {CHART_DATA_DEPT.map((entry, index) => (
+                                             <Cell key={`cell-${index}`} fill={index === 1 ? '#D12027' : '#e2e8f0'} />
+                                         ))}
+                                     </Bar>
+                                 </BarChart>
+                             </ResponsiveContainer>
+                         </div>
+                     </div>
+                      
+                     <div className="bg-[#D12027] p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                         <h3 className="font-bold text-lg mb-2 relative z-10">Department Race</h3>
+                         <p className="text-red-100 text-sm mb-4 relative z-10">Your department "Frontliner" is currently #2. Complete 5 more modules to take the lead!</p>
+                         <button className="w-full bg-white text-[#D12027] font-bold py-2 rounded-lg text-sm shadow-sm relative z-10">Go to Learning</button>
+                     </div>
+                 </div>
+              </div>
         </div>
     );
 };
@@ -1543,7 +1543,7 @@ const App = () => {
               </div>
           </div>
         </header>
-         
+          
         <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-24 lg:pb-8">
           <div className="max-w-6xl mx-auto">
             {currentView === 'dashboard' && <Dashboard user={user} setView={setCurrentView} onToggleAccess={toggleAccess}/>}
@@ -1553,7 +1553,7 @@ const App = () => {
             {currentView === 'ideas' && <SuggestionSystem />}
           </div>
         </main>
-         
+          
         {/* Mobile Navigation */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 px-6 py-3 flex justify-between items-center pb-safe">
             {MENU_ITEMS.map(item => (
