@@ -14,6 +14,7 @@ import {
   LineChart, Line, AreaChart, Area, Legend,
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
+import Joyride, { STATUS } from 'react-joyride'; // Import Tutorial
 
 // --- 1. THEME & STYLES ---
 
@@ -517,10 +518,23 @@ const RequestManager = ({ requests, onUpdateStatus }) => {
     );
 };
 
+// --- 6. DASHBOARD OVERVIEW WITH TUTORIAL TARGETS ---
 const DashboardOverview = ({ analyticsTrigger }) => (
   <div className="space-y-6 animate-fadeIn pb-20">
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-      {[{ title: 'Total Learners', value: '342', sub: '+12 this month', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' }, { title: 'Avg Completion', value: '78%', sub: '+2.4% vs last mo', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' }, { title: 'Pending Requests', value: '8', sub: 'Needs Approval', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50' }, { title: 'At Risk Users', value: '14', sub: 'Non-compliant', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' }].map((kpi, idx) => (<div key={idx} className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 card-hover"><div className="flex justify-between items-start mb-4"><div className={`p-3 rounded-xl ${kpi.bg} ${kpi.color}`}><kpi.icon size={24} /></div></div><h3 className="text-3xl font-bold text-slate-800 mb-1">{kpi.value}</h3><p className="text-slate-500 text-sm font-medium">{kpi.title}</p><p className={`text-xs mt-2 ${kpi.sub.includes('Needs') || kpi.sub.includes('Non') ? 'text-red-500 font-bold' : 'text-green-600'}`}>{kpi.sub}</p></div>))}
+    {/* TARGET TUTORIAL 3: tour-stats-overview */}
+    <div className="tour-stats-overview grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {[{ title: 'Total Learners', value: '342', sub: '+12 this month', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' }, 
+        { title: 'Avg Completion', value: '78%', sub: '+2.4% vs last mo', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' }, 
+        { title: 'Pending Requests', value: '8', sub: 'Needs Approval', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50' }, 
+        { title: 'At Risk Users', value: '14', sub: 'Non-compliant', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' }]
+        .map((kpi, idx) => (
+          <div key={idx} className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 card-hover">
+            <div className="flex justify-between items-start mb-4"><div className={`p-3 rounded-xl ${kpi.bg} ${kpi.color}`}><kpi.icon size={24} /></div></div>
+            <h3 className="text-3xl font-bold text-slate-800 mb-1">{kpi.value}</h3>
+            <p className="text-slate-500 text-sm font-medium">{kpi.title}</p>
+            <p className={`text-xs mt-2 ${kpi.sub.includes('Needs') || kpi.sub.includes('Non') ? 'text-red-500 font-bold' : 'text-green-600'}`}>{kpi.sub}</p>
+          </div>
+      ))}
     </div>
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200"><h3 className="font-bold text-lg text-slate-800 mb-6">Learning Activity Trends</h3><div className="h-64 md:h-72"><ResponsiveContainer width="100%" height="100%"><AreaChart data={[{ name: 'W1', hours: 400 }, { name: 'W2', hours: 300 }, { name: 'W3', hours: 500 }, { name: 'W4', hours: 450 }]}><defs><linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D12027" stopOpacity={0.1}/><stop offset="95%" stopColor="#D12027" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" /><XAxis dataKey="name" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} width={30}/><Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}/><Area type="monotone" dataKey="hours" stroke="#D12027" fillOpacity={1} fill="url(#colorHours)" strokeWidth={3} /></AreaChart></ResponsiveContainer></div></div>
@@ -529,7 +543,7 @@ const DashboardOverview = ({ analyticsTrigger }) => (
   </div>
 );
 
-// --- 7. MAIN APP SHELL ---
+// --- 7. MAIN APP SHELL (UPDATED WITH TUTORIAL) ---
 
 const AdminApp = () => {
   const [activeView, setActiveView] = useState('dashboard');
@@ -542,6 +556,54 @@ const AdminApp = () => {
   
   // Modal States
   const [deptAnalyticsOpen, setDeptAnalyticsOpen] = useState(false);
+
+  // --- TUTORIAL LOGIC START ---
+  const [runTour, setRunTour] = useState(false);
+
+  useEffect(() => {
+    // Cek apakah user sudah pernah melihat tutorial Admin
+    const hasSeenTutorial = localStorage.getItem('hasSeenAdminTutorial');
+    if (!hasSeenTutorial) {
+      setRunTour(true);
+    }
+  }, []);
+
+  const handleJoyrideCallback = (data) => {
+    const { status } = data;
+    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      setRunTour(false);
+      localStorage.setItem('hasSeenAdminTutorial', 'true');
+    }
+  };
+
+  const tourSteps = [
+    {
+      target: 'body',
+      content: (
+        <div className="text-left">
+          <h4 className="font-bold text-lg mb-2">Selamat Datang, Admin! 🛡️</h4>
+          <p>Ini adalah Dashboard Admin HR. Mari kita lihat fitur-fitur utamanya.</p>
+        </div>
+      ),
+      placement: 'center',
+    },
+    {
+      target: '.tour-sidebar', // Target Class 1
+      content: 'Ini adalah menu navigasi utama. Anda bisa berpindah antara Dashboard, Data Karyawan, Kurikulum, dan Request Training.',
+      placement: 'right',
+    },
+    {
+      target: '.tour-stats-overview', // Target Class 2 (di DashboardOverview)
+      content: 'Di sini Anda bisa melihat ringkasan performa LMS secara real-time, termasuk jumlah learner dan completion rate.',
+      placement: 'bottom',
+    },
+    {
+      target: '.tour-profile', // Target Class 3
+      content: 'Akses profil admin dan notifikasi sistem melalui menu ini.',
+      placement: 'bottom-end', // Pojok kanan bawah elemen
+    },
+  ];
+  // --- TUTORIAL LOGIC END ---
 
   // Handlers
   const handleAddEmployee = (newEmp) => setEmployees([...employees, newEmp]);
@@ -560,8 +622,27 @@ const AdminApp = () => {
   return (
     <div className="flex h-screen bg-[#f8fafc] overflow-hidden text-slate-800 font-sans">
       <GlobalStyles />
+
+      {/* COMPONENT TUTORIAL */}
+      <Joyride
+        steps={tourSteps}
+        run={runTour}
+        continuous={true}
+        showSkipButton={true}
+        showProgress={true}
+        callback={handleJoyrideCallback}
+        styles={{
+          options: {
+            primaryColor: '#D12027',
+            zIndex: 1000,
+          },
+        }}
+      />
+
       {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm animate-fadeIn" onClick={() => setIsSidebarOpen(false)}/>}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col shadow-xl lg:shadow-none transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      
+      {/* TARGET TUTORIAL 1: tour-sidebar */}
+      <aside className={`tour-sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col shadow-xl lg:shadow-none transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="h-16 lg:h-20 flex items-center px-6 lg:px-8 border-b border-slate-100 justify-between lg:justify-start">
            <div className="flex items-center gap-2"><div className="w-8 h-8 bg-[#D12027] rounded-lg flex items-center justify-center"><span className="text-white font-black text-lg">K</span></div><div><h1 className="font-bold text-lg tracking-tight text-slate-900 leading-tight">KARSA<br/><span className="text-[#D12027] text-sm font-medium">Admin Portal</span></h1></div></div>
            <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400"><X size={24} /></button>
@@ -574,13 +655,26 @@ const AdminApp = () => {
             </button>
           ))}
         </nav>
-        <div className="p-6 border-t border-slate-100"><button className="flex items-center gap-3 text-slate-500 hover:text-red-600 transition-colors text-sm font-bold"><LogOut size={18}/> Sign Out</button><p className="text-[10px] text-slate-300 mt-4">v3.5.0 • Mobile Optimized</p></div>
+        <div className="p-6 border-t border-slate-100">
+            {/* Tombol Reset Tutorial untuk Testing */}
+            <button 
+                onClick={() => { localStorage.removeItem('hasSeenAdminTutorial'); setRunTour(true); }}
+                className="text-xs text-[#D12027] underline mb-4 hover:text-red-700 w-full text-left"
+            >
+                Reset Tutorial
+            </button>
+            <button className="flex items-center gap-3 text-slate-500 hover:text-red-600 transition-colors text-sm font-bold"><LogOut size={18}/> Sign Out</button>
+            <p className="text-[10px] text-slate-300 mt-4">v3.5.0 • Mobile Optimized</p>
+        </div>
       </aside>
+
       <div className="flex-1 flex flex-col h-screen relative w-full">
         <header className="h-16 lg:h-20 bg-white/80 backdrop-blur border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-20 sticky top-0">
           <div className="flex items-center gap-3 lg:hidden"><button onClick={() => setIsSidebarOpen(true)} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg"><Menu size={24}/></button><span className="font-bold text-slate-800 capitalize">{activeView.replace('-', ' ')}</span></div>
           <div className="hidden lg:flex items-center gap-2 text-sm text-slate-500"><span className="cursor-pointer hover:text-[#D12027]">Home</span><ChevronRight size={14}/><span className="font-bold text-slate-800 capitalize">{activeView.replace('-', ' ')}</span></div>
-          <div className="flex items-center gap-4 lg:gap-6">
+          
+          {/* TARGET TUTORIAL 4: tour-profile */}
+          <div className="tour-profile flex items-center gap-4 lg:gap-6">
             <button className="relative p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors"><Bell size={20}/><span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span></button>
             <div className="flex items-center gap-3 pl-4 lg:pl-6 border-l border-slate-200">
                <div className="text-right hidden md:block"><p className="text-sm font-bold text-slate-800">Admin HR</p><p className="text-xs text-slate-500">Superadmin Access</p></div>
@@ -590,14 +684,14 @@ const AdminApp = () => {
         </header>
         <main className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth w-full">
            <div className="max-w-7xl mx-auto">
-              <div className="hidden lg:flex mb-8 justify-between items-end">
-                <div><h2 className="text-3xl font-bold text-slate-800 mb-2 capitalize">{activeView.replace('-', ' ')}</h2><p className="text-slate-500">Manage your organization's learning ecosystem.</p></div>
-              </div>
-              {activeView === 'dashboard' && <DashboardOverview analyticsTrigger={() => { setActiveView('analytics'); setDeptAnalyticsOpen(true); }} />}
-              {activeView === 'employees' && <EmployeeManager employees={employees} courses={courses} onAddEmployee={handleAddEmployee} />}
-              {activeView === 'curriculum' && <CurriculumManager courses={courses} employees={employees} onAddCourse={handleAddCourse} onUpdateCourseStatus={handleUpdateCourseStatus} />}
-              {activeView === 'requests' && <RequestManager requests={requests} onUpdateStatus={handleRequestStatus} />}
-              {activeView === 'analytics' && <AnalyticsDashboard onOpenDeptDetail={() => setDeptAnalyticsOpen(true)} />}
+             <div className="hidden lg:flex mb-8 justify-between items-end">
+               <div><h2 className="text-3xl font-bold text-slate-800 mb-2 capitalize">{activeView.replace('-', ' ')}</h2><p className="text-slate-500">Manage your organization's learning ecosystem.</p></div>
+             </div>
+             {activeView === 'dashboard' && <DashboardOverview analyticsTrigger={() => { setActiveView('analytics'); setDeptAnalyticsOpen(true); }} />}
+             {activeView === 'employees' && <EmployeeManager employees={employees} courses={courses} onAddEmployee={handleAddEmployee} />}
+             {activeView === 'curriculum' && <CurriculumManager courses={courses} employees={employees} onAddCourse={handleAddCourse} onUpdateCourseStatus={handleUpdateCourseStatus} />}
+             {activeView === 'requests' && <RequestManager requests={requests} onUpdateStatus={handleRequestStatus} />}
+             {activeView === 'analytics' && <AnalyticsDashboard onOpenDeptDetail={() => setDeptAnalyticsOpen(true)} />}
            </div>
         </main>
         <DeptAnalyticsModal isOpen={deptAnalyticsOpen} onClose={() => setDeptAnalyticsOpen(false)} />

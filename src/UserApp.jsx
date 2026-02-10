@@ -17,6 +17,7 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid
 } from 'recharts';
+import Joyride, { STATUS } from 'react-joyride'; // IMPORT JOYRIDE
 
 // --- 1. GLOBAL STYLES & THEME ---
 
@@ -35,18 +36,15 @@ const GlobalStyles = () => (
     @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pop { 0% { transform: scale(0.9); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-    @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
     
     .animate-slideIn { animation: slideIn 0.4s ease-out forwards; }
     .animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
     .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     
-    /* Gradients for Leaderboard */
     .bg-gold { background: linear-gradient(135deg, #FDB913 0%, #F59E0B 100%); }
     .bg-silver { background: linear-gradient(135deg, #E2E8F0 0%, #CBD5E1 100%); }
     .bg-bronze { background: linear-gradient(135deg, #FED7AA 0%, #FB923C 100%); }
 
-    /* Custom UI Elements */
     .btn-primary {
       background: ${KARSA_RED};
       color: white;
@@ -58,12 +56,6 @@ const GlobalStyles = () => (
       box-shadow: 0 4px 12px rgba(209, 32, 39, 0.3);
     }
     
-    .btn-accent {
-      background: ${KARSA_YELLOW};
-      color: #7c2d12;
-      font-weight: bold;
-    }
-
     .nav-item-active {
       background: linear-gradient(135deg, ${KARSA_RED} 0%, #b01b21 100%);
       color: white;
@@ -87,7 +79,6 @@ const GlobalStyles = () => (
 
     .font-serif { font-family: 'Merriweather', serif; }
 
-    /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -177,7 +168,6 @@ const TRAINING_CATEGORIES = [
     }
 ];
 
-// UPDATED MODULES LIST
 const MODULES_LIST = [
   { id: "m0", title: "Pre-Test: Baseline Assessment", type: "pre_test", duration: "5:00", category: "Evaluation", xp: 50 },
   { id: "m1", title: "Video: The Art of Communication", type: "video", duration: "10:00", category: "Concept", xp: 100 },
@@ -331,7 +321,7 @@ const PreTestLesson = ({ onComplete, updateUser, score: existingScore }) => {
   );
 };
 
-// MODULE 1: VIDEO LESSON (UPDATED WITH PDF DOWNLOAD & CORRECT LINK)
+// MODULE 1: VIDEO LESSON
 const VideoLesson = ({ onComplete }) => {
     const [isDownloading, setIsDownloading] = useState(false);
 
@@ -1371,12 +1361,14 @@ const LeaderboardView = ({ user }) => {
     );
 };
 
+// --- UPDATED DASHBOARD COMPONENT WITH TARGET CLASSES ---
 const Dashboard = ({ user, setView, onToggleAccess }) => {
   const [activeTab, setActiveTab] = useState('nurture');
 
   return (
     <div className="space-y-8 animate-slideIn">
-      <div className="relative bg-white rounded-3xl p-8 border border-slate-200 shadow-sm overflow-hidden">
+      {/* Target Tutorial: Profile & Stats */}
+      <div className="tour-stats relative bg-white rounded-3xl p-8 border border-slate-200 shadow-sm overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
           <div>
@@ -1405,7 +1397,8 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-8 border-b border-slate-200 px-2">
+      {/* Target Tutorial: Tabs */}
+      <div className="tour-tabs flex items-center gap-8 border-b border-slate-200 px-2">
         <button 
             onClick={() => setActiveTab('nurture')}
             className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'nurture' ? 'tab-active' : 'tab-inactive'}`}
@@ -1435,7 +1428,8 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
             {activeTab === 'acceleration' && <span className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold shadow-sm">Privilege Access</span>}
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Target Tutorial: Course Grid */}
+        <div className="tour-courses grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {TRAINING_CATEGORIES.map((cat) => {
                 const courses = activeTab === 'nurture' ? cat.nurture : cat.acceleration;
                 const isAccel = activeTab === 'acceleration';
@@ -1480,8 +1474,75 @@ const App = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [user, setUser] = useState(INITIAL_USER_DATA);
 
-  const handleLogin = (hasAccess) => {
-      setUser({...user, hasAccelerationAccess: hasAccess});
+  // --- TUTORIAL LOGIC START ---
+  const [runTour, setRunTour] = useState(false);
+
+  useEffect(() => {
+    // Jalankan tour hanya jika user sudah login DAN belum pernah melihat tutorial
+    if (isAuthenticated) {
+        const hasSeenTutorial = localStorage.getItem('hasSeenUserTutorial');
+        if (!hasSeenTutorial) {
+            setRunTour(true);
+        }
+    }
+  }, [isAuthenticated]);
+
+  const handleJoyrideCallback = (data) => {
+    const { status } = data;
+    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      setRunTour(false);
+      localStorage.setItem('hasSeenUserTutorial', 'true');
+    }
+  };
+
+  const tourSteps = [
+    {
+      target: 'body',
+      content: (
+        <div className="text-left">
+          <h4 className="font-bold text-lg mb-2">Selamat Datang, {user.name.split(' ')[0]}! 👋</h4>
+          <p>Selamat datang di KARSA University. Mari kita lihat fitur-fitur yang tersedia untuk Anda.</p>
+        </div>
+      ),
+      placement: 'center',
+    },
+    {
+      target: '.tour-sidebar',
+      content: 'Ini adalah menu utama Anda. Akses Training, Diskusi, Leaderboard, dan Kirim Ide Inovasi dari sini.',
+      placement: 'right',
+    },
+    {
+      target: '.tour-stats',
+      content: 'Pantau Progress Level, XP, dan Streak harian Anda di sini. Semakin rajin belajar, semakin tinggi level Anda!',
+      placement: 'bottom',
+    },
+    {
+      target: '.tour-tabs',
+      content: (
+        <div className="text-left">
+            <p className="mb-2">Di sini Anda bisa memilih program belajar.</p>
+            {user.hasAccelerationAccess ? (
+                <div className="bg-yellow-50 p-2 rounded border border-yellow-200 text-xs text-yellow-800">
+                    <strong>Note:</strong> Karena Anda memiliki akses Supervisor, tab <strong>KARSA Acceleration</strong> terbuka untuk materi persiapan promosi.
+                </div>
+            ) : (
+                <p className="text-xs text-slate-500">Saat ini Anda berada di program Nurture (Standard).</p>
+            )}
+        </div>
+      ),
+      placement: 'bottom',
+    },
+    {
+      target: '.tour-courses',
+      content: 'Pilih topik yang ingin Anda pelajari. Materi yang aktif ditandai dengan warna merah.',
+      placement: 'top',
+    },
+  ];
+  // --- TUTORIAL LOGIC END ---
+
+  const handleLogin = (isSupervisor) => {
+      // Jika login sebagai supervisor, enable akses akselerasi
+      setUser({...user, hasAccelerationAccess: isSupervisor});
       setIsAuthenticated(true);
   };
 
@@ -1496,7 +1557,24 @@ const App = () => {
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
       <GlobalStyles />
-      <aside className="fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col shadow-lg lg:shadow-none">
+      
+      {/* JOYRIDE COMPONENT */}
+      <Joyride
+        steps={tourSteps}
+        run={runTour}
+        continuous={true}
+        showSkipButton={true}
+        showProgress={true}
+        callback={handleJoyrideCallback}
+        styles={{
+          options: {
+            primaryColor: '#D12027',
+            zIndex: 1000,
+          },
+        }}
+      />
+
+      <aside className="tour-sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col shadow-lg lg:shadow-none">
         <div className="p-6 flex flex-col h-full">
           <div className="flex items-center justify-center mb-10 bg-[#D12027] p-4 rounded-xl shadow-lg">
               <img src={KARTIKA_LOGO} alt="Logo" className="h-8 brightness-0 invert"/>
@@ -1520,6 +1598,13 @@ const App = () => {
               <div className="overflow-hidden">
                   <p className="text-sm font-bold text-slate-800 truncate">{user.name}</p>
                   <p className="text-xs text-slate-500 truncate">{user.role}</p>
+                  {/* Reset Tutorial Button (For Testing) */}
+                  <button 
+                    onClick={() => { localStorage.removeItem('hasSeenUserTutorial'); setRunTour(true); }}
+                    className="text-[10px] text-red-500 underline mt-1 hover:text-red-700"
+                  >
+                    Reset Tour
+                  </button>
               </div>
           </div>
         </div>
