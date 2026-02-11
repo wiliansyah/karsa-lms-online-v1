@@ -99,12 +99,12 @@ const MENU_ITEMS = [
     { id: 'ideas', icon: Lightbulb, label: 'KARSA Ideas', mobileLabel: 'Ideas' }
 ];
 
-// DATA AWAL LANGSUNG SUPERVISOR
+// --- USER DATA (AUTO SUPERVISOR) ---
 const INITIAL_USER_DATA = {
   name: "Budi Santoso",
-  role: "Supervisor", // Ubah role langsung
+  role: "Supervisor", // Direct Access
   department: "Frontliner",
-  hasAccelerationAccess: true, // Langsung True (Supervisor)
+  hasAccelerationAccess: true, // Direct Access
   avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Budi&mouth=smile",
   level: 4,
   xp: 1450,
@@ -660,8 +660,6 @@ const ActionPlanLesson = ({ onComplete }) => {
 };
 // --- 5. MAIN COMPONENTS ---
 
-// LOGIN SCREEN REMOVED
-
 const TrainingRequestView = ({ onStartGuide }) => {
     const [activeTab, setActiveTab] = useState('form');
     const [requests, setRequests] = useState(MOCK_TRAINING_REQUESTS);
@@ -873,10 +871,11 @@ const CoursePlayer = ({ user, updateUser, onBack }) => {
    };
    
    return (
-      <div className="flex flex-col h-[75vh] bg-white rounded-b-2xl overflow-hidden border border-t-0 border-slate-200 shadow-xl animate-slideIn">
+      <div className="tour-course-player flex flex-col h-[75vh] bg-white rounded-b-2xl overflow-hidden border border-t-0 border-slate-200 shadow-xl animate-slideIn">
           <div className="flex flex-1 overflow-hidden">
               {/* Sidebar */}
-              <div className="w-72 border-r overflow-y-auto p-4 space-y-2 bg-slate-50 hidden md:block">
+              {/* Added Tour Class */}
+              <div className="tour-course-sidebar w-72 border-r overflow-y-auto p-4 space-y-2 bg-slate-50 hidden md:block">
                   <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-3 px-2">Course Modules</h4>
                   {MODULES_LIST.map(m => {
                       const isActive = activeModule.id === m.id;
@@ -903,7 +902,8 @@ const CoursePlayer = ({ user, updateUser, onBack }) => {
                   })}
               </div>
               {/* Main Content */}
-              <div className="flex-1 relative bg-slate-100">
+              {/* Added Tour Class */}
+              <div className="tour-course-content flex-1 relative bg-slate-100">
                   <div className="absolute inset-0 overflow-y-auto p-4 md:p-8">
                       {activeModule.id === 'm0' && <PreTestLesson onComplete={handleComplete} updateUser={updateUser} score={user.preTestScore} />}
                       {activeModule.id === 'm1' && <VideoLesson onComplete={handleComplete} />}
@@ -1473,6 +1473,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
     });
 
     // 1. DEFINE SCENARIOS: Each view has a unique learning outcome
+    // Added 'disableBeacon: true' to the first step of each scenario to force auto-open
     const SCENARIOS = {
         dashboard: [
             {
@@ -1485,7 +1486,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                         <p className="text-xs text-slate-500 mt-2 italic">Klik 'Next' untuk melihat fitur utama.</p>
                     </div>
                 ),
-                disableBeacon: true,
+                disableBeacon: true, // Force tutorial to start immediately
             },
             {
                 target: '.tour-stats',
@@ -1510,6 +1511,20 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                 ),
             }
         ],
+        // SCENARIO for 'Training Saya' (course view)
+        course: [
+            {
+                target: '.tour-course-sidebar',
+                content: 'Ini adalah daftar modul Anda. Modul yang selesai akan ditandai hijau.',
+                placement: 'right',
+                disableBeacon: true,
+            },
+            {
+                target: '.tour-course-content',
+                content: 'Materi belajar (Video/Kuis) akan muncul di sini. Pastikan menyelesaikannya secara berurutan.',
+                placement: 'left',
+            }
+        ],
         community: [
             {
                 target: '.tour-squad-header',
@@ -1520,6 +1535,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                     </div>
                 ),
                 placement: 'bottom',
+                disableBeacon: true,
             },
             {
                 target: '.tour-squad-input',
@@ -1542,6 +1558,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                     </div>
                 ),
                 placement: 'bottom',
+                disableBeacon: true,
             },
             {
                 target: '.tour-idea-category',
@@ -1557,6 +1574,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                         <p className="text-sm">Kita menghargai dua hal: Ketekunan (Top Learners) dan Kreativitas (Top Innovators). Jadilah keduanya!</p>
                     </div>
                 ),
+                disableBeacon: true,
             },
             {
                 target: '.tour-lb-podium',
