@@ -787,7 +787,8 @@ const TrainingRequestView = ({ onStartGuide }) => {
                             </div>
                         </div>
 
-                        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex gap-3 mb-8">
+                        {/* Added tour target class */}
+                        <div className="tour-req-alert bg-blue-50 p-4 rounded-xl border border-blue-100 flex gap-3 mb-8">
                             <div className="mt-1"><AlertCircle size={18} className="text-blue-600"/></div>
                             <div>
                                 <p className="text-sm font-bold text-blue-800">Approval Workflow Required</p>
@@ -1619,6 +1620,10 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
             {
                 target: '.tour-req-date',
                 content: 'Pilih tanggal minimal 2 minggu dari sekarang untuk memberikan waktu bagi HR dan Finance memproses approval.',
+            },
+            {
+                target: '.tour-req-alert',
+                content: 'Perhatikan alur persetujuan. Pastikan Anda sudah berdiskusi dengan atasan sebelum mengajukan request ini.',
             }
         ]
     };
@@ -1732,8 +1737,11 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                     {/* Reset Tutorial Button (For Testing) */}
                     <button 
                       onClick={() => { 
+                          // FIX: Safer reload mechanism to prevent blank screen
                           localStorage.clear(); 
-                          window.location.reload(); 
+                          setTimeout(() => {
+                              window.location.href = window.location.href; 
+                          }, 100);
                       }}
                       className="text-[10px] text-red-500 underline mt-1 hover:text-red-700"
                     >
