@@ -1460,7 +1460,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
     );
   };
   
-  const App = () => {
+  const UserApp = () => {
     // LANGSUNG AUTHENTICATED & SUPERVISOR
     const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [currentView, setCurrentView] = useState('dashboard');
@@ -1800,4 +1800,4 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
     );
   };
   
-  export default App;
+  export default UserApp;
