@@ -1468,8 +1468,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
     // --- DEEP TUTORIAL ENGINE ---
     const [tourState, setTourState] = useState({
         run: false,
-        steps: [],
-        stepIndex: 0,
+        steps: []
     });
 
     // 1. DEFINE SCENARIOS: Each view has a unique learning outcome
@@ -1509,19 +1508,29 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                         </ul>
                     </div>
                 ),
+            },
+            {
+                target: '.tour-courses',
+                content: 'Pilih topik yang ingin Anda pelajari. Materi yang aktif ditandai dengan warna merah. Selesaikan satu per satu untuk membuka materi berikutnya.',
+                placement: 'top',
             }
         ],
         // SCENARIO for 'Training Saya' (course view)
         course: [
             {
                 target: '.tour-course-sidebar',
-                content: 'Ini adalah daftar modul Anda. Modul yang selesai akan ditandai hijau.',
+                content: (
+                    <div className="text-left">
+                        <h5 className="font-bold text-[#D12027] mb-1">Learning Path</h5>
+                        <p className="text-sm">Ini adalah peta belajar Anda. Modul disusun berurutan untuk memaksimalkan pemahaman. Selesaikan modul saat ini untuk membuka modul berikutnya.</p>
+                    </div>
+                ),
                 placement: 'right',
                 disableBeacon: true,
             },
             {
                 target: '.tour-course-content',
-                content: 'Materi belajar (Video/Kuis) akan muncul di sini. Pastikan menyelesaikannya secara berurutan.',
+                content: 'Fokus pada konten di sini. Video interaktif dan kuis akan membantu Anda memahami materi secara mendalam.',
                 placement: 'left',
             }
         ],
@@ -1531,7 +1540,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                 content: (
                     <div className="text-left">
                         <h5 className="font-bold text-[#D12027] mb-1">Collaborative Learning</h5>
-                        <p className="text-sm">Belajar tidak harus sendiri. Di sini kita memecahkan masalah operasional bersama-sama.</p>
+                        <p className="text-sm">Belajar tidak harus sendiri. Di sini kita memecahkan masalah operasional bersama-sama sebagai satu tim (Squad).</p>
                     </div>
                 ),
                 placement: 'bottom',
@@ -1539,12 +1548,17 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
             },
             {
                 target: '.tour-squad-input',
-                content: 'Jangan ragu bertanya! Budaya kita menghargai rasa ingin tahu. Pertanyaan "bodoh" adalah pertanyaan yang tidak ditanyakan.',
+                content: (
+                    <div className="text-left">
+                        <h5 className="font-bold text-[#D12027] mb-1">Psychological Safety</h5>
+                        <p className="text-sm">Jangan ragu bertanya! Budaya kita menghargai rasa ingin tahu. Pertanyaan "bodoh" adalah pertanyaan yang tidak pernah ditanyakan.</p>
+                    </div>
+                ),
                 placement: 'bottom',
             },
             {
                 target: '.tour-squad-feed',
-                content: 'Berikan like atau komentar pada solusi teman Anda. Apresiasi kecil membangun tim yang kuat.',
+                content: 'Berikan like atau komentar pada solusi teman Anda. Apresiasi kecil membangun tim yang kuat dan suportif.',
                 placement: 'top',
             }
         ],
@@ -1554,7 +1568,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                 content: (
                     <div className="text-left">
                         <h5 className="font-bold text-[#D12027] mb-1">Innovation Culture</h5>
-                        <p className="text-sm">Anda yang paling tahu kondisi lapangan. Ide kecil Anda bisa berdampak besar pada efisiensi perusahaan.</p>
+                        <p className="text-sm">Anda yang paling tahu kondisi lapangan. Ide kecil Anda bisa berdampak besar pada efisiensi perusahaan. Kami mendengar suara Anda.</p>
                     </div>
                 ),
                 placement: 'bottom',
@@ -1562,7 +1576,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
             },
             {
                 target: '.tour-idea-category',
-                content: 'Pilih kategori yang tepat agar ide Anda sampai ke departemen yang relevan (misal: HR, Ops, atau Tech).',
+                content: 'Pilih kategori yang tepat agar ide Anda sampai ke departemen yang relevan (misal: Ops untuk perbaikan toko, atau Tech untuk sistem).',
             }
         ],
         analytics: [
@@ -1571,14 +1585,14 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                 content: (
                     <div className="text-left">
                         <h5 className="font-bold text-[#D12027] mb-1">Balanced Performance</h5>
-                        <p className="text-sm">Kita menghargai dua hal: Ketekunan (Top Learners) dan Kreativitas (Top Innovators). Jadilah keduanya!</p>
+                        <p className="text-sm">Kita menghargai dua hal: Ketekunan (Top Learners) dan Kreativitas (Top Innovators). Jadilah keduanya untuk menjadi karyawan teladan!</p>
                     </div>
                 ),
                 disableBeacon: true,
             },
             {
                 target: '.tour-lb-podium',
-                content: 'Champion bulanan akan mendapatkan insentif khusus dan lunch bersama direksi. Keep fighting!',
+                content: 'Champion bulanan akan mendapatkan insentif khusus dan kesempatan lunch bersama direksi. Keep fighting!',
                 placement: 'top',
             }
         ],
@@ -1586,21 +1600,25 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
         requestForm: [
             {
                 target: '.tour-req-title',
-                content: 'Judul harus spesifik. Hindari "Training Masak". Gunakan "Workshop Teknik Laminasi Pastry Level 2".',
+                content: 'Judul harus spesifik. Hindari "Training Masak". Gunakan "Workshop Teknik Laminasi Pastry Level 2" agar kami paham kebutuhan Anda.',
                 disableBeacon: true,
             },
             {
                 target: '.tour-req-provider',
-                content: 'Pilih "Internal" jika Anda ingin belajar dari senior di Kartika Sari, atau "External" jika butuh vendor luar.',
+                content: 'Pilih "Internal" jika Anda ingin belajar dari senior ahli di Kartika Sari, atau "External" jika butuh sertifikasi dari vendor luar.',
             },
             {
                 target: '.tour-req-reason',
                 content: (
                     <div className="text-left">
-                        <h5 className="font-bold text-[#D12027] mb-1">Business Impact</h5>
-                        <p className="text-sm">Jelaskan ROI (Return on Investment). Contoh: "Training ini akan mengurangi waste adonan sebesar 10%".</p>
+                        <h5 className="font-bold text-[#D12027] mb-1">Business Impact (ROI)</h5>
+                        <p className="text-sm">Jelaskan dampak bisnisnya. Contoh: "Training ini akan mengurangi waste adonan sebesar 10% dalam 3 bulan".</p>
                     </div>
                 ),
+            },
+            {
+                target: '.tour-req-date',
+                content: 'Pilih tanggal minimal 2 minggu dari sekarang untuk memberikan waktu bagi HR dan Finance memproses approval.',
             }
         ]
     };
@@ -1626,8 +1644,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
             if (steps.length > 0 && !hasSeen) {
                 setTourState({
                     run: true,
-                    steps: steps,
-                    stepIndex: 0
+                    steps: steps
                 });
             }
         }, 800); // DELAY INCREASED: 800ms ensures DOM is ready before Joyride starts
@@ -1637,7 +1654,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
 
     // 3. HANDLE JOYRIDE CALLBACKS
     const handleJoyrideCallback = (data) => {
-        const { status, type } = data;
+        const { status } = data;
         const finishedStatuses = [STATUS.FINISHED, STATUS.SKIPPED];
 
         if (finishedStatuses.includes(status)) {
@@ -1651,8 +1668,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
     const handleStartFormGuide = () => {
         setTourState({
             run: true,
-            steps: SCENARIOS.requestForm,
-            stepIndex: 0
+            steps: SCENARIOS.requestForm
         });
     };
   
@@ -1670,7 +1686,6 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
         <Joyride
           steps={tourState.steps}
           run={tourState.run}
-          stepIndex={tourState.stepIndex}
           continuous={true}
           showSkipButton={true}
           showProgress={true}
