@@ -99,11 +99,12 @@ const MENU_ITEMS = [
     { id: 'ideas', icon: Lightbulb, label: 'KARSA Ideas', mobileLabel: 'Ideas' }
 ];
 
+// DATA AWAL LANGSUNG SUPERVISOR
 const INITIAL_USER_DATA = {
   name: "Budi Santoso",
-  role: "Sales Staff",
+  role: "Supervisor", // Ubah role langsung
   department: "Frontliner",
-  hasAccelerationAccess: true,
+  hasAccelerationAccess: true, // Langsung True (Supervisor)
   avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Budi&mouth=smile",
   level: 4,
   xp: 1450,
@@ -659,38 +660,7 @@ const ActionPlanLesson = ({ onComplete }) => {
 };
 // --- 5. MAIN COMPONENTS ---
 
-const LoginScreen = ({ onLogin }) => (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden animate-fadeIn">
-            <div className="bg-[#D12027] p-8 text-center relative overflow-hidden">
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                 <img src={KARTIKA_LOGO} alt="Logo" className="h-12 brightness-0 invert mx-auto mb-4 relative z-10"/>
-                 <h1 className="text-2xl font-bold text-white relative z-10">KARSA University</h1>
-                 <p className="text-red-100 relative z-10">Portal Learning & Innovation</p>
-            </div>
-            <div className="p-8 space-y-4">
-                <p className="text-center text-slate-500 text-sm mb-4">Silakan login untuk melanjutkan training.</p>
-                <button onClick={() => onLogin(false)} className="w-full bg-white border-2 border-slate-100 hover:border-[#D12027] hover:bg-red-50 text-slate-700 font-bold py-4 rounded-xl transition-all flex items-center justify-between px-6 group shadow-sm hover:shadow-md">
-                    <div className="text-left">
-                        <span className="block text-xs text-slate-400 uppercase tracking-wider mb-1">Login as</span>
-                        <span className="text-lg flex items-center gap-2"><UserCheck size={18}/> Staff / Frontliner</span>
-                    </div>
-                    <ArrowRight className="text-slate-300 group-hover:text-[#D12027] transition-colors" />
-                </button>
-                <button onClick={() => onLogin(true)} className="w-full bg-white border-2 border-slate-100 hover:border-[#FDB913] hover:bg-yellow-50 text-slate-700 font-bold py-4 rounded-xl transition-all flex items-center justify-between px-6 group shadow-sm hover:shadow-md">
-                    <div className="text-left">
-                        <span className="block text-xs text-slate-400 uppercase tracking-wider mb-1">Login as</span>
-                        <span className="text-lg flex items-center gap-2"><Crown size={18}/> Supervisor (Access)</span>
-                    </div>
-                    <ArrowRight className="text-slate-300 group-hover:text-[#FDB913] transition-colors" />
-                </button>
-            </div>
-            <div className="bg-slate-50 p-4 text-center text-xs text-slate-400">
-                &copy; 2024 Kartika Sari Internal Development
-            </div>
-        </div>
-    </div>
-);
+// LOGIN SCREEN REMOVED
 
 const TrainingRequestView = ({ onStartGuide }) => {
     const [activeTab, setActiveTab] = useState('form');
@@ -1490,7 +1460,8 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
   };
   
   const App = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    // LANGSUNG AUTHENTICATED & SUPERVISOR
+    const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [currentView, setCurrentView] = useState('dashboard');
     const [user, setUser] = useState(INITIAL_USER_DATA);
   
@@ -1641,7 +1612,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                     stepIndex: 0
                 });
             }
-        }, 500); // Small delay to ensure DOM is ready
+        }, 800); // DELAY INCREASED: 800ms ensures DOM is ready before Joyride starts
 
         return () => clearTimeout(timer);
     }, [currentView, isAuthenticated]);
@@ -1667,18 +1638,11 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
         });
     };
   
-    const handleLogin = (isSupervisor) => {
-        setUser({...user, hasAccelerationAccess: isSupervisor});
-        setIsAuthenticated(true);
-    };
-  
     const toggleAccess = () => {
         setUser(prev => ({...prev, hasAccelerationAccess: !prev.hasAccelerationAccess}));
     };
   
     const updateUser = (data) => setUser(prev => ({...prev, ...data}));
-  
-    if (!isAuthenticated) return <><GlobalStyles /><LoginScreen onLogin={handleLogin} /></>;
   
     return (
       <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
@@ -1693,10 +1657,12 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
           showSkipButton={true}
           showProgress={true}
           callback={handleJoyrideCallback}
+          disableOverlayClose={true} // Prevent accidental close
+          spotlightClicks={true} // Allow interaction
           styles={{
             options: {
               primaryColor: '#D12027',
-              zIndex: 10000,
+              zIndex: 10000, // Ensure it's on top
             },
             tooltip: {
                 borderRadius: '16px',
