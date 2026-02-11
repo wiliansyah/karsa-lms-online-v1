@@ -1237,7 +1237,7 @@ const LeaderboardView = ({ user }) => {
                                      <p className="text-xs text-slate-500 font-medium mb-2">{topThree[1].dept}</p>
                                      <div className={`w-full ${getRankStyle(1).bg} rounded-t-xl flex items-end justify-center pb-4 shadow-inner h-32 relative group`}>
                                          <div className="text-slate-600 font-black text-lg opacity-30 group-hover:opacity-50 transition-opacity">
-                                             {viewMode === 'learning' ? topThree[1].xp : topThree[1].ideasApproved}
+                                              {viewMode === 'learning' ? topThree[1].xp : topThree[1].ideasApproved}
                                          </div>
                                      </div>
                                  </div>
@@ -1279,7 +1279,7 @@ const LeaderboardView = ({ user }) => {
                                      <p className="text-xs text-slate-500 font-medium mb-2">{topThree[2].dept}</p>
                                      <div className={`w-full ${getRankStyle(2).bg} rounded-t-xl flex items-end justify-center pb-4 shadow-inner h-24 relative group`}>
                                          <div className="text-orange-900 font-black text-lg opacity-30 group-hover:opacity-50 transition-opacity">
-                                             {viewMode === 'learning' ? topThree[2].xp : topThree[2].ideasApproved}
+                                              {viewMode === 'learning' ? topThree[2].xp : topThree[2].ideasApproved}
                                          </div>
                                      </div>
                                   </div>
@@ -1596,7 +1596,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
                 placement: 'top',
             }
         ],
-        // SUB-FEATURE: SPECIFIC FORM GUIDE
+        // SUB-FEATURE: SPECIFIC FORM GUIDE (Added Tutorial Logic for Training Request)
         requestForm: [
             {
                 target: '.tour-req-title',
