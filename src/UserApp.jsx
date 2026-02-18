@@ -1120,7 +1120,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
       title: 'Manufacture',
       icon: Building,
       color: 'blue',
-      desc: 'Produksi, QC, dan Efisiensi Pabrik.',
+      desc: 'Penguasaan standar produksi, quality control, dan efisiensi operasional pabrik.',
       progress: 0,
       modules: ['Good Manufacturing Practice (GMP)', 'Total Quality Management', 'Supply Chain Basics', 'Lean Manufacturing'],
       students: 120
@@ -1130,7 +1130,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
       title: 'Commercial',
       icon: TrendingUp,
       color: 'green',
-      desc: 'Sales, Marketing, dan Customer Service.',
+      desc: 'Strategi penjualan, pemasaran digital, dan pelayanan prima kepada pelanggan.',
       progress: 35,
       modules: ['Consultative Selling', 'Digital Marketing 101', 'Customer Retention Strategy', 'Handling Complaints'],
       students: 85
@@ -1140,7 +1140,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
       title: 'Support',
       icon: Headphones,
       color: 'purple',
-      desc: 'HR, Finance, IT, dan Legal Operasional.',
+      desc: 'Keahlian fungsional pendukung (HR, GA, IT, Finance) untuk kelancaran bisnis.',
       progress: 0,
       modules: ['HR for Non-HR', 'Basic Finance & Tax', 'Cybersecurity Awareness', 'Legal Drafting Basics'],
       students: 42
@@ -1150,7 +1150,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
       title: 'Management',
       icon: Briefcase,
       color: 'orange',
-      desc: 'Leadership, Strategi, dan Decision Making.',
+      desc: 'Pengembangan kepemimpinan, manajemen strategis, dan pengambilan keputusan.',
       progress: 10,
       modules: ['Strategic Planning', 'People Management', 'Data Driven Decision', 'Change Management'],
       students: 205
