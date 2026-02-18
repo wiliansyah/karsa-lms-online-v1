@@ -13,7 +13,7 @@ import {
   Shield, Rocket, Trophy, Medal, Crown, PlusCircle, Sparkles,
   FileSignature, Building, CalendarClock, PenTool, TrendingDown,
   Volume2, Eye, Brain, Ear, Quote, Gavel, Fingerprint, HelpCircle,
-  Search as MagnifyingGlass
+  Search as MagnifyingGlass, Copy
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid
@@ -37,10 +37,12 @@ const GlobalStyles = () => (
     @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pop { 0% { transform: scale(0.9); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    @keyframes dropIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     
     .animate-slideIn { animation: slideIn 0.4s ease-out forwards; }
     .animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
     .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .animate-dropIn { animation: dropIn 0.3s ease-out forwards; }
     
     .bg-gold { background: linear-gradient(135deg, #FDB913 0%, #F59E0B 100%); }
     .bg-silver { background: linear-gradient(135deg, #E2E8F0 0%, #CBD5E1 100%); }
@@ -179,7 +181,7 @@ const MODULES_LIST = [
   { id: "m8", title: "Closing: Action Plan & Pledge", type: "action_plan", duration: "5:00", category: "Commitment", xp: 150 },
 ];
 
-const SQUAD_POSTS = [
+const INITIAL_SQUAD_POSTS = [
   {
     id: 1,
     user: "Siska (Store Mgr)",
@@ -188,7 +190,9 @@ const SQUAD_POSTS = [
     likes: 12,
     likedByMe: false,
     time: "2h ago",
-    commentsList: []
+    comments: [
+        { id: 101, user: "Dedi Kusuma", content: "Setuju bu, tadi pagi handover jadi lebih cepat 5 menit." }
+    ]
   },
   {
     id: 2,
@@ -198,7 +202,7 @@ const SQUAD_POSTS = [
     likes: 8,
     likedByMe: false,
     time: "4h ago",
-    commentsList: []
+    comments: []
   }
 ];
 
@@ -799,60 +803,248 @@ const TrainingCenter = ({ user, updateUser, onBack, onStartGuide }) => {
     );
 };
 
-const SquadFeed = () => (
-    <div className="max-w-2xl mx-auto space-y-6 animate-slideIn">
-        <div className="tour-squad-header bg-gradient-to-r from-[#D12027] to-[#b01b21] rounded-2xl p-6 text-white shadow-lg flex items-center justify-between">
-            <div>
-                <h2 className="text-2xl font-bold flex items-center gap-2"><Users className="text-[#FDB913]"/> Squad Diskusi</h2>
-                <p className="text-red-100 text-sm">Berbagi insight dan tanya jawab seputar operasional.</p>
-            </div>
-            <div className="hidden md:block">
-                <div className="flex -space-x-2">
-                    {[1,2,3,4].map(i => (
-                        <div key={i} className="w-10 h-10 rounded-full border-2 border-[#D12027] bg-slate-200 overflow-hidden">
-                             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt="user"/>
-                        </div>
-                    ))}
-                    <div className="w-10 h-10 rounded-full border-2 border-[#D12027] bg-white text-[#D12027] flex items-center justify-center font-bold text-xs">+12</div>
+// --- UPGRADED SQUAD FEED COMPONENT ---
+
+const SquadFeed = ({ user = INITIAL_USER_DATA }) => {
+    const [posts, setPosts] = useState(INITIAL_SQUAD_POSTS);
+    const [input, setInput] = useState("");
+    // Store comment input per post ID: { [postId]: "comment text" }
+    const [commentInputs, setCommentInputs] = useState({});
+    // Store expanded comment sections: { [postId]: boolean }
+    const [expandedComments, setExpandedComments] = useState({});
+    const [justCopied, setJustCopied] = useState(null);
+
+    // --- Actions ---
+
+    const handlePost = () => {
+        if (!input.trim()) return;
+        
+        const newPost = {
+            id: Date.now(),
+            user: `${user.name} (You)`,
+            role: user.role,
+            content: input,
+            likes: 0,
+            likedByMe: false,
+            time: "Just now",
+            comments: []
+        };
+        
+        // Add new post to top with animation flag
+        setPosts([newPost, ...posts]);
+        setInput("");
+    };
+
+    const handleLike = (postId) => {
+        setPosts(posts.map(post => {
+            if (post.id === postId) {
+                return {
+                    ...post,
+                    likes: post.likedByMe ? post.likes - 1 : post.likes + 1,
+                    likedByMe: !post.likedByMe
+                };
+            }
+            return post;
+        }));
+    };
+
+    const handleDeletePost = (postId) => {
+        if (window.confirm("Hapus postingan ini?")) {
+             setPosts(posts.filter(p => p.id !== postId));
+        }
+    };
+
+    const toggleComments = (postId) => {
+        setExpandedComments(prev => ({
+            ...prev,
+            [postId]: !prev[postId]
+        }));
+    };
+
+    const handleCommentChange = (postId, text) => {
+        setCommentInputs(prev => ({ ...prev, [postId]: text }));
+    };
+
+    const submitComment = (postId) => {
+        const text = commentInputs[postId];
+        if (!text || !text.trim()) return;
+
+        const newComment = {
+            id: Date.now(),
+            user: user.name,
+            content: text
+        };
+
+        setPosts(posts.map(post => {
+            if (post.id === postId) {
+                return {
+                    ...post,
+                    comments: [...(post.comments || []), newComment]
+                };
+            }
+            return post;
+        }));
+
+        // Clear input and ensure expanded
+        setCommentInputs(prev => ({ ...prev, [postId]: "" }));
+        setExpandedComments(prev => ({ ...prev, [postId]: true }));
+    };
+    
+    const handleShare = (post) => {
+        const textToShare = `${post.user} said: "${post.content}" - via KARSA Squad`;
+        navigator.clipboard.writeText(textToShare).then(() => {
+            setJustCopied(post.id);
+            setTimeout(() => setJustCopied(null), 2000);
+        });
+    };
+
+    return (
+        <div className="max-w-2xl mx-auto space-y-6 animate-slideIn pb-12">
+            {/* Header */}
+            <div className="tour-squad-header bg-gradient-to-r from-[#D12027] to-[#b01b21] rounded-2xl p-6 text-white shadow-lg flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold flex items-center gap-2"><Users className="text-[#FDB913]"/> Squad Diskusi</h2>
+                    <p className="text-red-100 text-sm">Berbagi insight dan tanya jawab seputar operasional.</p>
+                </div>
+                <div className="hidden md:block">
+                    <div className="flex -space-x-2">
+                        {[1,2,3,4].map(i => (
+                            <div key={i} className="w-10 h-10 rounded-full border-2 border-[#D12027] bg-slate-200 overflow-hidden">
+                                 <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt="user"/>
+                            </div>
+                        ))}
+                        <div className="w-10 h-10 rounded-full border-2 border-[#D12027] bg-white text-[#D12027] flex items-center justify-center font-bold text-xs">+12</div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <textarea className="tour-squad-input w-full p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-red-100 transition-all" rows="3" placeholder="Bagikan progress belajar atau tanya sesuatu ke squad..."></textarea>
-            <div className="flex justify-between items-center">
-                <div className="flex gap-2">
-                    <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><Camera size={18}/></button>
-                    <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><Video size={18}/></button>
+            {/* Input Box */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <textarea 
+                    className="tour-squad-input w-full p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-red-100 transition-all" 
+                    rows="3" 
+                    placeholder={`Apa yang sedang Anda pelajari, ${user.name.split(' ')[0]}?`}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                ></textarea>
+                <div className="flex justify-between items-center">
+                    <div className="flex gap-2">
+                        <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><Camera size={18}/></button>
+                        <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><Video size={18}/></button>
+                    </div>
+                    <button 
+                        onClick={handlePost}
+                        disabled={!input.trim()}
+                        className="btn-primary px-6 py-2 rounded-lg font-bold text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <Send size={14} /> Post
+                    </button>
                 </div>
-                <button className="btn-primary px-6 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><Send size={14} /> Post</button>
             </div>
-        </div>
 
-        <div className="tour-squad-feed">
-            {SQUAD_POSTS.map(post => (
-                <div key={post.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
-                    <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 border border-slate-100 overflow-hidden"><span className="text-xs">{post.user.substring(0,2)}</span></div>
-                            <div>
-                                <p className="text-sm font-bold text-slate-800">{post.user}</p>
-                                <p className="text-xs text-slate-400">{post.role} • {post.time}</p>
+            {/* Feed */}
+            <div className="tour-squad-feed space-y-6">
+                {posts.map(post => (
+                    <div key={post.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm animate-fadeIn relative group">
+                        
+                        {/* Post Header */}
+                        <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 border border-slate-100 overflow-hidden">
+                                    <span className="text-xs">{post.user.substring(0,2)}</span>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-slate-800">{post.user}</p>
+                                    <p className="text-xs text-slate-400">{post.role} • {post.time}</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                {post.user.includes('(You)') && (
+                                    <button onClick={() => handleDeletePost(post.id)} className="text-slate-300 hover:text-red-500 transition-colors">
+                                        <Trash2 size={16}/>
+                                    </button>
+                                )}
+                                <button className="text-slate-300 hover:text-slate-600">
+                                    <MoreHorizontal size={16}/>
+                                </button>
                             </div>
                         </div>
-                        <button className="text-slate-400 hover:text-slate-600"><MoreHorizontal size={16}/></button>
+
+                        {/* Post Content */}
+                        <p className="text-slate-700 text-sm mb-4 leading-relaxed whitespace-pre-line">{post.content}</p>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-6 border-t border-slate-50 pt-4">
+                            <button 
+                                onClick={() => handleLike(post.id)}
+                                className={`flex items-center gap-2 text-sm font-bold transition-colors ${post.likedByMe ? 'text-[#D12027]' : 'text-slate-400 hover:text-[#D12027]'}`}
+                            >
+                                <ThumbsUp size={16} className={post.likedByMe ? 'fill-current' : ''}/> {post.likes} Likes
+                            </button>
+                            
+                            <button 
+                                onClick={() => toggleComments(post.id)}
+                                className={`flex items-center gap-2 text-sm font-bold transition-colors ${expandedComments[post.id] ? 'text-blue-600' : 'text-slate-400 hover:text-blue-600'}`}
+                            >
+                                <MessageSquare size={16}/> {post.comments?.length || 0} Comments
+                            </button>
+                            
+                            <button 
+                                onClick={() => handleShare(post)}
+                                className="flex items-center gap-2 text-slate-400 hover:text-green-600 text-sm font-bold ml-auto transition-colors relative"
+                            >
+                                {justCopied === post.id ? (
+                                    <span className="text-green-600 flex items-center gap-1 animate-fadeIn"><CheckCircle size={16}/> Copied!</span>
+                                ) : (
+                                    <><Share2 size={16}/> Share</>
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Comment Section */}
+                        {expandedComments[post.id] && (
+                            <div className="mt-4 pt-4 border-t border-slate-100 animate-slideIn">
+                                {/* Comment List */}
+                                <div className="space-y-3 mb-4 max-h-60 overflow-y-auto pr-2">
+                                    {post.comments && post.comments.length > 0 ? (
+                                        post.comments.map(comment => (
+                                            <div key={comment.id} className="bg-slate-50 p-3 rounded-xl rounded-tl-none ml-8 text-sm relative">
+                                                <div className="font-bold text-xs text-slate-600 mb-1">{comment.user}</div>
+                                                <div className="text-slate-700">{comment.content}</div>
+                                                {/* Decorative Line connecting to parent */}
+                                                <div className="absolute -left-4 top-0 w-4 h-4 border-l-2 border-b-2 border-slate-100 rounded-bl-xl"></div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-slate-400 text-center italic py-2">Belum ada komentar. Jadilah yang pertama!</p>
+                                    )}
+                                </div>
+
+                                {/* Comment Input */}
+                                <div className="flex gap-2 items-center">
+                                    <input 
+                                        className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-300 transition-colors"
+                                        placeholder="Tulis komentar..."
+                                        value={commentInputs[post.id] || ""}
+                                        onChange={(e) => handleCommentChange(post.id, e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && submitComment(post.id)}
+                                    />
+                                    <button 
+                                        onClick={() => submitComment(post.id)}
+                                        disabled={!commentInputs[post.id]}
+                                        className="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition-colors"
+                                    >
+                                        <Send size={16}/>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <p className="text-slate-700 text-sm mb-4 leading-relaxed">{post.content}</p>
-                    <div className="flex items-center gap-6 border-t border-slate-50 pt-4">
-                        <button className="flex items-center gap-2 text-slate-400 hover:text-[#D12027] text-sm font-bold transition-colors"><ThumbsUp size={16}/> {post.likes} Likes</button>
-                        <button className="flex items-center gap-2 text-slate-400 hover:text-blue-600 text-sm font-bold transition-colors"><MessageSquare size={16}/> Comment</button>
-                        <button className="flex items-center gap-2 text-slate-400 hover:text-green-600 text-sm font-bold ml-auto transition-colors"><Share2 size={16}/> Share</button>
-                    </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const SuggestionSystem = () => {
     const [activeTab, setActiveTab] = useState('submit');
@@ -1689,7 +1881,7 @@ const UserApp = () => {
             <div className="max-w-6xl mx-auto">
               {currentView === 'dashboard' && <Dashboard user={user} setView={setCurrentView} onToggleAccess={toggleAccess}/>}
               {currentView === 'course' && <TrainingCenter user={user} updateUser={updateUser} onBack={() => setCurrentView('dashboard')} onStartGuide={handleStartFormGuide} />}
-              {currentView === 'community' && <SquadFeed />}
+              {currentView === 'community' && <SquadFeed user={user} />}
               {currentView === 'analytics' && <LeaderboardView user={user} />}
               {currentView === 'ideas' && <SuggestionSystem />}
             </div>
