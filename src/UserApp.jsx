@@ -158,12 +158,12 @@ const COURSE_LIBRARY = [
   },
   {
     id: 'tech1',
-    title: "Product Knowledge: Bolen Series",
+    title: "Product Knowledge: Vega Series",
     category: "Technical",
     level: "Basic",
     duration: "30 Mins",
     modulesCount: 4,
-    description: "Kenali varian rasa, masa simpan, dan cara handling produk Bolen legendaris kita.",
+    description: "Kenali varian mainan, segmentasi penjualan, dan cara handling produk Mainan legendaris kita.",
     icon: Coffee,
     progress: 0,
     modules: []
