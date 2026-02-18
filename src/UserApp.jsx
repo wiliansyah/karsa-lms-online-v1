@@ -20,7 +20,7 @@ import {
 } from 'recharts';
 import Joyride, { STATUS, ACTIONS, EVENTS, LIFECYCLE } from 'react-joyride';
 
-// ... [BAGIAN GLOBAL STYLES & DATA CONSTANTS TIDAK BERUBAH] ...
+// --- 1. GLOBAL STYLES & CONSTANTS ---
 
 const KARSA_RED = "#D12027"; 
 const KARSA_YELLOW = "#FDB913"; 
@@ -252,8 +252,8 @@ const LevelBar = ({ xp, level }) => {
   );
 };
 
-// ... [BAGIAN MODULE LESSONS (PreTest, Video, etc.) TIDAK BERUBAH] ...
-// SAYA AKAN MENGGUNAKAN KOMPONEN DARI KODE SEBELUMNYA (DISINGKAT AGAR FOKUS KE USER APP)
+// --- 2. LESSON & HELPER COMPONENTS ---
+
 const PreTestLesson = ({ onComplete, updateUser, score: existingScore }) => {
   const [score, setScore] = useState(0);
   const [submitted, setSubmitted] = useState(false);
@@ -574,7 +574,7 @@ const ActionPlanLesson = ({ onComplete }) => (
     </div>
 );
 
-// --- 5. MAIN COMPONENTS ---
+// --- 3. MAIN VIEW COMPONENTS ---
 
 const TrainingRequestView = ({ onStartGuide }) => {
     const [activeTab, setActiveTab] = useState('form');
@@ -1106,157 +1106,262 @@ const LeaderboardView = ({ user }) => {
     );
 };
 
+// --- 4. UPGRADED DASHBOARD COMPONENT ---
+
 const Dashboard = ({ user, setView, onToggleAccess }) => {
-    const [activeTab, setActiveTab] = useState('nurture');
-  
-    return (
-      <div className="space-y-8 animate-slideIn">
-        <div className="tour-stats relative bg-white rounded-3xl p-8 border border-slate-200 shadow-sm overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-          <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-800 mb-2">Selamat Datang, {user.name}</h2>
-              <p className="text-slate-500 mb-6">Di Portal KARSA University. Teruslah berkembang bersama Kartika Sari.</p>
-              <div className="flex gap-4">
-                  <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
-                      <p className="text-xs text-slate-400">Posisi Saat Ini</p>
-                      <p className="font-bold text-[#D12027]">{user.role}</p>
-                  </div>
-                  {user.hasAccelerationAccess && (
-                       <div className="bg-yellow-50 px-4 py-2 rounded-xl border border-yellow-100 cursor-pointer hover:bg-yellow-100 transition-colors" onClick={onToggleAccess}>
-                        <p className="text-xs text-yellow-600">Status Akses</p>
-                        <p className="font-bold text-yellow-700 flex items-center gap-1"><Star size={12}/> Acceleration Granted</p>
-                    </div>
-                  )}
-              </div>
-            </div>
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg relative">
-              <LevelBar xp={user.xp} level={user.level} />
-              <div className="mt-4 flex gap-4 text-xs text-slate-500">
-                <div className="flex items-center gap-1"><Zap size={14} className="text-red-500"/> {user.streak} Hari Streak</div>
-                <div className="flex items-center gap-1"><Award size={14} className="text-yellow-500"/> {user.badges.length} Badges</div>
-              </div>
-            </div>
-          </div>
-        </div>
-  
-        {/* --- NEW SECTION: CURRICULUM SPECIALIZATION --- */}
-        <div className="animate-fadeIn">
-            <div className="flex items-center justify-between mb-4">
-                <div>
-                    <h3 className="font-bold text-slate-800 text-xl">Curriculum Specialization</h3>
-                    <p className="text-sm text-slate-500">Pilih jalur peminatan untuk materi yang lebih spesifik.</p>
+  const [activeTab, setActiveTab] = useState('nurture');
+  // State baru untuk menangani kartu spesialisasi yang sedang aktif/diklik
+  const [activeSpecialization, setActiveSpecialization] = useState(null);
+
+  // Data Spesialisasi dengan detail lebih lengkap untuk tampilan 'Expanded'
+  const SPECIALIZATIONS = [
+    {
+      id: 'manufacture',
+      title: 'Manufacture',
+      icon: Building,
+      color: 'blue',
+      desc: 'Produksi, QC, dan Efisiensi Pabrik.',
+      progress: 0,
+      modules: ['Good Manufacturing Practice (GMP)', 'Total Quality Management', 'Supply Chain Basics', 'Lean Manufacturing'],
+      students: 120
+    },
+    {
+      id: 'commercial',
+      title: 'Commercial',
+      icon: TrendingUp,
+      color: 'green',
+      desc: 'Sales, Marketing, dan Customer Service.',
+      progress: 35,
+      modules: ['Consultative Selling', 'Digital Marketing 101', 'Customer Retention Strategy', 'Handling Complaints'],
+      students: 85
+    },
+    {
+      id: 'support',
+      title: 'Support',
+      icon: Headphones,
+      color: 'purple',
+      desc: 'HR, Finance, IT, dan Legal Operasional.',
+      progress: 0,
+      modules: ['HR for Non-HR', 'Basic Finance & Tax', 'Cybersecurity Awareness', 'Legal Drafting Basics'],
+      students: 42
+    },
+    {
+      id: 'management',
+      title: 'Management',
+      icon: Briefcase,
+      color: 'orange',
+      desc: 'Leadership, Strategi, dan Decision Making.',
+      progress: 10,
+      modules: ['Strategic Planning', 'People Management', 'Data Driven Decision', 'Change Management'],
+      students: 205
+    }
+  ];
+
+  // Helper untuk warna dinamis
+  const getColorClasses = (color, isExpanded) => {
+    const maps = {
+      blue: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', ring: 'focus:ring-blue-100', iconBg: 'bg-blue-100' },
+      green: { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200', ring: 'focus:ring-green-100', iconBg: 'bg-green-100' },
+      purple: { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200', ring: 'focus:ring-purple-100', iconBg: 'bg-purple-100' },
+      orange: { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200', ring: 'focus:ring-orange-100', iconBg: 'bg-orange-100' },
+    };
+    return maps[color];
+  };
+
+  return (
+    <div className="space-y-8 animate-slideIn">
+      {/* Welcome Card & Stats */}
+      <div className="tour-stats relative bg-white rounded-3xl p-8 border border-slate-200 shadow-sm overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h2 className="text-3xl font-bold text-slate-800 mb-2">Selamat Datang, {user.name}</h2>
+            <p className="text-slate-500 mb-6">Di Portal KARSA University. Teruslah berkembang bersama Kartika Sari.</p>
+            <div className="flex gap-4">
+                <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-400">Posisi Saat Ini</p>
+                    <p className="font-bold text-[#D12027]">{user.role}</p>
                 </div>
+                {user.hasAccelerationAccess && (
+                     <div className="bg-yellow-50 px-4 py-2 rounded-xl border border-yellow-100 cursor-pointer hover:bg-yellow-100 transition-colors" onClick={onToggleAccess}>
+                      <p className="text-xs text-yellow-600">Status Akses</p>
+                      <p className="font-bold text-yellow-700 flex items-center gap-1"><Star size={12}/> Acceleration Granted</p>
+                  </div>
+                )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                 {/* Manufacture */}
-                 <div className="bg-white p-4 rounded-2xl border border-slate-200 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group">
-                     <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                         <Building size={20} />
-                     </div>
-                     <h4 className="font-bold text-slate-800 mb-1">Manufacture</h4>
-                     <p className="text-xs text-slate-500">Fokus pada produksi, QC, dan efisiensi pabrik.</p>
-                     <div className="mt-3 text-xs font-bold text-blue-600 flex items-center gap-1">Lihat Kelas <ChevronRight size={12}/></div>
-                 </div>
-
-                 {/* Commercial */}
-                 <div className="bg-white p-4 rounded-2xl border border-slate-200 hover:shadow-md hover:border-green-300 transition-all cursor-pointer group">
-                     <div className="w-10 h-10 rounded-lg bg-green-50 text-green-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                         <TrendingUp size={20} />
-                     </div>
-                     <h4 className="font-bold text-slate-800 mb-1">Commercial</h4>
-                     <p className="text-xs text-slate-500">Strategi sales, marketing, dan pelayanan pelanggan.</p>
-                     <div className="mt-3 text-xs font-bold text-green-600 flex items-center gap-1">Lihat Kelas <ChevronRight size={12}/></div>
-                 </div>
-
-                 {/* Support */}
-                 <div className="bg-white p-4 rounded-2xl border border-slate-200 hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group">
-                     <div className="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                         <Headphones size={20} />
-                     </div>
-                     <h4 className="font-bold text-slate-800 mb-1">Support</h4>
-                     <p className="text-xs text-slate-500">Operasional pendukung (HR, Finance, IT, Legal).</p>
-                     <div className="mt-3 text-xs font-bold text-purple-600 flex items-center gap-1">Lihat Kelas <ChevronRight size={12}/></div>
-                 </div>
-
-                 {/* Management */}
-                 <div className="bg-white p-4 rounded-2xl border border-slate-200 hover:shadow-md hover:border-orange-300 transition-all cursor-pointer group">
-                     <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                         <Briefcase size={20} />
-                     </div>
-                     <h4 className="font-bold text-slate-800 mb-1">Management</h4>
-                     <p className="text-xs text-slate-500">Leadership, pengambilan keputusan, dan strategi.</p>
-                     <div className="mt-3 text-xs font-bold text-orange-600 flex items-center gap-1">Lihat Kelas <ChevronRight size={12}/></div>
-                 </div>
-            </div>
-        </div>
-        {/* --- END NEW SECTION --- */}
-  
-        <div className="tour-tabs flex items-center gap-8 border-b border-slate-200 px-2">
-          <button onClick={() => setActiveTab('nurture')} className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'nurture' ? 'tab-active' : 'tab-inactive'}`}>
-              <Shield size={18}/> KARSA Nurture (Mandatory)
-          </button>
-          {user.hasAccelerationAccess ? (
-              <button onClick={() => setActiveTab('acceleration')} className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'acceleration' ? 'tab-active' : 'tab-inactive'}`}>
-                  <Rocket size={18}/> KARSA Acceleration
-              </button>
-          ) : (
-              <div className="pb-4 text-sm flex items-center gap-2 text-slate-300 cursor-not-allowed">
-                  <Lock size={16}/> KARSA Acceleration (Locked)
-              </div>
-          )}
-        </div>
-  
-        <div>
-          <div className="flex justify-between items-center mb-6">
-              <div>
-                  <h3 className="font-bold text-slate-800 text-xl">{activeTab === 'nurture' ? 'Program Nurture (Staff Level)' : 'Program Acceleration (Next Level)'}</h3>
-                  <p className="text-sm text-slate-500">{activeTab === 'nurture' ? 'Materi wajib dan pengembangan dasar sesuai role Anda.' : 'Materi privilege untuk persiapan promosi ke level selanjutnya.'}</p>
-              </div>
-              {activeTab === 'acceleration' && <span className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold shadow-sm">Privilege Access</span>}
           </div>
-  
-          <div className="tour-courses grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {TRAINING_CATEGORIES.map((cat) => {
-                  const courses = activeTab === 'nurture' ? cat.nurture : cat.acceleration;
-                  const isAccel = activeTab === 'acceleration';
-                  return (
-                      <div key={cat.id} className={`bg-white rounded-2xl border p-5 flex flex-col h-full transition-all hover:shadow-lg hover:-translate-y-1 ${isAccel ? 'border-yellow-200' : 'border-slate-200'}`}>
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isAccel ? 'bg-yellow-100 text-yellow-700' : 'bg-red-50 text-[#D12027]'}`}>
-                              <cat.icon size={24} />
-                          </div>
-                          <h4 className="font-bold text-slate-800 mb-1">{cat.title}</h4>
-                          <p className="text-xs text-slate-400 mb-4">{isAccel ? 'Level: Supervisor/Manager' : 'Level: Staff'}</p>
-                          <div className="space-y-3 mt-auto">
-                              {courses.map((course, idx) => (
-                                  <button 
-                                      key={idx}
-                                      disabled={course.status === 'locked'}
-                                      onClick={() => course.id === 'c1' ? setView('course') : null}
-                                      className={`w-full text-left p-3 rounded-lg border text-xs flex items-center justify-between group transition-colors
-                                          ${course.status === 'active' ? 'bg-red-50 border-red-100 cursor-pointer hover:bg-red-100' : 
-                                           course.status === 'completed' ? 'bg-green-50 border-green-100 cursor-default' : 
-                                           'bg-slate-50 border-slate-100 opacity-70 cursor-not-allowed'}
-                                      `}
-                                  >
-                                      <div>
-                                          <span className={`font-bold block ${course.status === 'active' ? 'text-[#D12027]' : course.status === 'completed' ? 'text-green-700' : 'text-slate-600'}`}>{course.title}</span>
-                                          {course.subtitle && <span className="text-[9px] text-slate-400 block mt-0.5">{course.subtitle}</span>}
-                                      </div>
-                                      {course.status === 'locked' ? <Lock size={12} className="text-slate-400"/> : course.status === 'completed' ? <CheckCircle size={14} className="text-green-600"/> : <PlayCircle size={14} className="text-[#D12027]"/>}
-                                  </button>
-                              ))}
-                          </div>
-                      </div>
-                  );
-              })}
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg relative">
+            <LevelBar xp={user.xp} level={user.level} />
+            <div className="mt-4 flex gap-4 text-xs text-slate-500">
+              <div className="flex items-center gap-1"><Zap size={14} className="text-red-500"/> {user.streak} Hari Streak</div>
+              <div className="flex items-center gap-1"><Award size={14} className="text-yellow-500"/> {user.badges.length} Badges</div>
+            </div>
           </div>
         </div>
       </div>
-    );
-  };
+
+      {/* --- UPGRADED SECTION: CURRICULUM SPECIALIZATION --- */}
+      <div className="animate-fadeIn">
+          <div className="flex items-center justify-between mb-4">
+              <div>
+                  <h3 className="font-bold text-slate-800 text-xl flex items-center gap-2">
+                    <LayoutTemplate size={20} className="text-[#D12027]"/> Curriculum Specialization
+                  </h3>
+                  <p className="text-sm text-slate-500">Jalur peminatan spesifik untuk memperdalam keahlian fungsional Anda.</p>
+              </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+             {SPECIALIZATIONS.map((spec) => {
+               const colors = getColorClasses(spec.color);
+               const isActive = activeSpecialization === spec.id;
+
+               return (
+                 <div 
+                    key={spec.id}
+                    onClick={() => setActiveSpecialization(isActive ? null : spec.id)}
+                    className={`
+                        relative bg-white rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
+                        ${isActive ? `col-span-1 md:col-span-2 lg:col-span-2 ring-2 ring-offset-2 ${colors.ring} ${colors.border} shadow-xl` : 'border-slate-200 hover:shadow-md hover:-translate-y-1'}
+                    `}
+                 >
+                   {/* Background Decor */}
+                   <div className={`absolute top-0 right-0 w-24 h-24 ${colors.bg} rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0'}`}></div>
+
+                   <div className="p-5">
+                      {/* Header Kartu */}
+                      <div className="flex items-start justify-between mb-3">
+                          <div className={`w-12 h-12 rounded-xl ${isActive ? colors.bg : 'bg-slate-50'} ${colors.text} flex items-center justify-center transition-colors`}>
+                              <spec.icon size={24} />
+                          </div>
+                          {isActive && (
+                            <button onClick={(e) => {e.stopPropagation(); setActiveSpecialization(null);}} className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100">
+                               <X size={18}/>
+                            </button>
+                          )}
+                      </div>
+
+                      <h4 className="font-bold text-slate-800 text-lg mb-1">{spec.title}</h4>
+                      <p className="text-xs text-slate-500 leading-relaxed mb-4">{spec.desc}</p>
+
+                      {/* Progress Bar Mini (Selalu Muncul) */}
+                      <div className="w-full bg-slate-100 h-1.5 rounded-full mb-3 overflow-hidden">
+                          <div className={`h-full ${colors.bg.replace('bg-', 'bg-gradient-to-r from-').replace('-50', '-400')} to-${spec.color}-600`} style={{width: `${spec.progress}%`}}></div>
+                      </div>
+                      
+                      {!isActive && (
+                         <div className="flex justify-between items-center mt-2">
+                             <span className="text-[10px] font-bold text-slate-400">{spec.progress}% Completed</span>
+                             <div className={`text-xs font-bold ${colors.text} flex items-center gap-1 group`}>
+                                Detail <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform"/>
+                             </div>
+                         </div>
+                      )}
+
+                      {/* Expanded Content (Hanya muncul saat diklik) */}
+                      {isActive && (
+                        <div className="mt-6 pt-4 border-t border-slate-100 animate-fadeIn">
+                            <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
+                                <span className="flex items-center gap-1"><BookOpen size={14}/> {spec.modules.length} Modul</span>
+                                <span className="flex items-center gap-1"><Users size={14}/> {spec.students} Peserta</span>
+                                <span className="flex items-center gap-1"><Clock size={14}/> ~8 Jam</span>
+                            </div>
+                            
+                            <h5 className="font-bold text-sm text-slate-700 mb-2">Materi Unggulan:</h5>
+                            <ul className="space-y-2 mb-6">
+                                {spec.modules.map((mod, idx) => (
+                                    <li key={idx} className="text-sm text-slate-600 flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                        <div className={`w-1.5 h-1.5 rounded-full ${colors.bg.replace('bg-', 'bg-').replace('-50', '-500')}`}></div>
+                                        {mod}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="flex gap-3">
+                                <button onClick={(e) => { e.stopPropagation(); setView('course'); }} className={`flex-1 py-2.5 rounded-xl font-bold text-white text-sm shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95 ${colors.text.replace('text-', 'bg-')}`}>
+                                   <PlayCircle size={16}/> Mulai Belajar
+                                </button>
+                                <button className="px-4 py-2.5 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 text-sm hover:bg-slate-50">
+                                   Silabus
+                                </button>
+                            </div>
+                        </div>
+                      )}
+                   </div>
+                 </div>
+               );
+             })}
+          </div>
+      </div>
+      {/* --- END UPGRADED SECTION --- */}
+
+      <div className="tour-tabs flex items-center gap-8 border-b border-slate-200 px-2">
+        <button onClick={() => setActiveTab('nurture')} className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'nurture' ? 'tab-active' : 'tab-inactive'}`}>
+            <Shield size={18}/> KARSA Nurture (Mandatory)
+        </button>
+        {user.hasAccelerationAccess ? (
+            <button onClick={() => setActiveTab('acceleration')} className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'acceleration' ? 'tab-active' : 'tab-inactive'}`}>
+                <Rocket size={18}/> KARSA Acceleration
+            </button>
+        ) : (
+            <div className="pb-4 text-sm flex items-center gap-2 text-slate-300 cursor-not-allowed">
+                <Lock size={16}/> KARSA Acceleration (Locked)
+            </div>
+        )}
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center mb-6">
+            <div>
+                <h3 className="font-bold text-slate-800 text-xl">{activeTab === 'nurture' ? 'Program Nurture (Staff Level)' : 'Program Acceleration (Next Level)'}</h3>
+                <p className="text-sm text-slate-500">{activeTab === 'nurture' ? 'Materi wajib dan pengembangan dasar sesuai role Anda.' : 'Materi privilege untuk persiapan promosi ke level selanjutnya.'}</p>
+            </div>
+            {activeTab === 'acceleration' && <span className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold shadow-sm">Privilege Access</span>}
+        </div>
+
+        <div className="tour-courses grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {TRAINING_CATEGORIES.map((cat) => {
+                const courses = activeTab === 'nurture' ? cat.nurture : cat.acceleration;
+                const isAccel = activeTab === 'acceleration';
+                return (
+                    <div key={cat.id} className={`bg-white rounded-2xl border p-5 flex flex-col h-full transition-all hover:shadow-lg hover:-translate-y-1 ${isAccel ? 'border-yellow-200' : 'border-slate-200'}`}>
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isAccel ? 'bg-yellow-100 text-yellow-700' : 'bg-red-50 text-[#D12027]'}`}>
+                            <cat.icon size={24} />
+                        </div>
+                        <h4 className="font-bold text-slate-800 mb-1">{cat.title}</h4>
+                        <p className="text-xs text-slate-400 mb-4">{isAccel ? 'Level: Supervisor/Manager' : 'Level: Staff'}</p>
+                        <div className="space-y-3 mt-auto">
+                            {courses.map((course, idx) => (
+                                <button 
+                                    key={idx}
+                                    disabled={course.status === 'locked'}
+                                    onClick={() => course.id === 'c1' ? setView('course') : null}
+                                    className={`w-full text-left p-3 rounded-lg border text-xs flex items-center justify-between group transition-colors
+                                        ${course.status === 'active' ? 'bg-red-50 border-red-100 cursor-pointer hover:bg-red-100' : 
+                                         course.status === 'completed' ? 'bg-green-50 border-green-100 cursor-default' : 
+                                         'bg-slate-50 border-slate-100 opacity-70 cursor-not-allowed'}
+                                    `}
+                                >
+                                    <div>
+                                        <span className={`font-bold block ${course.status === 'active' ? 'text-[#D12027]' : course.status === 'completed' ? 'text-green-700' : 'text-slate-600'}`}>{course.title}</span>
+                                        {course.subtitle && <span className="text-[9px] text-slate-400 block mt-0.5">{course.subtitle}</span>}
+                                    </div>
+                                    {course.status === 'locked' ? <Lock size={12} className="text-slate-400"/> : course.status === 'completed' ? <CheckCircle size={14} className="text-green-600"/> : <PlayCircle size={14} className="text-[#D12027]"/>}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+      </div>
+    </div>
+  );
+};
   
-  const UserApp = () => {
+// --- 5. MAIN APP CONTAINER ---
+
+const UserApp = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [currentView, setCurrentView] = useState('dashboard');
     const [user, setUser] = useState(INITIAL_USER_DATA);
