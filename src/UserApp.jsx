@@ -20,8 +20,7 @@ import {
 } from 'recharts';
 import Joyride, { STATUS, ACTIONS, EVENTS, LIFECYCLE } from 'react-joyride';
 
-// ... [BAGIAN GLOBAL STYLES & DATA CONSTANTS TIDAK BERUBAH - DISALIN DARI KODE ANDA] ...
-// (Untuk menghemat ruang, saya asumsikan bagian Styles, Constants, dan Helper Components sama persis seperti sebelumnya)
+// ... [BAGIAN GLOBAL STYLES & DATA CONSTANTS TIDAK BERUBAH] ...
 
 const KARSA_RED = "#D12027"; 
 const KARSA_YELLOW = "#FDB913"; 
@@ -253,8 +252,8 @@ const LevelBar = ({ xp, level }) => {
   );
 };
 
-// ... [BAGIAN MODULE LESSONS (PreTest, Video, etc.) TIDAK BERUBAH] ...
-// SAYA AKAN MENGGUNAKAN KOMPONEN DARI KODE SEBELUMNYA (DISINGKAT AGAR FOKUS KE USER APP)
+// ... [BAGIAN MODULE LESSONS TIDAK BERUBAH] ...
+
 const PreTestLesson = ({ onComplete, updateUser, score: existingScore }) => {
   const [score, setScore] = useState(0);
   const [submitted, setSubmitted] = useState(false);
@@ -1107,444 +1106,500 @@ const LeaderboardView = ({ user }) => {
     );
 };
 
+// --- UPDATED DASHBOARD COMPONENT ---
+
 const Dashboard = ({ user, setView, onToggleAccess }) => {
-    const [activeTab, setActiveTab] = useState('nurture');
-  
+  const [activeTab, setActiveTab] = useState('nurture');
+  // New state for specialization selection
+  const [specialization, setSpecialization] = useState(null);
+
+  const SPECIALIZATIONS = [
+    { id: 'manufacture', title: 'Manufacture', icon: RefreshCw, desc: 'Production, QC, Engineering', color: 'text-orange-600 bg-orange-50 border-orange-200', hover: 'hover:border-orange-300 hover:shadow-orange-100' },
+    { id: 'commercial', title: 'Commercial', icon: TrendingUp, desc: 'Sales, Marketing, Store Ops', color: 'text-blue-600 bg-blue-50 border-blue-200', hover: 'hover:border-blue-300 hover:shadow-blue-100' },
+    { id: 'support', title: 'Support', icon: Headphones, desc: 'HR, GA, Finance, IT', color: 'text-purple-600 bg-purple-50 border-purple-200', hover: 'hover:border-purple-300 hover:shadow-purple-100' },
+    { id: 'management', title: 'Management', icon: Briefcase, desc: 'Strategic & Leadership', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', hover: 'hover:border-emerald-300 hover:shadow-emerald-100' }
+  ];
+
+  // If no specialization is selected, show the selection screen
+  if (!specialization) {
     return (
-      <div className="space-y-8 animate-slideIn">
-        <div className="tour-stats relative bg-white rounded-3xl p-8 border border-slate-200 shadow-sm overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-          <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-800 mb-2">Selamat Datang, {user.name}</h2>
-              <p className="text-slate-500 mb-6">Di Portal KARSA University. Teruslah berkembang bersama Kartika Sari.</p>
-              <div className="flex gap-4">
-                  <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
-                      <p className="text-xs text-slate-400">Posisi Saat Ini</p>
-                      <p className="font-bold text-[#D12027]">{user.role}</p>
-                  </div>
-                  {user.hasAccelerationAccess && (
-                       <div className="bg-yellow-50 px-4 py-2 rounded-xl border border-yellow-100 cursor-pointer hover:bg-yellow-100 transition-colors" onClick={onToggleAccess}>
-                        <p className="text-xs text-yellow-600">Status Akses</p>
-                        <p className="font-bold text-yellow-700 flex items-center gap-1"><Star size={12}/> Acceleration Granted</p>
-                    </div>
-                  )}
-              </div>
-            </div>
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg relative">
-              <LevelBar xp={user.xp} level={user.level} />
-              <div className="mt-4 flex gap-4 text-xs text-slate-500">
-                <div className="flex items-center gap-1"><Zap size={14} className="text-red-500"/> {user.streak} Hari Streak</div>
-                <div className="flex items-center gap-1"><Award size={14} className="text-yellow-500"/> {user.badges.length} Badges</div>
-              </div>
-            </div>
-          </div>
-        </div>
-  
-        <div className="tour-tabs flex items-center gap-8 border-b border-slate-200 px-2">
-          <button onClick={() => setActiveTab('nurture')} className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'nurture' ? 'tab-active' : 'tab-inactive'}`}>
-              <Shield size={18}/> KARSA Nurture (Mandatory)
-          </button>
-          {user.hasAccelerationAccess ? (
-              <button onClick={() => setActiveTab('acceleration')} className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'acceleration' ? 'tab-active' : 'tab-inactive'}`}>
-                  <Rocket size={18}/> KARSA Acceleration
-              </button>
-          ) : (
-              <div className="pb-4 text-sm flex items-center gap-2 text-slate-300 cursor-not-allowed">
-                  <Lock size={16}/> KARSA Acceleration (Locked)
-              </div>
-          )}
-        </div>
-  
-        <div>
-          <div className="flex justify-between items-center mb-6">
-              <div>
-                  <h3 className="font-bold text-slate-800 text-xl">{activeTab === 'nurture' ? 'Program Nurture (Staff Level)' : 'Program Acceleration (Next Level)'}</h3>
-                  <p className="text-sm text-slate-500">{activeTab === 'nurture' ? 'Materi wajib dan pengembangan dasar sesuai role Anda.' : 'Materi privilege untuk persiapan promosi ke level selanjutnya.'}</p>
-              </div>
-              {activeTab === 'acceleration' && <span className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold shadow-sm">Privilege Access</span>}
-          </div>
-  
-          <div className="tour-courses grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {TRAINING_CATEGORIES.map((cat) => {
-                  const courses = activeTab === 'nurture' ? cat.nurture : cat.acceleration;
-                  const isAccel = activeTab === 'acceleration';
-                  return (
-                      <div key={cat.id} className={`bg-white rounded-2xl border p-5 flex flex-col h-full transition-all hover:shadow-lg hover:-translate-y-1 ${isAccel ? 'border-yellow-200' : 'border-slate-200'}`}>
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isAccel ? 'bg-yellow-100 text-yellow-700' : 'bg-red-50 text-[#D12027]'}`}>
-                              <cat.icon size={24} />
-                          </div>
-                          <h4 className="font-bold text-slate-800 mb-1">{cat.title}</h4>
-                          <p className="text-xs text-slate-400 mb-4">{isAccel ? 'Level: Supervisor/Manager' : 'Level: Staff'}</p>
-                          <div className="space-y-3 mt-auto">
-                              {courses.map((course, idx) => (
-                                  <button 
-                                      key={idx}
-                                      disabled={course.status === 'locked'}
-                                      onClick={() => course.id === 'c1' ? setView('course') : null}
-                                      className={`w-full text-left p-3 rounded-lg border text-xs flex items-center justify-between group transition-colors
-                                          ${course.status === 'active' ? 'bg-red-50 border-red-100 cursor-pointer hover:bg-red-100' : 
-                                           course.status === 'completed' ? 'bg-green-50 border-green-100 cursor-default' : 
-                                           'bg-slate-50 border-slate-100 opacity-70 cursor-not-allowed'}
-                                      `}
-                                  >
-                                      <div>
-                                          <span className={`font-bold block ${course.status === 'active' ? 'text-[#D12027]' : course.status === 'completed' ? 'text-green-700' : 'text-slate-600'}`}>{course.title}</span>
-                                          {course.subtitle && <span className="text-[9px] text-slate-400 block mt-0.5">{course.subtitle}</span>}
-                                      </div>
-                                      {course.status === 'locked' ? <Lock size={12} className="text-slate-400"/> : course.status === 'completed' ? <CheckCircle size={14} className="text-green-600"/> : <PlayCircle size={14} className="text-[#D12027]"/>}
-                                  </button>
-                              ))}
-                          </div>
-                      </div>
-                  );
-              })}
-          </div>
-        </div>
-      </div>
-    );
-  };
-  
-  const UserApp = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(true);
-    const [currentView, setCurrentView] = useState('dashboard');
-    const [user, setUser] = useState(INITIAL_USER_DATA);
-  
-    // --- DEEP TUTORIAL ENGINE ---
-    const [tourState, setTourState] = useState({
-        run: false,
-        steps: []
-    });
-
-    const SCENARIOS = {
-        dashboard: [
-            {
-                target: 'body',
-                placement: 'center',
-                content: (
-                    <div className="text-left space-y-2">
-                        <h4 className="font-bold text-lg">Welcome to KARSA University</h4>
-                        <p>Platform ini bukan sekadar tempat training, tapi ekosistem untuk pertumbuhan karir Anda.</p>
-                        <p className="text-xs text-slate-500 mt-2 italic">Klik 'Next' untuk melihat fitur utama.</p>
-                    </div>
-                ),
-                disableBeacon: true, 
-            },
-            {
-                target: '.tour-stats',
-                content: (
-                    <div className="text-left">
-                        <h5 className="font-bold text-[#D12027] mb-1">Growth Mindset</h5>
-                        <p className="text-sm">XP dan Level mencerminkan dedikasi Anda. Level yang lebih tinggi membuka peluang promosi dan akses ke materi "Acceleration".</p>
-                    </div>
-                ),
-                placement: 'bottom',
-            },
-            {
-                target: '.tour-tabs',
-                content: (
-                    <div className="text-left">
-                        <h5 className="font-bold text-[#D12027] mb-1">Dua Jalur Pengembangan</h5>
-                        <ul className="list-disc ml-4 text-sm space-y-1">
-                            <li><strong>Nurture:</strong> Wajib untuk posisi Anda saat ini.</li>
-                            <li><strong>Acceleration:</strong> Jalur khusus untuk mempersiapkan Anda menjadi Leader.</li>
-                        </ul>
-                    </div>
-                ),
-            },
-            {
-                target: '.tour-courses',
-                content: 'Pilih topik yang ingin Anda pelajari. Materi yang aktif ditandai dengan warna merah. Selesaikan satu per satu untuk membuka materi berikutnya.',
-                placement: 'top',
-            }
-        ],
-        course: [
-            {
-                target: '.tour-course-sidebar',
-                content: (
-                    <div className="text-left">
-                        <h5 className="font-bold text-[#D12027] mb-1">Learning Path</h5>
-                        <p className="text-sm">Ini adalah peta belajar Anda. Modul disusun berurutan untuk memaksimalkan pemahaman. Selesaikan modul saat ini untuk membuka modul berikutnya.</p>
-                    </div>
-                ),
-                placement: 'right',
-                disableBeacon: true,
-            },
-            {
-                target: '.tour-course-content',
-                content: 'Fokus pada konten di sini. Video interaktif dan kuis akan membantu Anda memahami materi secara mendalam.',
-                placement: 'left',
-            }
-        ],
-        community: [
-            {
-                target: '.tour-squad-header',
-                content: (
-                    <div className="text-left">
-                        <h5 className="font-bold text-[#D12027] mb-1">Collaborative Learning</h5>
-                        <p className="text-sm">Belajar tidak harus sendiri. Di sini kita memecahkan masalah operasional bersama-sama sebagai satu tim (Squad).</p>
-                    </div>
-                ),
-                placement: 'bottom',
-                disableBeacon: true,
-            },
-            {
-                target: '.tour-squad-input',
-                content: (
-                    <div className="text-left">
-                        <h5 className="font-bold text-[#D12027] mb-1">Psychological Safety</h5>
-                        <p className="text-sm">Jangan ragu bertanya! Budaya kita menghargai rasa ingin tahu. Pertanyaan "bodoh" adalah pertanyaan yang tidak pernah ditanyakan.</p>
-                    </div>
-                ),
-                placement: 'bottom',
-            },
-            {
-                target: '.tour-squad-feed',
-                content: 'Berikan like atau komentar pada solusi teman Anda. Apresiasi kecil membangun tim yang kuat dan suportif.',
-                placement: 'top',
-            }
-        ],
-        ideas: [
-            {
-                target: '.tour-idea-header',
-                content: (
-                    <div className="text-left">
-                        <h5 className="font-bold text-[#D12027] mb-1">Innovation Culture</h5>
-                        <p className="text-sm">Anda yang paling tahu kondisi lapangan. Ide kecil Anda bisa berdampak besar pada efisiensi perusahaan. Kami mendengar suara Anda.</p>
-                    </div>
-                ),
-                placement: 'bottom',
-                disableBeacon: true,
-            },
-            {
-                target: '.tour-idea-category',
-                content: 'Pilih kategori yang tepat agar ide Anda sampai ke departemen yang relevan (misal: Ops untuk perbaikan toko, atau Tech untuk sistem).',
-            }
-        ],
-        analytics: [
-            {
-                target: '.tour-lb-switch',
-                content: (
-                    <div className="text-left">
-                        <h5 className="font-bold text-[#D12027] mb-1">Balanced Performance</h5>
-                        <p className="text-sm">Kita menghargai dua hal: Ketekunan (Top Learners) dan Kreativitas (Top Innovators). Jadilah keduanya untuk menjadi karyawan teladan!</p>
-                    </div>
-                ),
-                disableBeacon: true,
-            },
-            {
-                target: '.tour-lb-podium',
-                content: 'Champion bulanan akan mendapatkan insentif khusus dan kesempatan lunch bersama direksi. Keep fighting!',
-                placement: 'top',
-            }
-        ],
-        requestForm: [
-            {
-                target: '.tour-req-title',
-                content: 'Judul harus spesifik. Hindari "Training Masak". Gunakan "Workshop Teknik Laminasi Pastry Level 2" agar kami paham kebutuhan Anda.',
-                disableBeacon: true,
-            },
-            {
-                target: '.tour-req-provider',
-                content: 'Pilih "Internal" jika Anda ingin belajar dari senior ahli di Kartika Sari, atau "External" jika butuh sertifikasi dari vendor luar.',
-            },
-            {
-                target: '.tour-req-reason',
-                content: (
-                    <div className="text-left">
-                        <h5 className="font-bold text-[#D12027] mb-1">Business Impact (ROI)</h5>
-                        <p className="text-sm">Jelaskan dampak bisnisnya. Contoh: "Training ini akan mengurangi waste adonan sebesar 10% dalam 3 bulan".</p>
-                    </div>
-                ),
-            },
-            {
-                target: '.tour-req-date',
-                content: 'Pilih tanggal minimal 2 minggu dari sekarang untuk memberikan waktu bagi HR dan Finance memproses approval.',
-            },
-            {
-                target: '.tour-req-alert',
-                content: 'Perhatikan alur persetujuan. Pastikan Anda sudah berdiskusi dengan atasan sebelum mengajukan request ini.',
-            }
-        ]
-    };
-
-    useEffect(() => {
-        if (!isAuthenticated) return;
-        setTourState(prev => ({ ...prev, run: false }));
-        const timer = setTimeout(() => {
-            let steps = [];
-            if (SCENARIOS[currentView]) {
-                steps = SCENARIOS[currentView];
-            }
-            const seenKey = `seen_tour_${currentView}`;
-            const hasSeen = localStorage.getItem(seenKey);
-
-            if (steps.length > 0 && !hasSeen) {
-                setTourState({
-                    run: true,
-                    steps: steps
-                });
-            }
-        }, 800);
-        return () => clearTimeout(timer);
-    }, [currentView, isAuthenticated]);
-
-    const handleJoyrideCallback = (data) => {
-        const { status } = data;
-        const finishedStatuses = [STATUS.FINISHED, STATUS.SKIPPED];
-        if (finishedStatuses.includes(status)) {
-            localStorage.setItem(`seen_tour_${currentView}`, 'true');
-            setTourState(prev => ({ ...prev, run: false }));
-        }
-    };
-
-    const handleStartFormGuide = () => {
-        setTourState({
-            run: true,
-            steps: SCENARIOS.requestForm,
-            stepIndex: 0 // Reset steps
-        });
-    };
-
-    // --- NEW: MANUAL TOUR TRIGGER ---
-    const handleManualTourStart = () => {
-        const steps = SCENARIOS[currentView];
-        if (steps && steps.length > 0) {
-             setTourState({
-                run: true,
-                steps: steps,
-                stepIndex: 0 // Reset steps to start from beginning
-            });
-        }
-    };
-  
-    const toggleAccess = () => {
-        setUser(prev => ({...prev, hasAccelerationAccess: !prev.hasAccelerationAccess}));
-    };
-  
-    const updateUser = (data) => setUser(prev => ({...prev, ...data}));
-  
-    return (
-      <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
-        <GlobalStyles />
-        
-        <Joyride
-          steps={tourState.steps}
-          run={tourState.run}
-          continuous={true}
-          showSkipButton={true}
-          showProgress={true}
-          callback={handleJoyrideCallback}
-          disableOverlayClose={true} 
-          spotlightClicks={true} 
-          stepIndex={tourState.stepIndex} // Added stepIndex control
-          styles={{
-            options: {
-              primaryColor: '#D12027',
-              zIndex: 10000, 
-            },
-            tooltip: {
-                borderRadius: '16px',
-                fontFamily: 'Inter, sans-serif'
-            },
-            buttonNext: {
-                backgroundColor: '#D12027',
-                fontWeight: 'bold'
-            }
-          }}
-          floaterProps={{
-              disableAnimation: true,
-          }}
-        />
-  
-        <aside className="tour-sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col shadow-lg lg:shadow-none">
-          <div className="p-6 flex flex-col h-full">
-            <div className="flex items-center justify-center mb-10 bg-[#D12027] p-4 rounded-xl shadow-lg">
-                <img src={KARTIKA_LOGO} alt="Logo" className="h-8 brightness-0 invert"/>
-            </div>
-            <nav className="flex-1 space-y-2">
-              <div className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Menu Utama</div>
-              {MENU_ITEMS.map(item => (
-                <button key={item.id} onClick={() => setCurrentView(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${currentView === item.id ? 'nav-item-active' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
-                  <item.icon size={18} /> {item.label}
-                </button>
-              ))}
-            </nav>
-            <div className="mt-auto pt-6 border-t border-slate-100 flex items-center gap-3">
-                <img src={user.avatar} alt="User" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200" />
-                <div className="overflow-hidden">
-                    <p className="text-sm font-bold text-slate-800 truncate">{user.name}</p>
-                    <p className="text-xs text-slate-500 truncate">{user.role}</p>
-                    <button 
-                      onClick={() => { 
-                          localStorage.clear(); 
-                          setTimeout(() => {
-                              window.location.href = window.location.href; 
-                          }, 100);
-                      }}
-                      className="text-[10px] text-red-500 underline mt-1 hover:text-red-700"
-                    >
-                      Reset All Tours
-                    </button>
-                </div>
-            </div>
-          </div>
-        </aside>
-  
-        <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-          <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-30">
-            <div className="flex items-center gap-2">
-                <h2 className="font-bold text-slate-700 capitalize">
-                   {currentView === 'dashboard' ? 'Portal KARSA University' : 
-                    currentView === 'analytics' ? 'Learning Dashboard & Leaderboard' : 
-                    currentView === 'ideas' ? 'Continuous Improvement System' : currentView.replace('_', ' ')}
-                </h2>
-            </div>
-            <div className="flex items-center gap-4">
-                {/* --- NEW HELP BUTTON --- */}
+      <div className="animate-slideIn max-w-4xl mx-auto py-10">
+         <div className="text-center mb-10">
+            <h1 className="text-3xl font-black text-slate-800 mb-2">Pilih Jalur Peminatan Anda</h1>
+            <p className="text-slate-500">Tentukan fokus pengembangan karir Anda di Kartika Sari University.</p>
+         </div>
+         
+         <div className="grid md:grid-cols-2 gap-6">
+            {SPECIALIZATIONS.map((spec) => (
                 <button 
-                    onClick={handleManualTourStart}
-                    className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm active:scale-95"
-                    title="Putar Ulang Panduan Halaman Ini"
+                  key={spec.id}
+                  onClick={() => setSpecialization(spec)}
+                  className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group bg-white ${spec.color} ${spec.hover}`}
                 >
-                    <HelpCircle size={16} className="text-[#D12027]" /> 
-                    <span className="hidden md:inline">Panduan</span>
+                    <div className="flex items-start justify-between mb-4">
+                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center bg-white shadow-sm`}>
+                            <spec.icon size={28} />
+                        </div>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                            Pilih Jalur
+                        </div>
+                    </div>
+                    <h3 className="text-xl font-bold mb-1">{spec.title}</h3>
+                    <p className="text-sm opacity-80">{spec.desc}</p>
                 </button>
+            ))}
+         </div>
+         
+         <div className="mt-8 text-center">
+            <p className="text-xs text-slate-400">Anda dapat mengubah peminatan ini nanti melalui pengaturan profil.</p>
+         </div>
+      </div>
+    );
+  }
 
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-white text-[#D12027] rounded-full text-xs font-bold border border-red-100 shadow-sm">
-                    <Zap size={14} fill="#D12027" /><span>{user.streak} Days</span>
+  // Once selected, show the main dashboard
+  return (
+    <div className="space-y-8 animate-fadeIn">
+      <div className="tour-stats relative bg-white rounded-3xl p-8 border border-slate-200 shadow-sm overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h2 className="text-3xl font-bold text-slate-800 mb-2">Selamat Datang, {user.name}</h2>
+            <p className="text-slate-500 mb-6">Di Portal KARSA University. Teruslah berkembang bersama Kartika Sari.</p>
+            <div className="flex flex-wrap gap-4">
+                <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-400">Posisi Saat Ini</p>
+                    <p className="font-bold text-[#D12027]">{user.role}</p>
                 </div>
-                <div className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm">
-                    <Star size={12} fill="#7c2d12" /> {user.xp} XP
+                {/* Specialization Badge */}
+                <div className={`px-4 py-2 rounded-xl border ${specialization.color} bg-white`}>
+                    <p className="text-xs opacity-70">Jalur Peminatan</p>
+                    <p className="font-bold flex items-center gap-1">
+                        <specialization.icon size={14}/> {specialization.title}
+                    </p>
                 </div>
+                {user.hasAccelerationAccess && (
+                      <div className="bg-yellow-50 px-4 py-2 rounded-xl border border-yellow-100 cursor-pointer hover:bg-yellow-100 transition-colors" onClick={onToggleAccess}>
+                       <p className="text-xs text-yellow-600">Status Akses</p>
+                       <p className="font-bold text-yellow-700 flex items-center gap-1"><Star size={12}/> Acceleration Granted</p>
+                   </div>
+                )}
             </div>
-          </header>
-            
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-24 lg:pb-8">
-            <div className="max-w-6xl mx-auto">
-              {currentView === 'dashboard' && <Dashboard user={user} setView={setCurrentView} onToggleAccess={toggleAccess}/>}
-              {currentView === 'course' && <TrainingCenter user={user} updateUser={updateUser} onBack={() => setCurrentView('dashboard')} onStartGuide={handleStartFormGuide} />}
-              {currentView === 'community' && <SquadFeed />}
-              {currentView === 'analytics' && <LeaderboardView user={user} />}
-              {currentView === 'ideas' && <SuggestionSystem />}
+          </div>
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg relative">
+            <LevelBar xp={user.xp} level={user.level} />
+            <div className="mt-4 flex gap-4 text-xs text-slate-500">
+              <div className="flex items-center gap-1"><Zap size={14} className="text-red-500"/> {user.streak} Hari Streak</div>
+              <div className="flex items-center gap-1"><Award size={14} className="text-yellow-500"/> {user.badges.length} Badges</div>
             </div>
-          </main>
-            
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 px-6 py-3 flex justify-between items-center pb-safe">
-              {MENU_ITEMS.map(item => (
-                  <button 
-                      key={item.id} 
-                      onClick={() => setCurrentView(item.id)}
-                      className={`flex flex-col items-center gap-1 transition-all ${currentView === item.id ? 'text-[#D12027]' : 'text-slate-400'}`}
-                  >
-                      <item.icon size={20} className={currentView === item.id ? 'fill-current' : ''} />
-                      <span className="text-[10px] font-bold">{item.mobileLabel}</span>
-                  </button>
-              ))}
           </div>
         </div>
       </div>
-    );
-  };
-  
-  export default UserApp;
+ 
+      <div className="tour-tabs flex items-center gap-8 border-b border-slate-200 px-2">
+        <button onClick={() => setActiveTab('nurture')} className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'nurture' ? 'tab-active' : 'tab-inactive'}`}>
+            <Shield size={18}/> KARSA Nurture (Mandatory)
+        </button>
+        {user.hasAccelerationAccess ? (
+            <button onClick={() => setActiveTab('acceleration')} className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'acceleration' ? 'tab-active' : 'tab-inactive'}`}>
+                <Rocket size={18}/> KARSA Acceleration
+            </button>
+        ) : (
+            <div className="pb-4 text-sm flex items-center gap-2 text-slate-300 cursor-not-allowed">
+                <Lock size={16}/> KARSA Acceleration (Locked)
+            </div>
+        )}
+      </div>
+ 
+      <div>
+        <div className="flex justify-between items-center mb-6">
+            <div>
+                <h3 className="font-bold text-slate-800 text-xl">{activeTab === 'nurture' ? 'Program Nurture (Staff Level)' : 'Program Acceleration (Next Level)'}</h3>
+                <p className="text-sm text-slate-500">{activeTab === 'nurture' ? 'Materi wajib dan pengembangan dasar sesuai role Anda.' : 'Materi privilege untuk persiapan promosi ke level selanjutnya.'}</p>
+            </div>
+            {activeTab === 'acceleration' && <span className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold shadow-sm">Privilege Access</span>}
+        </div>
+ 
+        <div className="tour-courses grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {TRAINING_CATEGORIES.map((cat) => {
+                const courses = activeTab === 'nurture' ? cat.nurture : cat.acceleration;
+                const isAccel = activeTab === 'acceleration';
+                return (
+                    <div key={cat.id} className={`bg-white rounded-2xl border p-5 flex flex-col h-full transition-all hover:shadow-lg hover:-translate-y-1 ${isAccel ? 'border-yellow-200' : 'border-slate-200'}`}>
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isAccel ? 'bg-yellow-100 text-yellow-700' : 'bg-red-50 text-[#D12027]'}`}>
+                            <cat.icon size={24} />
+                        </div>
+                        <h4 className="font-bold text-slate-800 mb-1">{cat.title}</h4>
+                        <p className="text-xs text-slate-400 mb-4">{isAccel ? 'Level: Supervisor/Manager' : 'Level: Staff'}</p>
+                        <div className="space-y-3 mt-auto">
+                            {courses.map((course, idx) => (
+                                <button 
+                                    key={idx}
+                                    disabled={course.status === 'locked'}
+                                    onClick={() => course.id === 'c1' ? setView('course') : null}
+                                    className={`w-full text-left p-3 rounded-lg border text-xs flex items-center justify-between group transition-colors
+                                        ${course.status === 'active' ? 'bg-red-50 border-red-100 cursor-pointer hover:bg-red-100' : 
+                                         course.status === 'completed' ? 'bg-green-50 border-green-100 cursor-default' : 
+                                         'bg-slate-50 border-slate-100 opacity-70 cursor-not-allowed'}
+                                    `}
+                                >
+                                    <div>
+                                        <span className={`font-bold block ${course.status === 'active' ? 'text-[#D12027]' : course.status === 'completed' ? 'text-green-700' : 'text-slate-600'}`}>{course.title}</span>
+                                        {course.subtitle && <span className="text-[9px] text-slate-400 block mt-0.5">{course.subtitle}</span>}
+                                    </div>
+                                    {course.status === 'locked' ? <Lock size={12} className="text-slate-400"/> : course.status === 'completed' ? <CheckCircle size={14} className="text-green-600"/> : <PlayCircle size={14} className="text-[#D12027]"/>}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+      </div>
+    </div>
+  );
+};
+ 
+ const UserApp = () => {
+   const [isAuthenticated, setIsAuthenticated] = useState(true);
+   const [currentView, setCurrentView] = useState('dashboard');
+   const [user, setUser] = useState(INITIAL_USER_DATA);
+ 
+   // --- DEEP TUTORIAL ENGINE ---
+   const [tourState, setTourState] = useState({
+       run: false,
+       steps: []
+   });
+
+   const SCENARIOS = {
+       dashboard: [
+           {
+               target: 'body',
+               placement: 'center',
+               content: (
+                   <div className="text-left space-y-2">
+                       <h4 className="font-bold text-lg">Welcome to KARSA University</h4>
+                       <p>Platform ini bukan sekadar tempat training, tapi ekosistem untuk pertumbuhan karir Anda.</p>
+                       <p className="text-xs text-slate-500 mt-2 italic">Klik 'Next' untuk melihat fitur utama.</p>
+                   </div>
+               ),
+               disableBeacon: true, 
+           },
+           {
+               target: '.tour-stats',
+               content: (
+                   <div className="text-left">
+                       <h5 className="font-bold text-[#D12027] mb-1">Growth Mindset</h5>
+                       <p className="text-sm">XP dan Level mencerminkan dedikasi Anda. Level yang lebih tinggi membuka peluang promosi dan akses ke materi "Acceleration".</p>
+                   </div>
+               ),
+               placement: 'bottom',
+           },
+           {
+               target: '.tour-tabs',
+               content: (
+                   <div className="text-left">
+                       <h5 className="font-bold text-[#D12027] mb-1">Dua Jalur Pengembangan</h5>
+                       <ul className="list-disc ml-4 text-sm space-y-1">
+                           <li><strong>Nurture:</strong> Wajib untuk posisi Anda saat ini.</li>
+                           <li><strong>Acceleration:</strong> Jalur khusus untuk mempersiapkan Anda menjadi Leader.</li>
+                       </ul>
+                   </div>
+               ),
+           },
+           {
+               target: '.tour-courses',
+               content: 'Pilih topik yang ingin Anda pelajari. Materi yang aktif ditandai dengan warna merah. Selesaikan satu per satu untuk membuka materi berikutnya.',
+               placement: 'top',
+           }
+       ],
+       course: [
+           {
+               target: '.tour-course-sidebar',
+               content: (
+                   <div className="text-left">
+                       <h5 className="font-bold text-[#D12027] mb-1">Learning Path</h5>
+                       <p className="text-sm">Ini adalah peta belajar Anda. Modul disusun berurutan untuk memaksimalkan pemahaman. Selesaikan modul saat ini untuk membuka modul berikutnya.</p>
+                   </div>
+               ),
+               placement: 'right',
+               disableBeacon: true,
+           },
+           {
+               target: '.tour-course-content',
+               content: 'Fokus pada konten di sini. Video interaktif dan kuis akan membantu Anda memahami materi secara mendalam.',
+               placement: 'left',
+           }
+       ],
+       community: [
+           {
+               target: '.tour-squad-header',
+               content: (
+                   <div className="text-left">
+                       <h5 className="font-bold text-[#D12027] mb-1">Collaborative Learning</h5>
+                       <p className="text-sm">Belajar tidak harus sendiri. Di sini kita memecahkan masalah operasional bersama-sama sebagai satu tim (Squad).</p>
+                   </div>
+               ),
+               placement: 'bottom',
+               disableBeacon: true,
+           },
+           {
+               target: '.tour-squad-input',
+               content: (
+                   <div className="text-left">
+                       <h5 className="font-bold text-[#D12027] mb-1">Psychological Safety</h5>
+                       <p className="text-sm">Jangan ragu bertanya! Budaya kita menghargai rasa ingin tahu. Pertanyaan "bodoh" adalah pertanyaan yang tidak pernah ditanyakan.</p>
+                   </div>
+               ),
+               placement: 'bottom',
+           },
+           {
+               target: '.tour-squad-feed',
+               content: 'Berikan like atau komentar pada solusi teman Anda. Apresiasi kecil membangun tim yang kuat dan suportif.',
+               placement: 'top',
+           }
+       ],
+       ideas: [
+           {
+               target: '.tour-idea-header',
+               content: (
+                   <div className="text-left">
+                       <h5 className="font-bold text-[#D12027] mb-1">Innovation Culture</h5>
+                       <p className="text-sm">Anda yang paling tahu kondisi lapangan. Ide kecil Anda bisa berdampak besar pada efisiensi perusahaan. Kami mendengar suara Anda.</p>
+                   </div>
+               ),
+               placement: 'bottom',
+               disableBeacon: true,
+           },
+           {
+               target: '.tour-idea-category',
+               content: 'Pilih kategori yang tepat agar ide Anda sampai ke departemen yang relevan (misal: Ops untuk perbaikan toko, atau Tech untuk sistem).',
+           }
+       ],
+       analytics: [
+           {
+               target: '.tour-lb-switch',
+               content: (
+                   <div className="text-left">
+                       <h5 className="font-bold text-[#D12027] mb-1">Balanced Performance</h5>
+                       <p className="text-sm">Kita menghargai dua hal: Ketekunan (Top Learners) dan Kreativitas (Top Innovators). Jadilah keduanya untuk menjadi karyawan teladan!</p>
+                   </div>
+               ),
+               disableBeacon: true,
+           },
+           {
+               target: '.tour-lb-podium',
+               content: 'Champion bulanan akan mendapatkan insentif khusus dan kesempatan lunch bersama direksi. Keep fighting!',
+               placement: 'top',
+           }
+       ],
+       requestForm: [
+           {
+               target: '.tour-req-title',
+               content: 'Judul harus spesifik. Hindari "Training Masak". Gunakan "Workshop Teknik Laminasi Pastry Level 2" agar kami paham kebutuhan Anda.',
+               disableBeacon: true,
+           },
+           {
+               target: '.tour-req-provider',
+               content: 'Pilih "Internal" jika Anda ingin belajar dari senior ahli di Kartika Sari, atau "External" jika butuh sertifikasi dari vendor luar.',
+           },
+           {
+               target: '.tour-req-reason',
+               content: (
+                   <div className="text-left">
+                       <h5 className="font-bold text-[#D12027] mb-1">Business Impact (ROI)</h5>
+                       <p className="text-sm">Jelaskan dampak bisnisnya. Contoh: "Training ini akan mengurangi waste adonan sebesar 10% dalam 3 bulan".</p>
+                   </div>
+               ),
+           },
+           {
+               target: '.tour-req-date',
+               content: 'Pilih tanggal minimal 2 minggu dari sekarang untuk memberikan waktu bagi HR dan Finance memproses approval.',
+           },
+           {
+               target: '.tour-req-alert',
+               content: 'Perhatikan alur persetujuan. Pastikan Anda sudah berdiskusi dengan atasan sebelum mengajukan request ini.',
+           }
+       ]
+   };
+
+   useEffect(() => {
+       if (!isAuthenticated) return;
+       setTourState(prev => ({ ...prev, run: false }));
+       const timer = setTimeout(() => {
+           let steps = [];
+           if (SCENARIOS[currentView]) {
+               steps = SCENARIOS[currentView];
+           }
+           const seenKey = `seen_tour_${currentView}`;
+           const hasSeen = localStorage.getItem(seenKey);
+
+           if (steps.length > 0 && !hasSeen) {
+               setTourState({
+                   run: true,
+                   steps: steps
+               });
+           }
+       }, 800);
+       return () => clearTimeout(timer);
+   }, [currentView, isAuthenticated]);
+
+   const handleJoyrideCallback = (data) => {
+       const { status } = data;
+       const finishedStatuses = [STATUS.FINISHED, STATUS.SKIPPED];
+       if (finishedStatuses.includes(status)) {
+           localStorage.setItem(`seen_tour_${currentView}`, 'true');
+           setTourState(prev => ({ ...prev, run: false }));
+       }
+   };
+
+   const handleStartFormGuide = () => {
+       setTourState({
+           run: true,
+           steps: SCENARIOS.requestForm,
+           stepIndex: 0 // Reset steps
+       });
+   };
+
+   // --- NEW: MANUAL TOUR TRIGGER ---
+   const handleManualTourStart = () => {
+       const steps = SCENARIOS[currentView];
+       if (steps && steps.length > 0) {
+            setTourState({
+               run: true,
+               steps: steps,
+               stepIndex: 0 // Reset steps to start from beginning
+           });
+       }
+   };
+ 
+   const toggleAccess = () => {
+       setUser(prev => ({...prev, hasAccelerationAccess: !prev.hasAccelerationAccess}));
+   };
+ 
+   const updateUser = (data) => setUser(prev => ({...prev, ...data}));
+ 
+   return (
+     <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
+       <GlobalStyles />
+       
+       <Joyride
+         steps={tourState.steps}
+         run={tourState.run}
+         continuous={true}
+         showSkipButton={true}
+         showProgress={true}
+         callback={handleJoyrideCallback}
+         disableOverlayClose={true} 
+         spotlightClicks={true} 
+         stepIndex={tourState.stepIndex} // Added stepIndex control
+         styles={{
+           options: {
+             primaryColor: '#D12027',
+             zIndex: 10000, 
+           },
+           tooltip: {
+               borderRadius: '16px',
+               fontFamily: 'Inter, sans-serif'
+           },
+           buttonNext: {
+               backgroundColor: '#D12027',
+               fontWeight: 'bold'
+           }
+         }}
+         floaterProps={{
+             disableAnimation: true,
+         }}
+       />
+ 
+       <aside className="tour-sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col shadow-lg lg:shadow-none">
+         <div className="p-6 flex flex-col h-full">
+           <div className="flex items-center justify-center mb-10 bg-[#D12027] p-4 rounded-xl shadow-lg">
+               <img src={KARTIKA_LOGO} alt="Logo" className="h-8 brightness-0 invert"/>
+           </div>
+           <nav className="flex-1 space-y-2">
+             <div className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Menu Utama</div>
+             {MENU_ITEMS.map(item => (
+               <button key={item.id} onClick={() => setCurrentView(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${currentView === item.id ? 'nav-item-active' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                 <item.icon size={18} /> {item.label}
+               </button>
+             ))}
+           </nav>
+           <div className="mt-auto pt-6 border-t border-slate-100 flex items-center gap-3">
+               <img src={user.avatar} alt="User" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200" />
+               <div className="overflow-hidden">
+                   <p className="text-sm font-bold text-slate-800 truncate">{user.name}</p>
+                   <p className="text-xs text-slate-500 truncate">{user.role}</p>
+                   <button 
+                     onClick={() => { 
+                         localStorage.clear(); 
+                         setTimeout(() => {
+                             window.location.href = window.location.href; 
+                         }, 100);
+                     }}
+                     className="text-[10px] text-red-500 underline mt-1 hover:text-red-700"
+                   >
+                     Reset All Tours
+                   </button>
+               </div>
+           </div>
+         </div>
+       </aside>
+ 
+       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-30">
+           <div className="flex items-center gap-2">
+               <h2 className="font-bold text-slate-700 capitalize">
+                  {currentView === 'dashboard' ? 'Portal KARSA University' : 
+                   currentView === 'analytics' ? 'Learning Dashboard & Leaderboard' : 
+                   currentView === 'ideas' ? 'Continuous Improvement System' : currentView.replace('_', ' ')}
+               </h2>
+           </div>
+           <div className="flex items-center gap-4">
+               {/* --- NEW HELP BUTTON --- */}
+               <button 
+                   onClick={handleManualTourStart}
+                   className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm active:scale-95"
+                   title="Putar Ulang Panduan Halaman Ini"
+               >
+                   <HelpCircle size={16} className="text-[#D12027]" /> 
+                   <span className="hidden md:inline">Panduan</span>
+               </button>
+
+               <div className="flex items-center gap-1.5 px-3 py-1 bg-white text-[#D12027] rounded-full text-xs font-bold border border-red-100 shadow-sm">
+                   <Zap size={14} fill="#D12027" /><span>{user.streak} Days</span>
+               </div>
+               <div className="bg-[#FDB913] text-[#7c2d12] px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm">
+                   <Star size={12} fill="#7c2d12" /> {user.xp} XP
+               </div>
+           </div>
+         </header>
+           
+         <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-24 lg:pb-8">
+           <div className="max-w-6xl mx-auto">
+             {currentView === 'dashboard' && <Dashboard user={user} setView={setCurrentView} onToggleAccess={toggleAccess}/>}
+             {currentView === 'course' && <TrainingCenter user={user} updateUser={updateUser} onBack={() => setCurrentView('dashboard')} onStartGuide={handleStartFormGuide} />}
+             {currentView === 'community' && <SquadFeed />}
+             {currentView === 'analytics' && <LeaderboardView user={user} />}
+             {currentView === 'ideas' && <SuggestionSystem />}
+           </div>
+         </main>
+           
+         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 px-6 py-3 flex justify-between items-center pb-safe">
+             {MENU_ITEMS.map(item => (
+                 <button 
+                     key={item.id} 
+                     onClick={() => setCurrentView(item.id)}
+                     className={`flex flex-col items-center gap-1 transition-all ${currentView === item.id ? 'text-[#D12027]' : 'text-slate-400'}`}
+                 >
+                     <item.icon size={20} className={currentView === item.id ? 'fill-current' : ''} />
+                     <span className="text-[10px] font-bold">{item.mobileLabel}</span>
+                 </button>
+             ))}
+         </div>
+       </div>
+     </div>
+   );
+ };
+ 
+ export default UserApp;
