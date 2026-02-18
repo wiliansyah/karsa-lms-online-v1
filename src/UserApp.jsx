@@ -1106,71 +1106,71 @@ const LeaderboardView = ({ user }) => {
     );
 };
 
-// --- 4. UPGRADED DASHBOARD COMPONENT ---
+// --- 4. UPGRADED DASHBOARD COMPONENT (STABLE LAYOUT) ---
 
 const Dashboard = ({ user, setView, onToggleAccess }) => {
   const [activeTab, setActiveTab] = useState('nurture');
-  // State baru untuk menangani kartu spesialisasi yang sedang aktif/diklik
+  // State untuk melacak ID spesialisasi yang sedang aktif/dibuka
   const [activeSpecialization, setActiveSpecialization] = useState(null);
 
-  // Data Spesialisasi dengan detail lebih lengkap untuk tampilan 'Expanded'
+  // Data Spesialisasi dengan detail lengkap
   const SPECIALIZATIONS = [
     {
       id: 'manufacture',
       title: 'Manufacture',
       icon: Building,
       color: 'blue',
-      desc: 'Penguasaan standar produksi, quality control, dan efisiensi operasional pabrik.',
-      progress: 0,
-      modules: ['Good Manufacturing Practice (GMP)', 'Total Quality Management', 'Supply Chain Basics', 'Lean Manufacturing'],
-      students: 120
+      desc: 'Produksi, QC, dan Efisiensi Pabrik.',
+      stats: { modules: 12, students: 120, duration: '8 Jam' },
+      modules: ['Good Manufacturing Practice (GMP)', 'Total Quality Management', 'Supply Chain Basics', 'Lean Manufacturing']
     },
     {
       id: 'commercial',
       title: 'Commercial',
       icon: TrendingUp,
       color: 'green',
-      desc: 'Strategi penjualan, pemasaran digital, dan pelayanan prima kepada pelanggan.',
-      progress: 35,
-      modules: ['Consultative Selling', 'Digital Marketing 101', 'Customer Retention Strategy', 'Handling Complaints'],
-      students: 85
+      desc: 'Sales, Marketing, dan Customer Service.',
+      stats: { modules: 10, students: 85, duration: '6 Jam' },
+      modules: ['Consultative Selling', 'Digital Marketing 101', 'Customer Retention Strategy', 'Handling Complaints']
     },
     {
       id: 'support',
       title: 'Support',
       icon: Headphones,
       color: 'purple',
-      desc: 'Keahlian fungsional pendukung (HR, GA, IT, Finance) untuk kelancaran bisnis.',
-      progress: 0,
-      modules: ['HR for Non-HR', 'Basic Finance & Tax', 'Cybersecurity Awareness', 'Legal Drafting Basics'],
-      students: 42
+      desc: 'HR, Finance, IT, dan Legal Operasional.',
+      stats: { modules: 8, students: 42, duration: '5 Jam' },
+      modules: ['HR for Non-HR', 'Basic Finance & Tax', 'Cybersecurity Awareness', 'Legal Drafting Basics']
     },
     {
       id: 'management',
       title: 'Management',
       icon: Briefcase,
       color: 'orange',
-      desc: 'Pengembangan kepemimpinan, manajemen strategis, dan pengambilan keputusan.',
-      progress: 10,
-      modules: ['Strategic Planning', 'People Management', 'Data Driven Decision', 'Change Management'],
-      students: 205
+      desc: 'Leadership, Strategi, dan Decision Making.',
+      stats: { modules: 15, students: 205, duration: '12 Jam' },
+      modules: ['Strategic Planning', 'People Management', 'Data Driven Decision', 'Change Management']
     }
   ];
 
-  // Helper untuk warna dinamis
-  const getColorClasses = (color, isExpanded) => {
+  // Helper untuk mendapatkan kelas warna dinamis
+  const getColorClasses = (color) => {
     const maps = {
-      blue: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', ring: 'focus:ring-blue-100', iconBg: 'bg-blue-100' },
-      green: { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200', ring: 'focus:ring-green-100', iconBg: 'bg-green-100' },
-      purple: { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200', ring: 'focus:ring-purple-100', iconBg: 'bg-purple-100' },
-      orange: { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200', ring: 'focus:ring-orange-100', iconBg: 'bg-orange-100' },
+      blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-600', ring: 'ring-blue-400', soft: 'bg-blue-100', btn: 'bg-blue-600 hover:bg-blue-700' },
+      green: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-600', ring: 'ring-green-400', soft: 'bg-green-100', btn: 'bg-green-600 hover:bg-green-700' },
+      purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-600', ring: 'ring-purple-400', soft: 'bg-purple-100', btn: 'bg-purple-600 hover:bg-purple-700' },
+      orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-600', ring: 'ring-orange-400', soft: 'bg-orange-100', btn: 'bg-orange-600 hover:bg-orange-700' },
     };
     return maps[color];
   };
 
+  // Mencari data aktif berdasarkan state
+  const activeData = SPECIALIZATIONS.find(s => s.id === activeSpecialization);
+  const activeColors = activeData ? getColorClasses(activeData.color) : null;
+
   return (
     <div className="space-y-8 animate-slideIn">
-      {/* Welcome Card & Stats */}
+      {/* 1. Welcome Card & Stats */}
       <div className="tour-stats relative bg-white rounded-3xl p-8 border border-slate-200 shadow-sm overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
@@ -1200,102 +1200,110 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
         </div>
       </div>
 
-      {/* --- UPGRADED SECTION: CURRICULUM SPECIALIZATION --- */}
+      {/* 2. CURRICULUM SPECIALIZATION (LAYOUT STABIL & RAPI) */}
       <div className="animate-fadeIn">
           <div className="flex items-center justify-between mb-4">
               <div>
                   <h3 className="font-bold text-slate-800 text-xl flex items-center gap-2">
                     <LayoutTemplate size={20} className="text-[#D12027]"/> Curriculum Specialization
                   </h3>
-                  <p className="text-sm text-slate-500">Jalur peminatan spesifik untuk memperdalam keahlian fungsional Anda.</p>
+                  <p className="text-sm text-slate-500">Klik salah satu departemen untuk melihat kurikulum spesifik.</p>
               </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+          {/* Grid Tombol Pilihan */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
              {SPECIALIZATIONS.map((spec) => {
                const colors = getColorClasses(spec.color);
                const isActive = activeSpecialization === spec.id;
 
                return (
-                 <div 
+                 <button 
                     key={spec.id}
                     onClick={() => setActiveSpecialization(isActive ? null : spec.id)}
                     className={`
-                        relative bg-white rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
-                        ${isActive ? `col-span-1 md:col-span-2 lg:col-span-2 ring-2 ring-offset-2 ${colors.ring} ${colors.border} shadow-xl` : 'border-slate-200 hover:shadow-md hover:-translate-y-1'}
+                        relative text-left p-4 rounded-2xl border transition-all duration-200 group
+                        ${isActive 
+                            ? `bg-white border-${spec.color}-400 ring-2 ${colors.ring} shadow-md transform scale-[1.02] z-10` 
+                            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        }
                     `}
                  >
-                   {/* Background Decor */}
-                   <div className={`absolute top-0 right-0 w-24 h-24 ${colors.bg} rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0'}`}></div>
-
-                   <div className="p-5">
-                      {/* Header Kartu */}
-                      <div className="flex items-start justify-between mb-3">
-                          <div className={`w-12 h-12 rounded-xl ${isActive ? colors.bg : 'bg-slate-50'} ${colors.text} flex items-center justify-center transition-colors`}>
-                              <spec.icon size={24} />
-                          </div>
-                          {isActive && (
-                            <button onClick={(e) => {e.stopPropagation(); setActiveSpecialization(null);}} className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100">
-                               <X size={18}/>
-                            </button>
-                          )}
+                   <div className="flex items-center gap-3 mb-2">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${isActive ? colors.bg + ' ' + colors.text : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-slate-700'}`}>
+                          <spec.icon size={20} />
                       </div>
-
-                      <h4 className="font-bold text-slate-800 text-lg mb-1">{spec.title}</h4>
-                      <p className="text-xs text-slate-500 leading-relaxed mb-4">{spec.desc}</p>
-
-                      {/* Progress Bar Mini (Selalu Muncul) */}
-                      <div className="w-full bg-slate-100 h-1.5 rounded-full mb-3 overflow-hidden">
-                          <div className={`h-full ${colors.bg.replace('bg-', 'bg-gradient-to-r from-').replace('-50', '-400')} to-${spec.color}-600`} style={{width: `${spec.progress}%`}}></div>
+                      <div className="flex-1">
+                          <h4 className={`font-bold text-sm ${isActive ? 'text-slate-800' : 'text-slate-600'}`}>{spec.title}</h4>
                       </div>
-                      
-                      {!isActive && (
-                         <div className="flex justify-between items-center mt-2">
-                             <span className="text-[10px] font-bold text-slate-400">{spec.progress}% Completed</span>
-                             <div className={`text-xs font-bold ${colors.text} flex items-center gap-1 group`}>
-                                Detail <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform"/>
-                             </div>
-                         </div>
-                      )}
-
-                      {/* Expanded Content (Hanya muncul saat diklik) */}
-                      {isActive && (
-                        <div className="mt-6 pt-4 border-t border-slate-100 animate-fadeIn">
-                            <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
-                                <span className="flex items-center gap-1"><BookOpen size={14}/> {spec.modules.length} Modul</span>
-                                <span className="flex items-center gap-1"><Users size={14}/> {spec.students} Peserta</span>
-                                <span className="flex items-center gap-1"><Clock size={14}/> ~8 Jam</span>
-                            </div>
-                            
-                            <h5 className="font-bold text-sm text-slate-700 mb-2">Materi Unggulan:</h5>
-                            <ul className="space-y-2 mb-6">
-                                {spec.modules.map((mod, idx) => (
-                                    <li key={idx} className="text-sm text-slate-600 flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                                        <div className={`w-1.5 h-1.5 rounded-full ${colors.bg.replace('bg-', 'bg-').replace('-50', '-500')}`}></div>
-                                        {mod}
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <div className="flex gap-3">
-                                <button onClick={(e) => { e.stopPropagation(); setView('course'); }} className={`flex-1 py-2.5 rounded-xl font-bold text-white text-sm shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95 ${colors.text.replace('text-', 'bg-')}`}>
-                                   <PlayCircle size={16}/> Mulai Belajar
-                                </button>
-                                <button className="px-4 py-2.5 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 text-sm hover:bg-slate-50">
-                                   Silabus
-                                </button>
-                            </div>
-                        </div>
-                      )}
+                      {/* Indikator aktif berupa titik kecil */}
+                      {isActive && <div className={`w-2 h-2 rounded-full ${colors.text.replace('text-','bg-')}`}></div>}
                    </div>
-                 </div>
+                   <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{spec.desc}</p>
+                 </button>
                );
              })}
           </div>
-      </div>
-      {/* --- END UPGRADED SECTION --- */}
 
-      <div className="tour-tabs flex items-center gap-8 border-b border-slate-200 px-2">
+          {/* Panel Detail (Muncul di bawah grid tanpa menggeser kotak lain) */}
+          {activeSpecialization && activeData && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden animate-fadeIn origin-top">
+                  {/* Garis dekoratif di atas panel sesuai warna tema */}
+                  <div className={`h-1 w-full ${activeColors.text.replace('text-','bg-')}`}></div>
+                  
+                  <div className="p-6 md:p-8 flex flex-col md:flex-row gap-8">
+                      {/* Kolom Kiri: Info Utama & Statistik */}
+                      <div className="md:w-1/3 space-y-4">
+                          <div>
+                              <h3 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                                  {activeData.title} Track
+                              </h3>
+                              <p className="text-slate-500 text-sm mt-1">{activeData.desc}</p>
+                          </div>
+                          
+                          <div className="grid grid-cols-3 gap-2">
+                              <div className={`p-3 rounded-xl ${activeColors.bg} border ${activeColors.border} text-center`}>
+                                  <div className={`font-bold text-lg ${activeColors.text}`}>{activeData.stats.modules}</div>
+                                  <div className="text-[10px] text-slate-500 uppercase font-bold">Modul</div>
+                              </div>
+                              <div className={`p-3 rounded-xl ${activeColors.bg} border ${activeColors.border} text-center`}>
+                                  <div className={`font-bold text-lg ${activeColors.text}`}>{activeData.stats.students}</div>
+                                  <div className="text-[10px] text-slate-500 uppercase font-bold">Siswa</div>
+                              </div>
+                              <div className={`p-3 rounded-xl ${activeColors.bg} border ${activeColors.border} text-center`}>
+                                  <div className={`font-bold text-lg ${activeColors.text}`}>{activeData.stats.duration}</div>
+                                  <div className="text-[10px] text-slate-500 uppercase font-bold">Durasi</div>
+                              </div>
+                          </div>
+
+                          <button onClick={() => setView('course')} className={`w-full py-3 rounded-xl font-bold text-white shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95 ${activeColors.btn}`}>
+                              <PlayCircle size={18}/> Mulai Belajar Sekarang
+                          </button>
+                      </div>
+
+                      {/* Kolom Kanan: Daftar Materi Unggulan */}
+                      <div className="md:w-2/3 bg-slate-50 rounded-xl p-5 border border-slate-100">
+                          <h4 className="font-bold text-slate-700 mb-3 text-sm flex items-center gap-2">
+                              <BookOpen size={16} className="text-slate-400"/> Materi Unggulan:
+                          </h4>
+                          <div className="grid md:grid-cols-2 gap-3">
+                              {activeData.modules.map((mod, idx) => (
+                                  <div key={idx} className="bg-white p-3 rounded-lg border border-slate-200 flex items-start gap-3 shadow-sm">
+                                      <div className={`mt-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${activeColors.bg} ${activeColors.text}`}>
+                                          {idx + 1}
+                                      </div>
+                                      <span className="text-sm text-slate-600 font-medium">{mod}</span>
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          )}
+      </div>
+
+      {/* 3. TABS (Nurture vs Acceleration) */}
+      <div className="tour-tabs flex items-center gap-8 border-b border-slate-200 px-2 mt-8">
         <button onClick={() => setActiveTab('nurture')} className={`pb-4 text-sm flex items-center gap-2 transition-all ${activeTab === 'nurture' ? 'tab-active' : 'tab-inactive'}`}>
             <Shield size={18}/> KARSA Nurture (Mandatory)
         </button>
@@ -1310,6 +1318,7 @@ const Dashboard = ({ user, setView, onToggleAccess }) => {
         )}
       </div>
 
+      {/* 4. COURSE LIST */}
       <div>
         <div className="flex justify-between items-center mb-6">
             <div>
