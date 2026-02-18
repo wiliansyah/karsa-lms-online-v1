@@ -116,7 +116,7 @@ const INITIAL_USER_DATA = {
 };
 
 // --- DATA: MULTIPLE COURSE CONTENT ---
-
+// Updated: Added 'icon' property to replace images
 const COURSE_LIBRARY = [
   {
     id: 'c1',
@@ -126,7 +126,7 @@ const COURSE_LIBRARY = [
     duration: "60 Mins",
     modulesCount: 9,
     description: "Pelajari seni komunikasi efektif, Active Listening (LASER), dan etika email untuk operasional yang lancar.",
-    image: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=300&h=200",
+    icon: MessageCircle,
     progress: 0,
     modules: [
       { id: "m0", title: "Pre-Test: Baseline Assessment", type: "pre_test", duration: "5:00", category: "Evaluation", xp: 50 },
@@ -148,7 +148,7 @@ const COURSE_LIBRARY = [
     duration: "45 Mins",
     modulesCount: 5,
     description: "Standar kebersihan, penanganan bahan baku, dan protokol keamanan pangan Kartika Sari.",
-    image: "https://images.unsplash.com/photo-1556910103-1c02745a30bf?auto=format&fit=crop&q=80&w=300&h=200",
+    icon: Shield,
     progress: 100,
     modules: [
         { id: "h1", title: "Intro to HACCP", type: "video", duration: "10:00", category: "Theory", xp: 100 },
@@ -164,7 +164,7 @@ const COURSE_LIBRARY = [
     duration: "30 Mins",
     modulesCount: 4,
     description: "Kenali varian rasa, masa simpan, dan cara handling produk Bolen legendaris kita.",
-    image: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&q=80&w=300&h=200",
+    icon: Coffee,
     progress: 0,
     modules: []
   }
@@ -396,12 +396,12 @@ const VideoLesson = ({ onComplete }) => {
                         <p className="flex items-start gap-2"><CheckCircle size={16} className="text-green-500 mt-0.5"/> <span><strong>Non-Verbal Impact:</strong> 55% komunikasi ditentukan oleh bahasa tubuh, bukan kata-kata.</span></p>
                     </div>
                     <div className="space-y-2">
-                         <p className="flex items-start gap-2"><CheckCircle size={16} className="text-green-500 mt-0.5"/> <span><strong>Listen to Understand:</strong> Bukan mendengarkan untuk menjawab.</span></p>
-                         <p className="flex items-start gap-2"><CheckCircle size={16} className="text-green-500 mt-0.5"/> <span><strong>Feedback Loop:</strong> Selalu konfirmasi pemahaman lawan bicara.</span></p>
+                          <p className="flex items-start gap-2"><CheckCircle size={16} className="text-green-500 mt-0.5"/> <span><strong>Listen to Understand:</strong> Bukan mendengarkan untuk menjawab.</span></p>
+                          <p className="flex items-start gap-2"><CheckCircle size={16} className="text-green-500 mt-0.5"/> <span><strong>Feedback Loop:</strong> Selalu konfirmasi pemahaman lawan bicara.</span></p>
                     </div>
                 </div>
                 <div className="mt-6 pt-4 border-t border-slate-100 flex justify-end">
-                     <button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap">Saya Sudah Menonton <CheckCircle size={18}/></button>
+                      <button onClick={onComplete} className="btn-primary px-8 py-3 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap">Saya Sudah Menonton <CheckCircle size={18}/></button>
                 </div>
             </div>
         </div>
@@ -719,7 +719,6 @@ const ActionPlanLesson = ({ onComplete }) => (
 
 // --- 3. MAIN VIEW COMPONENTS ---
 
-// ... (TrainingRequestView code remains EXACTLY as before - omitted for brevity but assumed present in final copy) ...
 const TrainingRequestView = ({ onStartGuide }) => {
     const [activeTab, setActiveTab] = useState('form');
     const [requests, setRequests] = useState(MOCK_TRAINING_REQUESTS);
@@ -852,29 +851,38 @@ const TrainingRequestView = ({ onStartGuide }) => {
 };
 
 // --- NEW COMPONENT: COURSE LIBRARY VIEW ---
+// UPDATED: Removed Images, Added Icons, Enforced Lock Logic
 const CourseLibraryView = ({ onSelectCourse }) => {
     return (
         <div className="space-y-6 animate-fadeIn pb-8">
-            <div className="grid md:grid-cols-2 gap-6">
-                {COURSE_LIBRARY.map((course) => (
-                    <div key={course.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all group flex flex-col">
-                        <div className="h-40 overflow-hidden relative">
-                            <img src={course.image} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
-                            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-slate-800 border border-slate-200 shadow-sm flex items-center gap-1">
-                                <Award size={12} className="text-[#D12027]"/> {course.category}
-                            </div>
-                        </div>
-                        <div className="p-6 flex-1 flex flex-col">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-lg text-slate-800 leading-tight">{course.title}</h3>
-                            </div>
-                            <p className="text-sm text-slate-500 mb-4 line-clamp-2">{course.description}</p>
-                            
-                            <div className="grid grid-cols-3 gap-2 mb-6">
-                                <div className="bg-slate-50 p-2 rounded-lg text-center">
-                                    <div className="text-[10px] text-slate-400 uppercase font-bold">Level</div>
-                                    <div className="font-bold text-slate-700 text-xs">{course.level}</div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {COURSE_LIBRARY.map((course) => {
+                    // Specific Logic: Only course 'c1' (Communication) is unlocked. Others are locked.
+                    const isLocked = course.id !== 'c1';
+
+                    return (
+                        <div key={course.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all group flex flex-col p-6">
+                           {/* Icon Header Section */}
+                           <div className="flex items-center gap-4 mb-4">
+                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isLocked ? 'bg-slate-100 text-slate-400' : 'bg-red-50 text-[#D12027]'}`}>
+                                    <course.icon size={32} />
                                 </div>
+                                <div>
+                                     <div className="flex items-center gap-2 mb-1">
+                                        <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1">
+                                            <Award size={10}/> {course.category}
+                                        </span>
+                                        <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                                            {course.level}
+                                        </span>
+                                     </div>
+                                     <h3 className={`font-bold text-lg leading-tight ${isLocked ? 'text-slate-400' : 'text-slate-800'}`}>{course.title}</h3>
+                                </div>
+                           </div>
+
+                            <p className="text-sm text-slate-500 mb-6 line-clamp-2">{course.description}</p>
+                            
+                            <div className="grid grid-cols-2 gap-2 mb-6">
                                 <div className="bg-slate-50 p-2 rounded-lg text-center">
                                     <div className="text-[10px] text-slate-400 uppercase font-bold">Duration</div>
                                     <div className="font-bold text-slate-700 text-xs">{course.duration}</div>
@@ -888,15 +896,15 @@ const CourseLibraryView = ({ onSelectCourse }) => {
                             <div className="mt-auto">
                                 <button 
                                     onClick={() => onSelectCourse(course)}
-                                    className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${course.modules.length > 0 ? 'bg-[#D12027] text-white hover:bg-[#b01b21]' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
-                                    disabled={course.modules.length === 0}
+                                    className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${!isLocked ? 'bg-[#D12027] text-white hover:bg-[#b01b21]' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
+                                    disabled={isLocked}
                                 >
-                                    {course.modules.length > 0 ? <><PlayCircle size={18}/> Mulai Belajar</> : <><Lock size={18}/> Coming Soon</>}
+                                    {!isLocked ? <><PlayCircle size={18}/> Mulai Belajar</> : <><Lock size={18}/> Locked</>}
                                 </button>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
@@ -1032,8 +1040,7 @@ const TrainingCenter = ({ user, updateUser, onBack, onStartGuide }) => {
     );
 };
 
-// ... (SquadFeed, SuggestionSystem, LeaderboardView, Dashboard components remain EXACTLY as before - omitted for brevity but assumed present in final copy) ...
-// --- UPGRADED SQUAD FEED COMPONENT ---
+// --- SQUAD FEED COMPONENT ---
 
 const SquadFeed = ({ user = INITIAL_USER_DATA }) => {
     const [posts, setPosts] = useState(INITIAL_SQUAD_POSTS);
